@@ -1,4 +1,5 @@
 package Item;
+import Base.Entity;
 
 
 public abstract class Item extends Entity {

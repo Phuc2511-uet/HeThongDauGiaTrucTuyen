@@ -1,4 +1,5 @@
 package User;
+import Base.Entity;
 
 public abstract class User extends Entity {
     protected String name;
