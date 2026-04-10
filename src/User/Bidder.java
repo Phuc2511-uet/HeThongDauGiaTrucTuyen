@@ -1,17 +1,17 @@
 package User;
 
 public class Bidder extends User{
-    private int balance;
-    public Bidder(String id, String name, String username, String password, String fullName, String role,int balance) {
-        super(id, name, username, password, fullName, role);
+    private double balance;
+    public Bidder(String id, String name, String username, String password, String fullName,double balance) {
+        super(id, name, username, password, fullName);
         this.balance = balance;
     }
 
-    public int getBalance() {
+    public double getBalance() {
         return balance;
     }
 
-    public void setBalance(int balance) {
+    public void setBalance(double balance) {
         this.balance = balance;
     }
 }
