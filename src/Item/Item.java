@@ -1,6 +1,7 @@
 package Item;
 import Base.Entity;
 
+
 public abstract class Item extends Entity {
     protected String name;
     protected double price;
@@ -10,4 +11,5 @@ public abstract class Item extends Entity {
         this.name = name;
         this.price = price;
     }
+    public abstract void display();
 }
