@@ -1,16 +1,16 @@
 package Base;
-
 public abstract class Entity {
     protected String id;
-    //constructor
-    public Entity(String id){
+
+    public Entity(String id) {
         this.id = id;
     }
-    //getter and setter
-    public String getId(){
-        return id;
+
+    public String getId() {
+        return this.id;
     }
-    public void setId(String id){
+
+    public void setId(String id) {
         this.id = id;
     }
 }
