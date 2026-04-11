@@ -11,4 +11,5 @@ public abstract class Item extends Entity {
         this.name = name;
         this.price = price;
     }
+    public abstract void display();
 }
