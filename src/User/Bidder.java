@@ -7,7 +7,12 @@ public class Bidder extends User{
         this.balance = balance;
     }
 
-    public double getBalance() {
+    @Override
+    public void displayInfo() {
+        System.out.println("[Bidder] Name: " + getFullName() + " | Balance: " + balance);
+    }
+
+    public int getBalance() {
         return balance;
     }
 

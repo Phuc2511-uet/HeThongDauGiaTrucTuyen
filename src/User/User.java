@@ -1,12 +1,13 @@
 package User;
 import Base.Entity;
+import java.io.Serializable;
 
-
-public abstract class User extends Entity {
-    protected String name;
-    protected String username;
-    protected String password;
-    protected String fullName;
+public abstract class User extends Entity implements Serializable {
+    private String name;
+    private String username;
+    private String password;
+    private String fullName;
+    private String role;
 
 
     public User(String id, String name, String username, String password, String fullName) {
@@ -17,4 +18,18 @@ public abstract class User extends Entity {
         this.fullName = fullName;
 
     }
+
+    public String getUsername() {
+        return username;
+    }
+
+    public String getFullName() {
+        return fullName;
+    }
+
+    public String getRole() {
+        return role;
+    }
+
+    public abstract void displayInfo();
 }
