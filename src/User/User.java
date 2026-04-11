@@ -9,13 +9,14 @@ public abstract class User extends Entity implements Serializable {
     private String fullName;
     private String role;
 
-    public User(String id, String name, String username, String password, String fullName, String role) {
+
+    public User(String id, String name, String username, String password, String fullName) {
         super(id);
         this.name = name;
         this.username = username;
         this.password = password;
         this.fullName = fullName;
-        this.role = role;
+
     }
 
     public String getUsername() {
