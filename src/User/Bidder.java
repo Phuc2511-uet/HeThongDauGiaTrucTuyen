@@ -12,7 +12,7 @@ public class Bidder extends User{
         System.out.println("[Bidder] Name: " + getFullName() + " | Balance: " + balance);
     }
 
-    public int getBalance() {
+    public double getBalance() {
         return balance;
     }
 
