@@ -1,8 +1,9 @@
 package User;
 import Base.Entity;
 import java.io.Serializable;
+import Observer.Observer;
 
-public abstract class User extends Entity implements Serializable {
+public abstract class User extends Entity implements Serializable,Observer {
     private String name;
     private String username;
     private String password;
@@ -32,4 +33,9 @@ public abstract class User extends Entity implements Serializable {
     }
 
     public abstract void displayInfo();
+
+    @Override
+    public void update(String message){
+        System.out.println("Thông báo tới " + getFullName() + ": " + message);
+    }
 }
