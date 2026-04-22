@@ -1,36 +1,183 @@
 package Auction;
+
 import Item.*;
 import User.*;
 
+import java.util.concurrent.*;
+import java.util.concurrent.locks.ReentrantLock;
+
 public class Auction {
+
+    enum Status {
+        OPEN,
+        RUNNING,
+        FINISH,
+        PAID,
+        CANCELED
+    }
+
+    private Status currentStatus;
+
     private int id;
-    Item bidItem;
+    private Item bidItem;
     private Seller seller;
 
-    public void setId(int id) {
-        this.id = id;
-    }
+    private double currentPrice;
+    private Bidder currentBidder;
 
-    public void setSeller(Seller seller) {
-        this.seller = seller;
-    }
+    // ===== TIME =====
+    private long startTime;
+    private long endTime;
 
-    public Seller getSeller() {
-        return seller;
-    }
+    private static final long DURATION = 60 * 60 * 1000; // 1 giờ
+    private static final long EXTEND_TIME = 60 * 1000;   // +1 phút
 
-    public int getId() {
-        return id;
-    }
+    // ===== SCHEDULER =====
+    private static final ScheduledExecutorService scheduler =
+            Executors.newScheduledThreadPool(1);
 
-    double currentPrice;
-    Bidder currentBidder;
+    private ScheduledFuture<?> finishTask;
 
-    public Auction(int id, Item bidItem, Seller seller, double currentPrice, Bidder currentBidder) {
+    // ===== LOCK =====
+    private final ReentrantLock lock = new ReentrantLock();
+
+    // ===== CONSTRUCTOR =====
+    public Auction(int id, Item bidItem, Seller seller, double startPrice) {
         this.id = id;
         this.bidItem = bidItem;
         this.seller = seller;
-        this.currentPrice = currentPrice;
-        this.currentBidder = currentBidder;
+        this.currentPrice = startPrice;
+        this.currentStatus = Status.OPEN;
+    }
+
+    // ===== STATE MACHINE =====
+    private boolean canTransitionTo(Status next) {
+        switch (currentStatus) {
+            case OPEN:
+                return next == Status.RUNNING || next == Status.CANCELED;
+            case RUNNING:
+                return next == Status.FINISH || next == Status.CANCELED;
+            case FINISH:
+                return next == Status.PAID;
+            default:
+                return false;
+        }
+    }
+
+    private void transitionTo(Status next) {
+        if (!canTransitionTo(next)) {
+            throw new IllegalStateException("Invalid transition");
+        }
+        currentStatus = next;
+    }
+
+    // ===== START AUCTION =====
+    private void startAuction() {
+        long now = System.currentTimeMillis();
+
+        startTime = now;
+        endTime = now + DURATION;
+
+        transitionTo(Status.RUNNING);
+
+        scheduleFinish();
+    }
+
+    // ===== SCHEDULE FINISH =====
+    private void scheduleFinish() {
+        long delay = Math.max(0, endTime - System.currentTimeMillis());
+
+        finishTask = scheduler.schedule(() -> {
+            lock.lock();
+            try {
+                if (currentStatus == Status.RUNNING) {
+                    transitionTo(Status.FINISH);
+                    System.out.println("Auction auto finished");
+                }
+            } finally {
+                lock.unlock();
+            }
+        }, delay, TimeUnit.MILLISECONDS);
+    }
+
+    // ===== EXTEND TIME =====
+    private void extendAuction() {
+        endTime += EXTEND_TIME;
+
+        if (finishTask != null) {
+            finishTask.cancel(false);
+        }
+
+        scheduleFinish();
+    }
+
+    // ===== BID =====
+    public void newPrice(double newPrice, Bidder bidder) {
+
+        lock.lock();
+        try {
+
+            // ===== BID ĐẦU =====
+            if (currentStatus == Status.OPEN) {
+
+                if (newPrice <= currentPrice) {
+                    throw new IllegalArgumentException("Must be higher than start price");
+                }
+
+                currentPrice = newPrice;
+                currentBidder = bidder;
+
+                startAuction();
+                return;
+            }
+
+            // ===== CHECK STATUS =====
+            if (currentStatus != Status.RUNNING) {
+                throw new IllegalStateException("Auction not running");
+            }
+
+            // ===== VALIDATE =====
+            if (newPrice <= currentPrice) {
+                throw new IllegalArgumentException("Must be higher");
+            }
+
+            if (newPrice - currentPrice < 100) {
+                throw new IllegalArgumentException("Min increment 100");
+            }
+
+            // ===== UPDATE =====
+            currentPrice = newPrice;
+            currentBidder = bidder;
+
+            // ===== EXTEND =====
+            extendAuction();
+
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    // ===== MANUAL ACTIONS =====
+    public void cancel() {
+        lock.lock();
+        try {
+            transitionTo(Status.CANCELED);
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    public void pay() {
+        lock.lock();
+        try {
+            transitionTo(Status.PAID);
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    // ===== HELPER =====
+    public long getRemainingTime() {
+        return Math.max(0, endTime - System.currentTimeMillis());
     }
 }
