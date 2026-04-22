@@ -1,7 +1,12 @@
 package AuctionManager;
 import java.util.ArrayList;
 
+import Auction.Auction;
 import Auction.BidTransaction;
+import Item.Item;
+import User.Bidder;
+import User.Seller;
+
 
 public class AuctionManager {
     private ArrayList<BidTransaction> history = new ArrayList<>();
@@ -25,6 +30,10 @@ public class AuctionManager {
 
             return Manager;
         }
+    }
+    public void placeBid(int id, Item bidItem, Seller seller, double currentPrice){
+        Auction a = new Auction(id, bidItem, seller,currentPrice);
+
     }
 
 }
