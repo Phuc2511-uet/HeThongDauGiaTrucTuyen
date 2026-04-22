@@ -4,6 +4,7 @@ public class Admin extends User {
 
     public Admin(String id, String name, String username, String password, String fullName, String role) {
         super(id, name, username, password, fullName, role);
+        super(id, name, username, password, fullName);
     }
 
     @Override
