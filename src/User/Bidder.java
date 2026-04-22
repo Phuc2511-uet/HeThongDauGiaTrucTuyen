@@ -13,7 +13,6 @@ public class Bidder extends User{
     }
 
     public int getBalance() {
-    public double getBalance() {
         return balance;
     }
 

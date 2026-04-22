@@ -8,8 +8,6 @@ public class Seller extends User {
 
     public Seller(String id, String name, String username, String password, String fullName, String role, double rating) {
         super(id, name, username, password, fullName, role);
-    public Seller(String id, String name, String username, String password, String fullName, double rating) {
-        super(id, name, username, password, fullName);
         this.rating = rating;
     }
 
