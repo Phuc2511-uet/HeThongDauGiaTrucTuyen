@@ -1,8 +1,11 @@
 package Auction;
 
 import Item.*;
+import Observer.Observer;
 import User.*;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.*;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -18,12 +21,38 @@ public class Auction {
 
     private Status currentStatus;
 
+    private List<Observer> observers = new ArrayList<>();
     private int id;
     private Item bidItem;
     private Seller seller;
 
     private double currentPrice;
     private Bidder currentBidder;
+
+    //thêm Observer
+    public synchronized void addObserver(Observer observer) {
+        observers.add(observer);
+    }
+    //xóa Observer
+    public void removeObserver(Observer observer) {
+        observers.remove(observer);
+    }
+
+    //Thông báo cho tất cả Observer trong list
+    public synchronized void notifyObservers(String message) {
+        for (Observer observer : observers) {
+            observer.update(message);
+        }
+    }
+
+    // đặt giá mới
+    public void placeBid(double newPrice, Bidder bidder) {
+        if (newPrice > currentPrice) {
+            this.currentPrice = newPrice;
+            this.currentBidder = bidder;
+            notifyObservers("Giá mới cho sản phẩm " + bidItem.getId() + " là: " + newPrice);
+        }
+    }
 
     // ===== TIME =====
     private long startTime;
