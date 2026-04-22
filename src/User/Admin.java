@@ -2,8 +2,7 @@ package User;
 
 public class Admin extends User {
 
-    public Admin(String id, String name, String username, String password, String fullName, String role) {
-        super(id, name, username, password, fullName, role);
+    public Admin(String id, String name, String username, String password, String fullName) {
         super(id, name, username, password, fullName);
     }
 
