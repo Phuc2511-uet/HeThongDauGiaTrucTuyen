@@ -12,11 +12,7 @@ public class Bidder extends User{
         System.out.println("[Bidder] Name: " + getFullName() + " | Balance: " + balance);
     }
 
-<<<<<<< Updated upstream
-    public int getBalance() {
-=======
     public double getBalance() {
->>>>>>> Stashed changes
         return balance;
     }
 
