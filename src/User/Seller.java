@@ -7,7 +7,7 @@ public class Seller extends User {
     private double rating; // Đánh giá của người bán (ví dụ: 4.5/5.0)
 
     public Seller(String id, String name, String username, String password, String fullName, String role, double rating) {
-        super(id, name, username, password, fullName, role);
+        super(id, name, username, password, fullName);
         this.rating = rating;
     }
 
