@@ -25,7 +25,7 @@ public class Auction {
     private int id;
     private Item bidItem;
     private Seller seller;
-
+    private final List<BidTransaction> bidHistory = new ArrayList<>();
     private double currentPrice;
     private Bidder currentBidder;
 
@@ -140,7 +140,6 @@ public class Auction {
         scheduleFinish();
     }
 
-    // ===== BID =====
     public void newPrice(double newPrice, Bidder bidder) {
 
         lock.lock();
@@ -155,6 +154,9 @@ public class Auction {
 
                 currentPrice = newPrice;
                 currentBidder = bidder;
+
+                // 👉 ADD HISTORY
+                bidHistory.add(new BidTransaction(bidItem, bidder, newPrice));
 
                 startAuction();
                 return;
@@ -177,6 +179,9 @@ public class Auction {
             // ===== UPDATE =====
             currentPrice = newPrice;
             currentBidder = bidder;
+
+            // 👉 ADD HISTORY (QUAN TRỌNG: sau khi update thành công)
+            bidHistory.add(new BidTransaction(bidItem, bidder, newPrice));
 
             // ===== EXTEND =====
             extendAuction();
