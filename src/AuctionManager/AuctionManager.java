@@ -9,16 +9,11 @@ import User.Seller;
 
 
 public class AuctionManager {
-    private ArrayList<BidTransaction> history = new ArrayList<>();
+
+
     private static AuctionManager Manager;
 
 
-    public ArrayList<BidTransaction> getHistory() {
-        return history;
-    }
-    public void addBidHistory(BidTransaction n){
-        history.add(n);
-    }
 
 
     private AuctionManager(){}
@@ -31,7 +26,7 @@ public class AuctionManager {
             return Manager;
         }
     }
-    public void placeBid(int id, Item bidItem, Seller seller, double currentPrice){
+    public void newAuction(int id, Item bidItem, Seller seller, double currentPrice){
         Auction a = new Auction(id, bidItem, seller,currentPrice);
 
     }
