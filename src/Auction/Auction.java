@@ -29,28 +29,38 @@ public class Auction {
     private double currentPrice;
     private Bidder currentBidder;
 
-    //thêm Observer
-    public synchronized void addObserver(Observer observer) {
-        observers.add(observer);
-    }
-    //xóa Observer
-    public void removeObserver(Observer observer) {
-        observers.remove(observer);
-    }
+    private final ReentrantLock lock = new ReentrantLock();
 
-    //Thông báo cho tất cả Observer trong list
-    public synchronized void notifyObservers(String message) {
-        for (Observer observer : observers) {
-            observer.update(message);
+    // ===== OBSERVER =====
+    public void addObserver(Observer observer) {
+        lock.lock();
+        try {
+            observers.add(observer);
+        } finally {
+            lock.unlock();
         }
     }
 
-    // đặt giá mới
-    public void placeBid(double newPrice, Bidder bidder) {
-        if (newPrice > currentPrice) {
-            this.currentPrice = newPrice;
-            this.currentBidder = bidder;
-            notifyObservers("Giá mới cho sản phẩm " + bidItem.getId() + " là: " + newPrice);
+    public void removeObserver(Observer observer) {
+        lock.lock();
+        try {
+            observers.remove(observer);
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    public void notifyObservers(String message) {
+        List<Observer> targets;
+        lock.lock();
+        try {
+            targets = new ArrayList<>(this.observers);
+        } finally {
+            lock.unlock();
+        }
+
+        for (Observer obs : targets) {
+            obs.update(message);
         }
     }
 
@@ -58,17 +68,14 @@ public class Auction {
     private long startTime;
     private long endTime;
 
-    private static final long DURATION = 60 * 60 * 1000; // 1 giờ
-    private static final long EXTEND_TIME = 60 * 1000;   // +1 phút
+    private static final long DURATION = 60 * 60 * 1000;
+    private static final long EXTEND_TIME = 60 * 1000;
 
-    // ===== SCHEDULER =====
-    private static final ScheduledExecutorService scheduler =
-            Executors.newScheduledThreadPool(1);
+    // ===== FIX #2: scheduler không còn static =====
+    private final ScheduledExecutorService scheduler =
+            Executors.newSingleThreadScheduledExecutor();
 
     private ScheduledFuture<?> finishTask;
-
-    // ===== LOCK =====
-    private final ReentrantLock lock = new ReentrantLock();
 
     // ===== CONSTRUCTOR =====
     public Auction(int id, Item bidItem, Seller seller, double startPrice) {
@@ -100,7 +107,6 @@ public class Auction {
         currentStatus = next;
     }
 
-    // ===== START AUCTION =====
     private void startAuction() {
         long now = System.currentTimeMillis();
 
@@ -112,7 +118,6 @@ public class Auction {
         scheduleFinish();
     }
 
-    // ===== SCHEDULE FINISH =====
     private void scheduleFinish() {
         long delay = Math.max(0, endTime - System.currentTimeMillis());
 
@@ -129,7 +134,6 @@ public class Auction {
         }, delay, TimeUnit.MILLISECONDS);
     }
 
-    // ===== EXTEND TIME =====
     private void extendAuction() {
         endTime += EXTEND_TIME;
 
@@ -139,13 +143,14 @@ public class Auction {
 
         scheduleFinish();
     }
+    public void placeBid(double newPrice, Bidder bidder) {
 
-    public void newPrice(double newPrice, Bidder bidder) {
+        String message = null;
+        boolean shouldAddObserver = false;
 
         lock.lock();
         try {
 
-            // ===== BID ĐẦU =====
             if (currentStatus == Status.OPEN) {
 
                 if (newPrice <= currentPrice) {
@@ -155,19 +160,22 @@ public class Auction {
                 currentPrice = newPrice;
                 currentBidder = bidder;
 
-                // 👉 ADD HISTORY
                 bidHistory.add(new BidTransaction(bidItem, bidder, newPrice));
 
                 startAuction();
+
+                // 👉 đánh dấu cần add observer
+                if (!observers.contains(bidder)) {
+                    shouldAddObserver = true;
+                }
+
                 return;
             }
 
-            // ===== CHECK STATUS =====
             if (currentStatus != Status.RUNNING) {
                 throw new IllegalStateException("Auction not running");
             }
 
-            // ===== VALIDATE =====
             if (newPrice <= currentPrice) {
                 throw new IllegalArgumentException("Must be higher");
             }
@@ -176,22 +184,35 @@ public class Auction {
                 throw new IllegalArgumentException("Min increment 100");
             }
 
-            // ===== UPDATE =====
             currentPrice = newPrice;
             currentBidder = bidder;
 
-            // 👉 ADD HISTORY (QUAN TRỌNG: sau khi update thành công)
             bidHistory.add(new BidTransaction(bidItem, bidder, newPrice));
 
-            // ===== EXTEND =====
             extendAuction();
+
+            message = "Giá mới cho sản phẩm " + bidItem.getId() + " là: " + newPrice;
+
+            // 👉 đánh dấu cần add observer
+            if (!observers.contains(bidder)) {
+                shouldAddObserver = true;
+            }
 
         } finally {
             lock.unlock();
         }
+
+        // 👉 xử lý ngoài lock (QUAN TRỌNG)
+        if (shouldAddObserver) {
+            addObserver(bidder);
+        }
+
+        if (message != null) {
+            notifyObservers(message);
+        }
     }
 
-    // ===== MANUAL ACTIONS =====
+
     public void cancel() {
         lock.lock();
         try {
@@ -210,7 +231,6 @@ public class Auction {
         }
     }
 
-    // ===== HELPER =====
     public long getRemainingTime() {
         return Math.max(0, endTime - System.currentTimeMillis());
     }
