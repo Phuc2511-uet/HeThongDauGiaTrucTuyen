@@ -1,5 +1,7 @@
 package User;
 
+import exceptions.InsufficientBalanceException;
+
 public class Bidder extends User{
     private double balance;
     public Bidder(String id, String name, String username, String password, String fullName,double balance) {
@@ -18,5 +20,11 @@ public class Bidder extends User{
 
     public void setBalance(double balance) {
         this.balance = balance;
+    }
+
+    public void checkBalance(int amount) throws InsufficientBalanceException {
+        if (this.balance < amount) {
+            throw new InsufficientBalanceException("Tài khoản không đủ số dư để thực hiện đặt giá này!");
+        }
     }
 }
