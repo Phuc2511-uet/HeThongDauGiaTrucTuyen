@@ -2,6 +2,7 @@ package User;
 import Base.Entity;
 import java.io.Serializable;
 import Observer.Observer;
+import exceptions.AuthenticationException;
 
 public abstract class User extends Entity implements Serializable,Observer {
     private String name;
@@ -37,5 +38,13 @@ public abstract class User extends Entity implements Serializable,Observer {
     @Override
     public void update(String message){
         System.out.println("Thông báo tới " + getFullName() + ": " + message);
+    }
+
+    public void login(String inputPassword) throws AuthenticationException {
+        if (!this.password.equals(inputPassword)) {
+            // Ném ngoại lệ nếu sai mật khẩu
+            throw new AuthenticationException("Mật khẩu không chính xác cho tài khoản: " + this.username);
+        }
+        System.out.println("Đăng nhập thành công!");
     }
 }
