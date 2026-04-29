@@ -22,7 +22,7 @@ public class Bidder extends User{
         this.balance = balance;
     }
 
-    public void checkBalance(int amount) throws InsufficientBalanceException {
+    public void checkBalance(double amount) throws InsufficientBalanceException {
         if (this.balance < amount) {
             throw new InsufficientBalanceException("Tài khoản không đủ số dư để thực hiện đặt giá này!");
         }
