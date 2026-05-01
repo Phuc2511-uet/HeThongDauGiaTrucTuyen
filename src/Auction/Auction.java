@@ -143,6 +143,11 @@ public class Auction {
 
         scheduleFinish();
     }
+
+    public double getCurrentPrice() {
+        return currentPrice;
+    }
+
     public void placeBid(double newPrice, Bidder bidder) {
 
         String message = null;
