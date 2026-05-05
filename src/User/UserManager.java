@@ -34,6 +34,14 @@ public class UserManager implements Serializable {
         }
         throw new AuthenticationException("Tài khoản không tồn tại!");
     }
+    public User getById(String id){
+        for (User u : users){
+            if (u.getId().equals(id)){
+                return u;
+            }
+        }
+        return null;
+    }
 
     public List<User> getUsers() {
         return users;
