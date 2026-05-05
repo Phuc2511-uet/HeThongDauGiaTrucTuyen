@@ -31,6 +31,10 @@ public class Auction {
 
     private final ReentrantLock lock = new ReentrantLock();
 
+    public int getId() {
+        return id;
+    }
+
     // ===== OBSERVER =====
     public void addObserver(Observer observer) {
         lock.lock();
@@ -164,7 +168,7 @@ public class Auction {
 
                 startAuction();
 
-                // 👉 đánh dấu cần add observer
+                //  đánh dấu cần add observer
                 if (!observers.contains(bidder)) {
                     shouldAddObserver = true;
                 }
@@ -193,7 +197,7 @@ public class Auction {
 
             message = "Giá mới cho sản phẩm " + bidItem.getId() + " là: " + newPrice;
 
-            // 👉 đánh dấu cần add observer
+            //  đánh dấu cần add observer
             if (!observers.contains(bidder)) {
                 shouldAddObserver = true;
             }
@@ -202,7 +206,7 @@ public class Auction {
             lock.unlock();
         }
 
-        // 👉 xử lý ngoài lock (QUAN TRỌNG)
+        //  xử lý ngoài lock
         if (shouldAddObserver) {
             addObserver(bidder);
         }

@@ -5,16 +5,16 @@ import Observer.Observer;
 import exceptions.AuthenticationException;
 
 public abstract class User extends Entity implements Serializable,Observer {
-    private String name;
+
     private String username;
     private String password;
     private String fullName;
-    private String role;
 
 
-    public User(String id, String name, String username, String password, String fullName) {
+
+    public User(String id,  String username, String password, String fullName) {
         super(id);
-        this.name = name;
+
         this.username = username;
         this.password = password;
         this.fullName = fullName;
@@ -29,9 +29,7 @@ public abstract class User extends Entity implements Serializable,Observer {
         return fullName;
     }
 
-    public String getRole() {
-        return role;
-    }
+
 
     public abstract void displayInfo();
 
