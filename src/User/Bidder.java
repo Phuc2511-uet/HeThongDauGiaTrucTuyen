@@ -28,4 +28,13 @@ public class Bidder extends User{
             throw new InsufficientBalanceException("Tài khoản không đủ số dư để thực hiện đặt giá này!");
         }
     }
+
+    @Override
+    public void update(String message) {
+        Platform.runLater(() -> {
+            // Cập nhật giao diện ở đây
+            txtNotification.appendText(message + "\n");
+            lblCurrentPrice.setText(extractPrice(message));
+        });
+    }
 }
