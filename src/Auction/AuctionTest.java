@@ -20,7 +20,7 @@ public class AuctionTest {
     void setUp() {
         // Khởi tạo dữ liệu giả lập trước mỗi test
         item = new Art("I01", "Bức tranh", 1000.0);
-        seller = new Seller("S01", "Nguyen Van A", "sellera", "123", 5.0);
+        seller = new Seller("S01", "sellera", "123","Nguyen Van A");
         bidder1 = new Bidder("B01", "Tran Van B", "bidderb", "123", 5000.0);
         bidder2 = new Bidder("B02", "Le Thi C", "bidderc", "123", 5000.0);
 
