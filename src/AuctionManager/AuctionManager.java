@@ -1,9 +1,10 @@
 package AuctionManager;
 
 import Auction.Auction;
-import Item.Item;
+import Item.*;
 import User.Bidder;
 import User.Seller;
+
 
 import java.util.ArrayList;
 import java.util.List;
@@ -30,11 +31,21 @@ public class AuctionManager {
     }
 
 
-    public void newAuction(int id, Item bidItem, Seller seller, double startPrice){
+    public void newAuction(int itemId, Seller seller, double startPrice) {
         lock.lock();
         try {
-            Auction a = new Auction(id, bidItem, seller, startPrice);
+            // lấy item từ ItemManager
+            Item item = ItemManager.getInstance().getById(itemId);
+
+            if (item == null) {
+                throw new IllegalArgumentException("Item không tồn tại");
+            }
+
+            // tạo auction (id đã tự sinh bên trong)
+            Auction a = new Auction(item, seller, startPrice);
+
             auctions.add(a);
+
         } finally {
             lock.unlock();
         }
@@ -57,10 +68,17 @@ public class AuctionManager {
     }
 
     // ===== LẤY DANH SÁCH =====
-    public List<Auction> getAuctions(){
+    public String getAuction() {
         lock.lock();
         try {
-            return new ArrayList<>(auctions); // tránh lộ reference
+            StringBuilder sb = new StringBuilder("LIST_AUCTION");
+
+            for (Auction a : auctions) {
+                sb.append(" ").append(a.getId());
+            }
+
+            return sb.toString();
+
         } finally {
             lock.unlock();
         }

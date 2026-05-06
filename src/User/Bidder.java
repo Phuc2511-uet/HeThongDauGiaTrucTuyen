@@ -4,9 +4,9 @@ import exceptions.InsufficientBalanceException;
 
 public class Bidder extends User{
     private double balance;
-    public Bidder(String id, String username, String password, String fullName,double balance) {
-        super(id, username, password, fullName);
-        this.balance = balance;
+    public Bidder(String username, String password, String fullName) {
+        super( username, password, fullName);
+        this.balance = 0;
     }
 
 
