@@ -46,4 +46,8 @@ public class UserManager implements Serializable {
     public List<User> getUsers() {
         return users;
     }
+
+    public static void setInstance(UserManager loadedInstance) {
+        instance = loadedInstance;
+    }
 }
