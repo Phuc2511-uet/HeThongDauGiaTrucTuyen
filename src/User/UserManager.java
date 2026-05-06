@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class UserManager implements Serializable {
+
     private static UserManager instance;
     private List<User> users;
 
@@ -20,11 +21,13 @@ public class UserManager implements Serializable {
         return instance;
     }
 
-    public void addUser(User user) {
+    // ===== THÊM USER =====
+    public boolean addUser(User user) {
         users.add(user);
+        return true;
     }
 
-    // logic tìm kiếm người dùng để đăng nhập
+    // ===== LOGIN =====
     public User authenticate(String username, String password) throws AuthenticationException {
         for (User u : users) {
             if (u.getUsername().equals(username)) {
@@ -34,9 +37,11 @@ public class UserManager implements Serializable {
         }
         throw new AuthenticationException("Tài khoản không tồn tại!");
     }
-    public User getById(String id){
-        for (User u : users){
-            if (u.getId().equals(id)){
+
+    // ===== LẤY THEO ID (int) =====
+    public User getById(int id) {
+        for (User u : users) {
+            if (u.getId() == id) {
                 return u;
             }
         }

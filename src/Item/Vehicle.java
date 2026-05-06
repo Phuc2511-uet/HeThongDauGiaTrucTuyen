@@ -1,10 +1,10 @@
 package Item;
-import Base.Entity;
+
 
 public class Vehicle extends Item {
-    public Vehicle(String id, String name, double price) {
+    public Vehicle( String name, double price) {
 
-        super(id, name, price);
+        super( name, price);
     }
     @Override
     public void display() {
