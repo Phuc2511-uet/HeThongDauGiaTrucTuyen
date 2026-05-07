@@ -47,30 +47,40 @@ public class Sever {
                 String[] parts = message.split(" ");
                 String action = parts[0];
 
-                // ===== LOGIN =====
-                if (action.equals("LOGIN")) {
+                // 1. XỬ LÝ ĐĂNG KÝ (Cho phép thực hiện khi chưa login)
+                if (action.equals("NEW_ACCOUNT")) {
                     try {
                         String username = parts[1];
                         String password = parts[2];
+                        String role = parts[3];
+                        String fullname = parts[4];
 
-                        currentUser = UserManager.getInstance()
-                                .authenticate(username, password);
+                        User newUser = new Bidder(username, password, fullname);
+                        boolean isAdded = UserManager.getInstance().addUser(newUser);
 
-                        out.println("LOGIN_SUCCESS");
-
+                        out.println(isAdded ? "ACCOUNT_SUCCESS" : "ACCOUNT_FAILED");
                     } catch (Exception e) {
-                        out.println("LOGIN_FAIL");
+                        out.println("ACCOUNT_FAILED");
                     }
-
-                    continue; //  không đi xuống dưới
+                    continue;
                 }
 
-                // ===== CHƯA LOGIN =====
+                // 2. XỬ LÝ LOGIN
+                if (action.equals("LOGIN")) {
+                    try {
+                        currentUser = UserManager.getInstance().authenticate(parts[1], parts[2]);
+                        out.println("LOGIN_SUCCESS");
+                    } catch (Exception e) {
+                        out.println("LOGIN_FAILED");
+                    }
+                    continue;
+                }
+
+                // 3. CHẶN CÁC LỆNH KHÁC NẾU CHƯA LOGIN
                 if (currentUser == null) {
                     out.println("ERROR Not logged in");
                     continue;
                 }
-
                 // ===== XỬ LÝ REQUEST KHÁC =====
                 String response = handle.handleIfo(message, currentUser);
 

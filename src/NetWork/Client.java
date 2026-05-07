@@ -112,11 +112,13 @@ public class Client {
 
     // ===== GỬI DỮ LIỆU =====
     private void send(String message) {
-        if (socket != null && socket.isConnected() && !socket.isClosed()) {
-            out.println(message);
-            out.println("SEND >> " + message);
+        if (socket != null && out != null && !socket.isClosed()) {
+            out.println(message); // CHỈ gửi dòng này lên Server
+
+            // Dòng này để bạn theo dõi ở Console của mình, KHÔNG gửi lên Server
+            System.out.println("CLIENT LOG: Sent to server -> " + message);
         } else {
-            out.println("Chưa kết nối server!");
+            System.err.println("Chưa kết nối server!");
         }
     }
 
@@ -174,5 +176,13 @@ public class Client {
         }
 
         // sau này  thay bằng update GUI
+    }
+    //ngăn không cho soket tạo mới khi chuyển màn hình
+    private static Client instance;
+    public static Client getInstance() {
+        if (instance == null) {
+            instance = new Client();
+        }
+        return instance;
     }
 }

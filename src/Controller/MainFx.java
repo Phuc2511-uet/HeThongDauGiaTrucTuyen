@@ -11,19 +11,21 @@ import javafx.stage.Stage;
 
 public class MainFx extends Application {
 
-    private Client client;
-
+    private void startClient() {
+        new Thread(() -> {
+            // DÙNG Singleton để connect
+            Client.getInstance().connect("localhost", 3636);
+        }).start();
+    }
     @Override
     public void start(Stage stage) throws Exception {
 
         // 1. Khởi động client ở thread riêng
         startClient();
 
-        // 2. UI rất đơn giản (không cần FXML cho bản test)
         stage.setOnCloseRequest(e -> {
-            if (client != null) {
-                client.disconnect();
-            }
+            // DÙNG Singleton để ngắt kết nối
+            Client.getInstance().disconnect();
             Platform.exit();
             System.exit(0);
         });
@@ -49,18 +51,7 @@ public class MainFx extends Application {
         }
     }
 
-    private void startClient() {
-        new Thread(() -> {
-            client = new Client();
 
-            client.connect("localhost", 3636);
-
-
-
-
-
-        }).start();
-    }
 
     public static void main(String[] args) {
         launch(args);

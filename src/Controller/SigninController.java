@@ -23,40 +23,25 @@ public class SigninController {
 
     @FXML
     void signinAccount(ActionEvent event) {
-        // 1. Lấy dữ liệu và xóa khoảng trắng thừa
+        // 1. Lấy dữ liệu từ giao diện
         String user = txtUsernameSingin.getText().trim();
         String pass = txtPasswordSignin.getText().trim();
 
-        // 2. Kiểm tra tính hợp lệ
+        // 2. Kiểm tra nhanh (validation)
         if (user.isEmpty() || pass.isEmpty()) {
-            showAlert(Alert.AlertType.WARNING, "Thông báo", "Vui lòng nhập đầy đủ Tên đăng nhập và Mật khẩu!");
+            System.out.println("Vui lòng không để trống!");
             return;
         }
 
-        // 3. Sử dụng Singleton Client để gửi dữ liệu
-        System.out.println("Đang gửi yêu cầu đăng ký cho: " + user);
-
-        // Theo cấu trúc hàm newAccount trong Client.java:
-        // newAccount(String username, String password, String role, String fullname)
-        // Ở đây mặc định role là "Bidder" và fullname tạm thời để giống username
+        // 3. Gọi Client Singleton để gửi lệnh sang Sever
+        // NEW_ACCOUNT <user> <pass> <role> <fullname>
+        // Tạm thời để role là "Bidder" và fullname giống username
         Client.getInstance().newAccount(user, pass, "Bidder", user);
 
-        // 4. Thông báo cho người dùng
-        // Lưu ý: Vì xử lý bất đồng bộ, thông báo này có nghĩa là "Đã gửi yêu cầu"
-        showAlert(Alert.AlertType.INFORMATION, "Thành công",
-                "Yêu cầu tạo tài khoản '" + user + "' đã được gửi tới hệ thống.");
+        System.out.println("Đã gửi yêu cầu đăng ký: " + user);
 
-        // (Tùy chọn) Tự động quay lại trang đăng nhập sau khi gửi
+        // 4. (Tùy chọn) Quay lại màn hình đăng nhập sau khi bấm
         // returnLogin(event);
-    }
-
-    // Hàm bổ trợ hiển thị thông báo nhanh
-    private void showAlert(Alert.AlertType type, String title, String content) {
-        Alert alert = new Alert(type);
-        alert.setTitle(title);
-        alert.setHeaderText(null);
-        alert.setContentText(content);
-        alert.showAndWait();
     }
 
     @FXML
