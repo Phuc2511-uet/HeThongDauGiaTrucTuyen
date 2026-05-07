@@ -23,25 +23,34 @@ public class SigninController {
 
     @FXML
     void signinAccount(ActionEvent event) {
-        // 1. Lấy dữ liệu từ giao diện
         String user = txtUsernameSingin.getText().trim();
         String pass = txtPasswordSignin.getText().trim();
 
-        // 2. Kiểm tra nhanh (validation)
         if (user.isEmpty() || pass.isEmpty()) {
-            System.out.println("Vui lòng không để trống!");
+            showAlert("Lỗi", "Vui lòng nhập đầy đủ thông tin!");
             return;
         }
 
-        // 3. Gọi Client Singleton để gửi lệnh sang Sever
-        // NEW_ACCOUNT <user> <pass> <role> <fullname>
-        // Tạm thời để role là "Bidder" và fullname giống username
+        // 1. Gửi lệnh tạo tài khoản
         Client.getInstance().newAccount(user, pass, "Bidder", user);
 
-        System.out.println("Đã gửi yêu cầu đăng ký: " + user);
+        // 2. Hiển thị thông báo nhanh cho người dùng
+        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+        alert.setTitle("Thành công");
+        alert.setHeaderText(null);
+        alert.setContentText("Yêu cầu tạo tài khoản đã được gửi!");
+        alert.showAndWait();
 
-        // 4. (Tùy chọn) Quay lại màn hình đăng nhập sau khi bấm
-        // returnLogin(event);
+        // 3. Tự động gọi hàm returnLogin để quay về trang đăng nhập
+        returnLogin(event);
+    }
+
+    // Hàm bổ trợ hiện Alert nhanh
+    private void showAlert(String title, String content) {
+        Alert alert = new Alert(Alert.AlertType.WARNING);
+        alert.setTitle(title);
+        alert.setContentText(content);
+        alert.showAndWait();
     }
 
     @FXML
