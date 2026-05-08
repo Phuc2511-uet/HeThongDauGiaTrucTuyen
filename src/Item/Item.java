@@ -1,15 +1,38 @@
 package Item;
-import Base.Entity;
 
+import java.io.Serializable;
 
-public abstract class Item extends Entity {
+public abstract class Item implements Serializable {
+
+    protected int id;
     protected String name;
     protected double price;
-    //constructor
-    public Item(String id,String name,double price){
-        super(id);
+
+    private static int count = 0;
+
+    public Item(String name, double price) {
+        this.id = count++;   // 👈 tự sinh id giống User
         this.name = name;
         this.price = price;
     }
+
+    // ===== GETTER =====
+    public int getId() {
+        return id;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public double getPrice() {
+        return price;
+    }
+
+    public void setPrice(double price) {
+        this.price = price;
+    }
+
+    // ===== ABSTRACT =====
     public abstract void display();
 }

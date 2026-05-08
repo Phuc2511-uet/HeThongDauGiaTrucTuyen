@@ -7,8 +7,8 @@ public class Seller extends User {
 
     private double ballance = 0;
 
-    public Seller(String id, String username, String password, String fullName) {
-        super(id, username, password, fullName);
+    public Seller(String username, String password, String fullName) {
+        super( username, password, fullName);
 
     }
 
@@ -17,11 +17,11 @@ public class Seller extends User {
         System.out.println("[Seller Account] Name: " + getFullName() + " | Ballance: " + ballance + "⭐");
     }
 
-    public void setBallance(double ballance) {
+    public void setBalance(double ballance) {
         this.ballance = ballance;
     }
 
-    public double getBallance() {
+    public double getBalance() {
         return ballance;
     }
 }

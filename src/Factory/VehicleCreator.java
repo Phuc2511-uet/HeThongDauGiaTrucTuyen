@@ -4,7 +4,7 @@ import Item.*;
 
 public class VehicleCreator extends ItemFactory{
     @Override
-    public Item CreateItem(String id,String name,double price){
-        return new Vehicle(id,name,price);
+    public Item CreateItem(String name,double price){
+        return new Vehicle(name,price);
     }
 }

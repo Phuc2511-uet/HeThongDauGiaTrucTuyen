@@ -1,9 +1,9 @@
 package Item;
-import Base.Entity;
+
 
 public class Electronic extends Item {
-    public Electronic(String id, String name, double price) {
-        super(id, name, price);
+    public Electronic( String name, double price) {
+        super(name, price);
     }
     @Override
     public void display() {

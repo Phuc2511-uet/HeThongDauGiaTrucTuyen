@@ -11,7 +11,7 @@ import java.util.concurrent.locks.ReentrantLock;
 
 public class Auction {
 
-    enum Status {
+    public enum Status {
         OPEN,
         RUNNING,
         FINISH,
@@ -29,10 +29,51 @@ public class Auction {
     private double currentPrice;
     private Bidder currentBidder;
 
+    private static int count = 0;
+
     private final ReentrantLock lock = new ReentrantLock();
 
+    // ===== CONSTRUCTOR =====
+    public Auction(Item bidItem, Seller seller, double startPrice) {
+        this.id = count++;
+        this.bidItem = bidItem;
+        this.seller = seller;
+        this.currentPrice = startPrice;
+        this.currentStatus = Status.OPEN;
+    }
+
+    // ===== GETTER CẦN THIẾT (QUAN TRỌNG) =====
     public int getId() {
         return id;
+    }
+
+    public Item getItem() {
+        return bidItem;
+    }
+
+    public Seller getSeller() {
+        return seller;
+    }
+
+    public Status getStatus() {
+        return currentStatus;
+    }
+
+    public double getCurrentPrice() {
+        return currentPrice;
+    }
+
+    public Bidder getCurrentBidder() {
+        return currentBidder;
+    }
+
+    // 👉 helper cho server (rất nên có)
+    public String toNetworkString() {
+        return id + " "
+                + bidItem.getName().replace(" ", "_") + " "
+                + currentPrice + " "
+                + seller.getUsername() + " "
+                + currentStatus;
     }
 
     // ===== OBSERVER =====
@@ -75,20 +116,10 @@ public class Auction {
     private static final long DURATION = 60 * 60 * 1000;
     private static final long EXTEND_TIME = 60 * 1000;
 
-    // ===== FIX #2: scheduler không còn static =====
     private final ScheduledExecutorService scheduler =
             Executors.newSingleThreadScheduledExecutor();
 
     private ScheduledFuture<?> finishTask;
-
-    // ===== CONSTRUCTOR =====
-    public Auction(int id, Item bidItem, Seller seller, double startPrice) {
-        this.id = id;
-        this.bidItem = bidItem;
-        this.seller = seller;
-        this.currentPrice = startPrice;
-        this.currentStatus = Status.OPEN;
-    }
 
     // ===== STATE MACHINE =====
     private boolean canTransitionTo(Status next) {
@@ -148,10 +179,7 @@ public class Auction {
         scheduleFinish();
     }
 
-    public double getCurrentPrice() {
-        return currentPrice;
-    }
-
+    // ===== BID =====
     public void placeBid(double newPrice, Bidder bidder) {
 
         String message = null;
@@ -173,7 +201,6 @@ public class Auction {
 
                 startAuction();
 
-                //  đánh dấu cần add observer
                 if (!observers.contains(bidder)) {
                     shouldAddObserver = true;
                 }
@@ -200,9 +227,8 @@ public class Auction {
 
             extendAuction();
 
-            message = "Giá mới cho sản phẩm " + bidItem.getId() + " là: " + newPrice;
+            message = "Giá mới cho sản phẩm " + bidItem.getName() + " là: " + newPrice;
 
-            //  đánh dấu cần add observer
             if (!observers.contains(bidder)) {
                 shouldAddObserver = true;
             }
@@ -211,7 +237,6 @@ public class Auction {
             lock.unlock();
         }
 
-        //  xử lý ngoài lock
         if (shouldAddObserver) {
             addObserver(bidder);
         }
@@ -220,7 +245,6 @@ public class Auction {
             notifyObservers(message);
         }
     }
-
 
     public void cancel() {
         lock.lock();
@@ -232,14 +256,39 @@ public class Auction {
     }
 
     public void pay() {
+
         lock.lock();
         try {
+
+            if (currentStatus != Status.FINISH) {
+                throw new IllegalStateException("Auction must be FINISH before payment");
+            }
+
+            if (currentBidder == null) {
+                throw new IllegalStateException("No winner to pay");
+            }
+
+            double amount = currentPrice;
+
+            // ===== TRỪ TIỀN BIDDER =====
+            currentBidder.checkBalance(amount);
+            currentBidder.setBalance(currentBidder.getBalance() - amount);
+
+            // ===== CỘNG TIỀN SELLER =====
+            seller.setBalance(seller.getBalance() + amount);
+
+            // ===== CHUYỂN TRẠNG THÁI =====
             transitionTo(Status.PAID);
-        } finally {
+
+            System.out.println("PAY SUCCESS: " + amount);
+
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+        finally {
             lock.unlock();
         }
     }
-
     public long getRemainingTime() {
         return Math.max(0, endTime - System.currentTimeMillis());
     }

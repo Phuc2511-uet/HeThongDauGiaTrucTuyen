@@ -1,24 +1,31 @@
 package User;
-import Base.Entity;
+
 import java.io.Serializable;
 import Observer.Observer;
 import exceptions.AuthenticationException;
 
-public abstract class User extends Entity implements Serializable,Observer {
+public abstract class User  implements Serializable,Observer {
 
     private String username;
     private String password;
     private String fullName;
+    private int id;
+    private static int count = 0;
 
 
 
-    public User(String id,  String username, String password, String fullName) {
-        super(id);
+    public User(  String username, String password, String fullName) {
+        this.id = count;
+        count ++;
 
         this.username = username;
         this.password = password;
         this.fullName = fullName;
 
+    }
+
+    public int getId() {
+        return id;
     }
 
     public String getUsername() {
