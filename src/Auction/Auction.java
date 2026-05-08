@@ -256,14 +256,39 @@ public class Auction {
     }
 
     public void pay() {
+
         lock.lock();
         try {
+
+            if (currentStatus != Status.FINISH) {
+                throw new IllegalStateException("Auction must be FINISH before payment");
+            }
+
+            if (currentBidder == null) {
+                throw new IllegalStateException("No winner to pay");
+            }
+
+            double amount = currentPrice;
+
+            // ===== TRỪ TIỀN BIDDER =====
+            currentBidder.checkBalance(amount);
+            currentBidder.setBalance(currentBidder.getBalance() - amount);
+
+            // ===== CỘNG TIỀN SELLER =====
+            seller.setBalance(seller.getBalance() + amount);
+
+            // ===== CHUYỂN TRẠNG THÁI =====
             transitionTo(Status.PAID);
-        } finally {
+
+            System.out.println("PAY SUCCESS: " + amount);
+
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+        finally {
             lock.unlock();
         }
     }
-
     public long getRemainingTime() {
         return Math.max(0, endTime - System.currentTimeMillis());
     }

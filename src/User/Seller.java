@@ -17,11 +17,11 @@ public class Seller extends User {
         System.out.println("[Seller Account] Name: " + getFullName() + " | Ballance: " + ballance + "⭐");
     }
 
-    public void setBallance(double ballance) {
+    public void setBalance(double ballance) {
         this.ballance = ballance;
     }
 
-    public double getBallance() {
+    public double getBalance() {
         return ballance;
     }
 }
