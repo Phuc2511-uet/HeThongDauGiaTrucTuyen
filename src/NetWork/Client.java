@@ -76,6 +76,10 @@ public class Client {
 
             case "ITEM_DETAIL":
 
+            case "USER_IDS":
+
+            case "USER_DETAIL":
+
 
 
             case "LOGIN_SUCCESS":
@@ -193,4 +197,7 @@ public class Client {
 
         // sau này  thay bằng update GUI
     }
+
+
+
 }
