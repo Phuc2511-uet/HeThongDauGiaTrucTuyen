@@ -57,79 +57,94 @@ public class Client {
 
         System.out.println("SERVER >> " + message);
 
-        // ===== LIST AUCTION =====
-        if (message.startsWith("LIST_AUCTION")) {
+        // ===== SPLIT =====
+        String[] parts = message.split("\\s+");
+        String command = parts[0];
 
-            String[] parts = message.split(" ");
-
-            List<Integer> auctionIds = new ArrayList<>();
-
-            for (int i = 1; i < parts.length; i++) {
-                try {
-                    auctionIds.add(Integer.parseInt(parts[i]));
-                } catch (Exception e) {
-                    System.out.println("Invalid ID: " + parts[i]);
-                }
-            }
-
-            onReceiveAuctionList(auctionIds);
-            return;
+        List<String> data = new ArrayList<>();
+        for (int i = 1; i < parts.length; i++) {
+            data.add(parts[i]);
         }
 
-        // ===== MESSAGE KHÁC =====
-        switch (message) {
+        // ===== XỬ LÝ =====
+        switch (command) {
+            case "AUCTION_DETAIL":
+
+            case "LIST_AUCTION":
+
+            case "ITEM_IDS":
+
+            case "ITEM_DETAIL":
+
+            case "USER_IDS":
+
+            case "USER_DETAIL":
+
+
+
             case "LOGIN_SUCCESS":
-                System.out.println("Đăng nhập thành công");
-                break;
-
             case "LOGIN_FAILED":
-                System.out.println("Sai tài khoản hoặc mật khẩu");
-                break;
-
             case "BID_SUCCESS":
-                System.out.println("Đặt giá thành công");
-                break;
-
+            case "BID_FAILED":
             case "ACCOUNT_SUCCESS":
-                System.out.println("Tạo tài khoản thành công");
+            case "ACCOUNT_FAILED":
+            case "UPDATE_PRICE_SUCCESS":
+            case "UPDATE_PRICE_FAILED":
+            case "DELETE_ITEM_SUCCESS":
+            case "DELETE_ITEM_FAILED":
+            case "DELETE_USER_SUCCESS":
+            case "DELETE_USER_FAILED":
+            case "DEPOSIT_SUCCESS":
+            case "DEPOSIT_FAILED":
+                System.out.println(command);
                 break;
 
-            case "ACCOUNT_FAILED":
-                System.out.println("Tạo tài khoản thất bại");
+            case "ERROR":
+                System.out.println("Lỗi: " + String.join(" ", data));
                 break;
 
             default:
-                if (message.startsWith("ERROR")) {
-                    System.out.println("Lỗi: " + message);
-                } else {
-                    System.out.println("Unknown: " + message);
-                }
+                System.out.println("Unknown: " + message);
         }
     }
-
 
 
 
     // ===== GỬI DỮ LIỆU =====
     private void send(String message) {
-        if (socket != null && out != null && !socket.isClosed()) {
-            out.println(message); // CHỈ gửi dòng này lên Server
+        if (socket != null && socket.isConnected() && !socket.isClosed()) {
 
-            // Dòng này để bạn theo dõi ở Console của mình, KHÔNG gửi lên Server
-            System.out.println("CLIENT LOG: Sent to server -> " + message);
+            out.println(message);
         } else {
-            System.err.println("Chưa kết nối server!");
+            out.println("Chưa kết nối server!");
         }
     }
 
     // ===== CHỨC NĂNG =====
+    public void getUserById(int userId) {
+        send("GET_USER_BY_ID " + userId);
+    }
+    public void updateItemPrice(int itemId, double newPrice) {
+        send("UPDATE_ITEM_PRICE " + itemId + " " + newPrice);
+    }
+    public void getItemIds() {
+        send("GET_ITEM_IDS");
+    }
+
+    public void deleteUser(int userId) {
+        send("DELETE_USER " + userId);
+    }
+
+    public void getUserIds() {
+        send("GET_USER_IDS");
+    }
     public void getAuctionById(String id){
         send("GET_AUCTION_BY_ID" + " " + id);
 
     }
-    public void createItem(String name, double price) {
+    public void createItem(String type, String name, double price) {
 
-        send("CREATE_ITEM " + name + " " + price);
+        send("CREATE_ITEM " + type + " " + name.replace(" ", "_") + " " + price);
     }
 
     public void login(String username, String password) {
@@ -151,17 +166,22 @@ public class Client {
     public void getAuctions() {
         send("GET_AUCTIONS");
     }
+    public void getItemById(int id) {
+        send("GET_ITEM_BY_ID " + id);
+    }
+
+
+
+
 
     // ===== NGẮT KẾT NỐI =====
     public void disconnect() {
         try {
             running = false;
 
-            if (socket != null) socket.close();
-            if (out != null) out.close();
             if (in != null) in.close();
-
-            out.println("Disconnected");
+            if (out != null) out.close();
+            if (socket != null) socket.close();
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -177,12 +197,7 @@ public class Client {
 
         // sau này  thay bằng update GUI
     }
-    //ngăn không cho soket tạo mới khi chuyển màn hình
-    private static Client instance;
-    public static Client getInstance() {
-        if (instance == null) {
-            instance = new Client();
-        }
-        return instance;
-    }
+
+
+
 }

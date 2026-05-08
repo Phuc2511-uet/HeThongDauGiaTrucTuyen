@@ -28,7 +28,7 @@ public class ItemManager implements Serializable {
     // ===== LẤY ITEM THEO ID =====
     public Item getById(int id) {
         for (Item i : items) {
-            if (i.getId() == id) {   // ✔ so sánh int
+            if (i.getId() == id) {
                 return i;
             }
         }
@@ -53,5 +53,38 @@ public class ItemManager implements Serializable {
     // ===== LẤY DANH SÁCH =====
     public List<Item> getItems() {
         return items;
+    }
+    public boolean updatePrice(int id, double newPrice) {
+        Item item = getById(id);
+
+        if (item == null) {
+            return false;
+        }
+
+        item.setPrice(newPrice);
+        return true;
+    }
+    public String getItemInfoAsString(int id) {
+
+        Item i = getById(id);
+
+        if (i == null) {
+            return "ERROR ITEM NOT FOUND";
+        }
+
+        return "ITEM_DETAIL "
+                + i.getId() + " "
+                + i.getName().replace(" ", "_") + " "
+                + i.getPrice();
+    }
+    public String getAllItemIdsAsString() {
+
+        StringBuilder sb = new StringBuilder("ITEM_IDS ");
+
+        for (Item i : items) {
+            sb.append(i.getId()).append(" ");
+        }
+
+        return sb.toString().trim();
     }
 }
