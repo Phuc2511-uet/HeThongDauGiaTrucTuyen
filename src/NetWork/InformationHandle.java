@@ -312,7 +312,7 @@ public class InformationHandle {
             return "ACCOUNT_SUCCESS";
 
         } catch (Exception e) {
-            return "ACCOUNT_FAILED ";
+            return "ACCOUNT_FAILED";
         }
     }
     private String handleGetAuctionById(String[] parts) {
