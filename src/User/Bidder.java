@@ -28,4 +28,14 @@ public class Bidder extends User{
             throw new InsufficientBalanceException("Tài khoản không đủ số dư để thực hiện đặt giá này!");
         }
     }
+    public boolean deposit(double amount) {
+
+        if (amount <= 0) {
+            return false;
+        }
+
+        this.balance += amount;
+        return true;
+    }
+
 }

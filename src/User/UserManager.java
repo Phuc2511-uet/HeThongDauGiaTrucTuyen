@@ -47,6 +47,36 @@ public class UserManager implements Serializable {
         }
         return null;
     }
+    public boolean removeUser(int id) {
+        return users.removeIf(u -> u.getId() == id);
+    }
+    public String getAllUserIdsAsString() {
+        return "USER_IDS " +
+                users.stream()
+                        .map(u -> String.valueOf(u.getId()))
+                        .reduce((a, b) -> a + " " + b)
+                        .orElse("");
+    }
+    public String getUserInfoAsString(int id) {
+
+        User u = getById(id);
+
+        if (u == null) {
+            return "ERROR USER NOT FOUND";
+        }
+
+        String role = "UNKNOWN";
+
+        if (u instanceof Bidder) role = "BIDDER";
+        else if (u instanceof Seller) role = "SELLER";
+        else if (u instanceof Admin) role = "ADMIN";
+
+        return "USER_DETAIL "
+                + u.getId() + " "
+                + u.getUsername() + " "
+                + role + " "
+                + u.getFullName().replace(" ", "_");
+    }
 
     public List<User> getUsers() {
         return users;
