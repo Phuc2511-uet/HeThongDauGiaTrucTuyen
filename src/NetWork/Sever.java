@@ -96,6 +96,25 @@ public class Sever {
                     }
                     continue;
                 }
+                // ===== LOGOUT =====
+                if (action.equals("LOGOUT")) {
+
+                    if (currentUser == null) {
+                        out.println("ERROR Not logged in");
+                        continue;
+                    }
+
+                    // nếu là bidder thì xóa connection
+                    if (currentUser instanceof Bidder) {
+                        ((Bidder) currentUser).setConnection(null);
+                    }
+
+                    currentUser = null; //  logout thật sự
+
+                    out.println("LOGOUT_SUCCESS");
+                    continue;
+                }
+
 
                 // 3. CHẶN CÁC LỆNH KHÁC NẾU CHƯA LOGIN
                 if (currentUser == null) {
@@ -110,6 +129,10 @@ public class Sever {
 
         } catch (IOException e) {
             System.out.println("Client disconnected: " + socket);
+        }finally {
+            if (currentUser instanceof Bidder) {
+                ((Bidder) currentUser).setConnection(null);
+            }
         }
     }
 

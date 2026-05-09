@@ -7,8 +7,8 @@ public class Seller extends User {
 
     private double ballance = 0;
 
-    public Seller(String username, String password, String fullName) {
-        super( username, password, fullName);
+    public Seller(int id,String username, String password, String fullName) {
+        super( id,username, password, fullName);
 
     }
 

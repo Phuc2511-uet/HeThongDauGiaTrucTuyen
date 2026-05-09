@@ -6,6 +6,8 @@ import Factory.*;
 import Item.*;
 import User.*;
 
+import java.util.List;
+
 public class InformationHandle {
 
     private static volatile InformationHandle instance;
@@ -39,7 +41,7 @@ public class InformationHandle {
                     return handlePlaceBid(part,currentUser);
                 case "CREATE_AUCTION":
                     return handleCreateAuction(part,currentUser);
-                case "GET_AUCTION":
+                case "GET_AUCTIONS":
                     return handleGetAuction();
                 case "NEW_ACCOUNT":
                     return handleNewAccount(part);
@@ -63,12 +65,122 @@ public class InformationHandle {
                     return handleGetItemIds();
                 case "DEPOSIT":
                     return handleDeposit(part, currentUser);
+                case "PAY":
+                    return handlePay(part, currentUser);
+                case "GET_WON_AUCTIONS":
+                    return handleGetWonAuctions(currentUser);
+                case "GET_SELLER_AUCTIONS":
+                    return handleGetSellerAuctions(currentUser);
+
                 default:
                     return "ERROR Unknown action";
             }
 
         } catch (Exception e){
             return "ERROR " + e.getMessage();
+        }
+    }
+
+
+
+
+    private String handleGetSellerAuctions(User currentUser) {
+
+        try {
+            if (!(currentUser instanceof Seller)) {
+                return "ERROR ONLY SELLER";
+            }
+
+            Seller seller = (Seller) currentUser;
+
+            List<Auction> auctions = AuctionManager.getInstance().getAllAuctions();
+
+            StringBuilder sb = new StringBuilder();
+            sb.append("SELLER_AUCTIONS");
+
+            for (Auction a : auctions) {
+
+                if (seller.equals(a.getSeller())) {
+                    sb.append(" ").append(a.getId());
+                }
+            }
+
+            return sb.toString();
+
+        } catch (Exception e) {
+            return "ERROR " + e.getMessage();
+        }
+    }
+
+
+    private String handleGetWonAuctions(User currentUser) {
+
+        try {
+            if (!(currentUser instanceof Bidder)) {
+                return "ERROR ONLY BIDDER";
+            }
+
+            Bidder bidder = (Bidder) currentUser;
+
+            List<Auction> auctions = AuctionManager.getInstance().getAllAuctions();
+
+            StringBuilder sb = new StringBuilder();
+            sb.append("WON_AUCTIONS");
+
+            for (Auction a : auctions) {
+
+                if ((a.getStatus() == Auction.Status.FINISH
+                        || a.getStatus() == Auction.Status.PAID)
+                        && bidder.equals(a.getCurrentBidder())) {
+
+                    sb.append(" ").append(a.getId());
+                }
+            }
+
+            return sb.toString();
+
+        } catch (Exception e) {
+            return "ERROR " + e.getMessage();
+        }
+    }
+
+
+    private String handlePay(String[] parts, User currentUser) {
+
+        try {
+            if (parts.length < 2) {
+                return "ERROR INVALID FORMAT";
+            }
+
+            int auctionId = Integer.parseInt(parts[1]);
+
+            Auction auction = AuctionManager.getInstance()
+                    .getAuctionById(auctionId);
+
+            if (auction == null) {
+                return "ERROR AUCTION NOT FOUND";
+            }
+
+            if (!(currentUser instanceof Bidder)) {
+                return "ERROR ONLY BIDDER CAN PAY";
+            }
+
+            //  check người thắng
+            if (!currentUser.equals(auction.getCurrentBidder())) {
+                return "ERROR NOT WINNER";
+            }
+
+            //  gọi pay (boolean)
+            boolean ok = auction.pay();
+
+            if (!ok) {
+                return "PAY_FAILED";
+            }
+
+            return "PAY_SUCCESS " + auctionId;
+
+        } catch (Exception e) {
+            return "PAY_FAILED " + e.getMessage();
         }
     }
 
@@ -277,7 +389,6 @@ public class InformationHandle {
     private String handleNewAccount(String[] parts) {
 
         try {
-            // kiểm tra đủ tham số
             if (parts.length < 5) {
                 return "ERROR INVALID NEW_ACCOUNT FORMAT";
             }
@@ -285,32 +396,24 @@ public class InformationHandle {
             String username = parts[1];
             String password = parts[2];
             String role = parts[3];
-            String fullName = parts[4].replace("_", " "); // nếu client có thay space
+            String fullName = parts[4].replace("_", " ");
 
-            User user;
+            UserManager um = UserManager.getInstance();
 
-            switch (role) {
-
-                case "BIDDER":
-                    user = new Bidder(username, password, fullName);
-                    break;
-
-                case "SELLER":
-                    user = new Seller(username, password, fullName);
-                    break;
-
-                default:
-                    return "ACCOUNT_FAILED INVALID_ROLE";
+            // 🔒 check username trùng
+            for (User u : um.getUsers()) {
+                if (u.getUsername().equals(username)) {
+                    return "ACCOUNT_FAILED USERNAME_EXISTS";
+                }
             }
 
-            boolean success = UserManager.getInstance().addUser(user);
-
-            if (!success) {
-                return "ACCOUNT_FAILED";
-            }
+            // tạo user (auto id bên trong)
+            um.createUser(username, password, role, fullName);
 
             return "ACCOUNT_SUCCESS";
 
+        } catch (IllegalArgumentException e) {
+            return "ACCOUNT_FAILED " ;
         } catch (Exception e) {
             return "ACCOUNT_FAILED";
         }
@@ -326,13 +429,15 @@ public class InformationHandle {
                 return "ERROR Auction not found";
             }
 
-            // format: AUCTION_DETAIL id name price seller status
             return "AUCTION_DETAIL "
                     + a.getId() + " "
-                    + a.getItem().getName().replace(" ", "_") + " "
+                    + a.getItem().getId() + " "
                     + a.getCurrentPrice() + " "
                     + a.getSeller().getUsername() + " "
-                    + a.getStatus();
+                    + a.getStatus() + " "
+                    + (a.getCurrentBidder() != null
+                    ? a.getCurrentBidder().getUsername()
+                    : "NONE");
 
         } catch (Exception e) {
             return "ERROR " + e.getMessage();
@@ -353,34 +458,16 @@ public class InformationHandle {
                 return "ERROR ONLY SELLER CAN CREATE ITEM";
             }
 
-            ItemFactory factory;
-
-            switch (type) {
-
-                case "ELECTRONIC":
-                    factory = new ElectronicCreator();
-                    break;
-
-                case "VEHICLE":
-                    factory = new VehicleCreator();
-                    break;
-
-                case "ART":
-                    factory = new ArtCreator();
-                    break;
-
-                default:
-                    return "ERROR UNKNOWN ITEM TYPE";
-            }
-
-            Item item = factory.CreateItem(name, price);
-
-            ItemManager.getInstance().addItem(item);
+            //  tạo qua ItemManager
+            Item item = ItemManager.getInstance()
+                    .createItem(type, name, price);
 
             return "CREATE_ITEM_SUCCESS " + item.getId();
 
-        } catch (Exception e) {
+        } catch (IllegalArgumentException e) {
             return "ERROR " + e.getMessage();
+        } catch (Exception e) {
+            return "ERROR CREATE_ITEM_FAILED";
         }
     }
 }

@@ -86,7 +86,9 @@ public class Client {
 
             case "USER_DETAIL":
 
+            case "SELLER_AUCTIONS":
 
+            case "WON_AUCTIONS":
 
             case "LOGIN_SUCCESS":{
                 if (parts.length >= 4) {
@@ -129,6 +131,7 @@ public class Client {
             case "DELETE_USER_FAILED":
             case "DEPOSIT_SUCCESS":
             case "DEPOSIT_FAILED":
+
                 System.out.println(command);
                 break;
 
@@ -154,6 +157,13 @@ public class Client {
     }
 
     // ===== CHỨC NĂNG =====
+    public void getWonAuctions() {
+        send("GET_WON_AUCTIONS");
+    }
+    public void getSellerAuctions() {
+        send("GET_SELLER_AUCTIONS");
+    }
+
     public void getUserById(int userId) {
         send("GET_USER_BY_ID " + userId);
     }
@@ -201,6 +211,9 @@ public class Client {
     }
     public void getItemById(int id) {
         send("GET_ITEM_BY_ID " + id);
+    }
+    public void logOut(){
+        send("LOGOUT");
     }
 
 

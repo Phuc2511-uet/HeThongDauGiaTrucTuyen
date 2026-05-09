@@ -1,10 +1,13 @@
 package Item;
 
+import Factory.*;
+
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
 public class ItemManager implements Serializable {
+    private int count = 0;
 
     private static ItemManager instance;
     private List<Item> items;
@@ -86,5 +89,36 @@ public class ItemManager implements Serializable {
         }
 
         return sb.toString().trim();
+    }
+    public Item createItem(String type, String name, double price) {
+
+        ItemFactory factory;
+
+        switch (type.toUpperCase()) {
+
+            case "ELECTRONIC":
+                factory = new ElectronicCreator();
+                break;
+
+            case "VEHICLE":
+                factory = new VehicleCreator();
+                break;
+
+            case "ART":
+                factory = new ArtCreator();
+                break;
+
+            default:
+                throw new IllegalArgumentException("UNKNOWN ITEM TYPE");
+        }
+
+        Item item = factory.CreateItem(name, price);
+
+        // gán ID tại đây
+        item.setId(count++);
+
+        items.add(item);
+
+        return item;
     }
 }
