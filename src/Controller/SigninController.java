@@ -1,20 +1,23 @@
 package Controller;
 
 import NetWork.Client;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
-import javafx.scene.control.Alert;
-import javafx.scene.control.PasswordField;
-import javafx.scene.control.TextField;
+import javafx.scene.control.*;
 import javafx.stage.Stage;
 
 import java.io.IOException;
 
 public class SigninController {
+    @FXML
+    private TextField txtFullname;
+
     @FXML
     private TextField txtUsernameSingin;
 
@@ -22,17 +25,34 @@ public class SigninController {
     private PasswordField txtPasswordSignin;
 
     @FXML
+    private ComboBox<String> roleComboBox;
+
+    @FXML
+    public void initialize() {
+        // Nạp dữ liệu vào ComboBox
+        roleComboBox.setItems(FXCollections.observableArrayList("Seller", "Bidder"));
+
+        // Đặt giá trị mặc định nếu muốn
+        roleComboBox.setValue("Bidder");
+    }
+
+    @FXML
     void signinAccount(ActionEvent event) {
         String user = txtUsernameSingin.getText().trim();
         String pass = txtPasswordSignin.getText().trim();
+        String fullname = txtFullname.getText().trim();
 
-        if (user.isEmpty() || pass.isEmpty()) {
+        if (user.isEmpty() || pass.isEmpty() || fullname.isEmpty()) {
             showAlert("Lỗi", "Vui lòng nhập đầy đủ thông tin!");
             return;
         }
 
+        String selectedRole = roleComboBox.getValue();
+
         // 1. Gửi lệnh tạo tài khoản
-        Client.getInstance().newAccount(user, pass, "Bidder", user);
+        if (selectedRole != null) {
+            NetWork.Client.getInstance().newAccount(user, pass, selectedRole, fullname);
+        }
 
         // 2. Hiển thị thông báo nhanh cho người dùng
         Alert alert = new Alert(Alert.AlertType.INFORMATION);

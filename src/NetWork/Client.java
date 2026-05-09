@@ -198,6 +198,15 @@ public class Client {
         // sau này  thay bằng update GUI
     }
 
+    //ngăn không cho soket tạo mới khi chuyển màn hình
+    private static Client instance;
+    public static Client getInstance() {
+        if (instance == null) {
+            instance = new Client();
+        }
+        return instance;
+    }
+
 
 
 }
