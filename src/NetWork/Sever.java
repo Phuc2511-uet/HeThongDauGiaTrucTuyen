@@ -48,23 +48,12 @@ public class Sever {
                 String action = parts[0];
 
                 // 1. XỬ LÝ ĐĂNG KÝ (Cho phép thực hiện khi chưa login)
+
                 if (action.equals("NEW_ACCOUNT")) {
-                    try {
-                        String username = parts[1];
-                        String password = parts[2];
-                        String role = parts[3];
-                        String fullname = parts[4];
-
-                        User newUser = new Bidder(username, password, fullname);
-                        boolean isAdded = UserManager.getInstance().addUser(newUser);
-
-                        out.println(isAdded ? "ACCOUNT_SUCCESS" : "ACCOUNT_FAILED");
-                    } catch (Exception e) {
-                        out.println("ACCOUNT_FAILED");
-                    }
+                    String response = handle.handleIfo(message, currentUser);
+                    out.println(response);
                     continue;
                 }
-
                 // 2. XỬ LÝ LOGIN
                 if (action.equals("LOGIN")) {
                     try {
