@@ -11,6 +11,7 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.stage.Stage;
+import javafx.stage.StageStyle;
 
 import java.io.IOException;
 
@@ -53,16 +54,6 @@ public class SigninController {
         if (selectedRole != null) {
             NetWork.Client.getInstance().newAccount(user, pass, selectedRole, fullname);
         }
-
-        // 2. Hiển thị thông báo nhanh cho người dùng
-        Alert alert = new Alert(Alert.AlertType.INFORMATION);
-        alert.setTitle("Thành công");
-        alert.setHeaderText(null);
-        alert.setContentText("Yêu cầu tạo tài khoản đã được gửi!");
-        alert.showAndWait();
-
-        // 3. Tự động gọi hàm returnLogin để quay về trang đăng nhập
-        returnLogin(event);
     }
 
     // Hàm bổ trợ hiện Alert nhanh

@@ -4,57 +4,43 @@
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.ScrollPane?>
-<?import javafx.scene.image.Image?>
-<?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.GridPane?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
-<BorderPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="520.0" prefWidth="850.0" style="-fx-background-color: #0F172A;" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="Controller.HomeController">
+<BorderPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="520.0" prefWidth="850.0" style="-fx-background-color: #0F172A;" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="Controller.HomeBidderController">
 
     <left>
         <VBox prefHeight="513.0" prefWidth="268.0" style="-fx-background-color: #1E293B; -fx-background-radius: 0 30 30 0;" BorderPane.alignment="CENTER">
             <children>
                 <VBox alignment="CENTER" prefHeight="171.0" prefWidth="268.0" spacing="10.0" style="-fx-padding: 40 20 40 20;">
-                    <children>
-                        <ImageView fx:id="imgAvatar" fitHeight="75.0" fitWidth="75.0" pickOnBounds="true" preserveRatio="true" style="-fx-effect: dropshadow(three-pass-box, #38bdf8, 10, 0, 0, 0);">
-                            <image>
-                                <Image url="@../images/user_avatar.png" />
-                            </image>
-                        </ImageView>
-                        <Label fx:id="lblFullname" text="Le Duy Ta" textFill="#F8FAFC">
-                            <font> <Font name="System Bold" size="20.0" /> </font>
-                        </Label>
-                        <Label fx:id="lblRole" style="-fx-font-weight: bold; -fx-letter-spacing: 1px;" text="BIDDER" textFill="#38BDF8">
-                            <VBox.margin>
-                                <Insets top="-10.0" />
-                            </VBox.margin></Label>
-                        <Label fx:id="lblBalance" text="Balance: $12.500" textFill="#0EA5E9">
-                            <font> <Font name="System Bold" size="16.0" /> </font>
-                            <VBox.margin>
-                                <Insets top="-10.0" />
-                            </VBox.margin>
-                        </Label>
-                    </children>
-                </VBox>
-
-                <VBox spacing="10.0" style="-fx-padding: 0 15 0 15;">
-                    <children>
-                        <Button alignment="CENTER" contentDisplay="CENTER" maxWidth="1.7976931348623157E308" prefHeight="45.0" style="-fx-background-color: #334155; -fx-text-fill: #F8FAFC; -fx-background-radius: 12; -fx-cursor: hand;" text="👤  Thông tin Bidder">
+               <children>
+                        <Button alignment="CENTER" contentDisplay="CENTER" maxWidth="1.7976931348623157E308" onAction="#showInfo" prefHeight="45.0" style="-fx-background-color: #334155; -fx-text-fill: #F8FAFC; -fx-background-radius: 12; -fx-cursor: hand;" text="👤  Thông tin Bidder">
                             <font> <Font name="System Bold" size="15.0" /> </font>
+                     <VBox.margin>
+                        <Insets left="-8.0" right="-8.0" top="-25.0" />
+                     </VBox.margin>
                         </Button>
                         <Button alignment="CENTER" maxWidth="1.7976931348623157E308" prefHeight="45.0" style="-fx-background-color: #334155; -fx-background-radius: 12; -fx-text-fill: white; -fx-cursor: hand;" text="📊  Danh sách Auction">
                             <font> <Font name="System Bold" size="15.0" /> </font>
+                     <VBox.margin>
+                        <Insets left="-8.0" right="-8.0" top="5.0" />
+                     </VBox.margin>
                         </Button>
-                        <Button alignment="CENTER" maxWidth="1.7976931348623157E308" prefHeight="45.0" style="-fx-background-color: #334155; -fx-text-fill: #F8FAFC; -fx-background-radius: 12; -fx-cursor: hand;" text="Khác">
+                        <Button alignment="CENTER" maxWidth="1.7976931348623157E308" prefHeight="45.0" style="-fx-background-color: #334155; -fx-text-fill: #F8FAFC; -fx-background-radius: 12; -fx-cursor: hand;" text="📊 Các Auction đã thắng">
                             <font> <Font name="System Bold" size="15.0" /> </font>
+                     <VBox.margin>
+                        <Insets left="-8.0" right="-8.0" top="5.0" />
+                     </VBox.margin>
                         </Button>
-                    </children>
+               </children>
                 </VBox>
 
-                <VBox alignment="BOTTOM_LEFT" spacing="10" style="-fx-padding: 0 15 30 15;" VBox.vgrow="ALWAYS">
+                <VBox spacing="10.0" style="-fx-padding: 0 15 0 15;" />
+
+                <VBox alignment="BOTTOM_LEFT" prefHeight="327.0" prefWidth="253.0" spacing="10" style="-fx-padding: 0 15 30 15;" VBox.vgrow="ALWAYS">
                     <children>
                         <Button alignment="BASELINE_LEFT" maxWidth="1.7976931348623157E308" style="-fx-background-color: transparent; -fx-text-fill: #94A3B8; -fx-cursor: hand;" text="⚙  Settings">
                             <font>
@@ -63,7 +49,7 @@
                             <VBox.margin>
                                 <Insets bottom="-10.0" left="-10.0" />
                             </VBox.margin></Button>
-                        <Button alignment="BASELINE_LEFT" maxWidth="1.7976931348623157E308" onAction="#handleLogout" style="-fx-background-color: transparent; -fx-text-fill: #FB7185; -fx-cursor: hand;" text="↪  Logout">
+                        <Button alignment="BASELINE_LEFT" maxWidth="1.7976931348623157E308" onAction="#Logout" style="-fx-background-color: transparent; -fx-text-fill: #FB7185; -fx-cursor: hand;" text="↪  Logout">
                             <font>
                                 <Font name="System Bold" size="14.0" />
                             </font>
@@ -77,21 +63,21 @@
     </left>
 
     <center>
-        <VBox style="-fx-padding: 25;" BorderPane.alignment="CENTER">
+        <VBox prefHeight="520.0" prefWidth="602.0" style="-fx-padding: 25;" BorderPane.alignment="CENTER">
             <children>
                 <HBox alignment="CENTER_LEFT" spacing="15.0">
                     <children>
-                        <Label text="Hệ thống đấu giá trực tuyến" textFill="#F1F5F9">
+                        <Label alignment="CENTER" text="Hệ thống đấu giá trực tuyến" textFill="#F1F5F9">
                             <font> <Font name="System Bold" size="26.0" /> </font>
                             <HBox.margin>
-                                <Insets top="-10.0" />
+                                <Insets top="-15.0" />
                             </HBox.margin>
                         </Label>
                     </children>
                     <VBox.margin> <Insets bottom="25.0" /> </VBox.margin>
                 </HBox>
 
-                <ScrollPane fitToWidth="true" style="-fx-background-color: transparent; -fx-background: transparent; -fx-border-color: transparent;" VBox.vgrow="ALWAYS">
+                <ScrollPane fx:id="mainContent" fitToWidth="true" style="-fx-background-color: transparent; -fx-background: transparent; -fx-border-color: transparent;" VBox.vgrow="ALWAYS">
                     <content>
                         <GridPane fx:id="gridAuctions" hgap="20.0" style="-fx-background-color: transparent;" vgap="25.0">
                         </GridPane>

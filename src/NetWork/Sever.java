@@ -69,7 +69,28 @@ public class Sever {
                 if (action.equals("LOGIN")) {
                     try {
                         currentUser = UserManager.getInstance().authenticate(parts[1], parts[2]);
-                        out.println("LOGIN_SUCCESS");
+                        String role = "UNKNOWN";
+                        double balance = 0.0; // Mặc định cho Admin
+
+                        if (currentUser instanceof Bidder) {
+                            role = "BIDDER";
+                            balance = ((Bidder) currentUser).getBalance();
+                        }
+                        else if (currentUser instanceof Seller) {
+                            role = "SELLER";
+                            balance = ((Seller) currentUser).getBalance();
+                        }
+                        else if (currentUser instanceof Admin) {
+                            role = "ADMIN";
+                            balance = 0.0;
+                        }
+
+                        // Gửi về Client    LOGIN_SUCCESS <ROLE> <FULLNAME> <BALANCE>
+                        String response = String.format("LOGIN_SUCCESS %s %s %.2f",
+                                role,
+                                currentUser.getFullName().replace(" ", "_"),
+                                balance);
+                        out.println(response);
                     } catch (Exception e) {
                         out.println("LOGIN_FAILED");
                     }
