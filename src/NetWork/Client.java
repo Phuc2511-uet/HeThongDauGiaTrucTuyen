@@ -85,6 +85,7 @@ public class Client {
             case "WON_AUCTIONS":
 
 
+            case "LOGOUT_SUCCESS":
             case "LOGIN_SUCCESS":
             case "LOGIN_FAILED":
             case "BID_SUCCESS":
@@ -99,6 +100,7 @@ public class Client {
             case "DELETE_USER_FAILED":
             case "DEPOSIT_SUCCESS":
             case "DEPOSIT_FAILED":
+
                 System.out.println(command);
                 break;
 
@@ -178,6 +180,9 @@ public class Client {
     }
     public void getItemById(int id) {
         send("GET_ITEM_BY_ID " + id);
+    }
+    public void logOut(){
+        send("LOGOUT");
     }
 
 

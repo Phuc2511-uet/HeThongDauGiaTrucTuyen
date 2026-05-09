@@ -67,6 +67,25 @@ public class Sever {
 
                     continue; //  không đi xuống dưới
                 }
+                // ===== LOGOUT =====
+                if (action.equals("LOGOUT")) {
+
+                    if (currentUser == null) {
+                        out.println("ERROR Not logged in");
+                        continue;
+                    }
+
+                    // nếu là bidder thì xóa connection
+                    if (currentUser instanceof Bidder) {
+                        ((Bidder) currentUser).setConnection(null);
+                    }
+
+                    currentUser = null; //  logout thật sự
+
+                    out.println("LOGOUT_SUCCESS");
+                    continue;
+                }
+
 
                 // ===== CHƯA LOGIN =====
                 if (currentUser == null) {

@@ -71,6 +71,7 @@ public class InformationHandle {
                     return handleGetWonAuctions(currentUser);
                 case "GET_SELLER_AUCTIONS":
                     return handleGetSellerAuctions(currentUser);
+
                 default:
                     return "ERROR Unknown action";
             }
