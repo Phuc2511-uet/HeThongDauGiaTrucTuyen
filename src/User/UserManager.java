@@ -24,8 +24,15 @@ public class UserManager implements Serializable {
 
     // ===== THÊM USER =====
     public boolean addUser(User user) {
+        // Duyệt danh sách để kiểm tra username đã tồn tại chưa
+        for (User u : users) {
+            if (u.getUsername().equalsIgnoreCase(user.getUsername())) {
+                System.out.println("Lỗi: Username " + user.getUsername() + " đã tồn tại!");
+                return false; // Trả về false nếu trùng
+            }
+        }
         users.add(user);
-        return true;
+        return true; // Chỉ trả về true khi thêm mới thành công
     }
 
     // ===== LOGIN =====
