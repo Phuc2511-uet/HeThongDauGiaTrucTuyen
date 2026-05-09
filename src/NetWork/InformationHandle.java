@@ -71,6 +71,8 @@ public class InformationHandle {
                     return handleGetWonAuctions(currentUser);
                 case "GET_SELLER_AUCTIONS":
                     return handleGetSellerAuctions(currentUser);
+                case "GET_CURRENT_USER":
+                    return handleGetCurrentUser(currentUser);
 
                 default:
                     return "ERROR Unknown action";
@@ -263,6 +265,46 @@ public class InformationHandle {
 
             return UserManager.getInstance()
                     .getUserInfoAsString(userId);
+
+        } catch (Exception e) {
+            return "ERROR " + e.getMessage();
+        }
+    }
+
+    private String handleGetCurrentUser(User currentUser) {
+
+        try {
+            if (currentUser == null) {
+                return "ERROR NOT LOGIN";
+            }
+
+            String role = "UNKNOWN";
+            double balance = -1; // mặc định không có
+
+            if (currentUser instanceof Bidder) {
+                role = "BIDDER";
+                balance = ((Bidder) currentUser).getBalance();
+            }
+            else if (currentUser instanceof Seller) {
+                role = "SELLER";
+                balance = ((Seller) currentUser).getBalance();
+            }
+            else if (currentUser instanceof Admin) {
+                role = "ADMIN";
+            }
+
+            String base = "USER_DETAIL "
+                    + currentUser.getId() + " "
+                    + currentUser.getUsername() + " "
+                    + role + " "
+                    + currentUser.getFullName().replace(" ", "_");
+
+            // 🔥 chỉ thêm balance nếu có
+            if (balance >= 0) {
+                base += " " + balance;
+            }
+
+            return base;
 
         } catch (Exception e) {
             return "ERROR " + e.getMessage();

@@ -185,6 +185,9 @@ public class Client {
         send("GET_AUCTION_BY_ID" + " " + id);
 
     }
+    public void getCurrentUser(){    //USER_DETAIL 1 phuc BIDDER Nguyen_Dinh_Phuc 5000.0
+        send("GET_CURRENT_USER");
+    }
     public void createItem(String type, String name, double price) {
 
         send("CREATE_ITEM " + type + " " + name.replace(" ", "_") + " " + price);
