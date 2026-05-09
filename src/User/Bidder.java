@@ -1,11 +1,14 @@
 package User;
 
+import Observer.Observer;
 import exceptions.InsufficientBalanceException;
 
-public class Bidder extends User{
+import java.io.PrintWriter;
+
+public class Bidder extends User implements Observer {
     private double balance;
-    public Bidder(String username, String password, String fullName) {
-        super( username, password, fullName);
+    public Bidder(int id,String username, String password, String fullName) {
+        super( id,username, password, fullName);
         this.balance = 0;
     }
 
@@ -37,5 +40,18 @@ public class Bidder extends User{
         this.balance += amount;
         return true;
     }
+    private transient PrintWriter out; // ⚠transient nếu bạn serialize
 
+    public void setConnection(PrintWriter out) {
+        this.out = out;
+    }
+
+    @Override
+    public void update(String message) {
+        if (out != null) {
+            out.println(message); // gửi về client
+        }
+    }
 }
+
+

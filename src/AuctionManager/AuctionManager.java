@@ -13,6 +13,7 @@ import java.util.concurrent.locks.ReentrantLock;
 public class AuctionManager {
 
     private static AuctionManager instance;
+    private int count = 0;
 
 
     private final List<Auction> auctions = new ArrayList<>();
@@ -42,7 +43,9 @@ public class AuctionManager {
             }
 
             // tạo auction (id đã tự sinh bên trong)
-            Auction a = new Auction(item, seller, startPrice);
+            int id = count;
+            count ++;
+            Auction a = new Auction(id,item, seller, startPrice);
 
             auctions.add(a);
 
@@ -108,6 +111,9 @@ public class AuctionManager {
             System.out.println("Bid failed: " + e.getMessage());
             return false;
         }
+    }
+    public List<Auction> getAllAuctions() {
+        return new ArrayList<>(auctions);
     }
 
 

@@ -80,6 +80,9 @@ public class Client {
 
             case "USER_DETAIL":
 
+            case "SELLER_AUCTIONS":
+
+            case "WON_AUCTIONS":
 
 
             case "LOGIN_SUCCESS":
@@ -121,6 +124,13 @@ public class Client {
     }
 
     // ===== CHỨC NĂNG =====
+    public void getWonAuctions() {
+        send("GET_WON_AUCTIONS");
+    }
+    public void getSellerAuctions() {
+        send("GET_SELLER_AUCTIONS");
+    }
+
     public void getUserById(int userId) {
         send("GET_USER_BY_ID " + userId);
     }

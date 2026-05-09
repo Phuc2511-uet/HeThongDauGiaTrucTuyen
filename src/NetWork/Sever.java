@@ -55,6 +55,9 @@ public class Sever {
 
                         currentUser = UserManager.getInstance()
                                 .authenticate(username, password);
+                        if (currentUser instanceof Bidder) {
+                            ((Bidder) currentUser).setConnection(out);
+                        }
 
                         out.println("LOGIN_SUCCESS");
 
@@ -79,6 +82,10 @@ public class Sever {
 
         } catch (IOException e) {
             System.out.println("Client disconnected: " + socket);
+        }finally {
+            if (currentUser instanceof Bidder) {
+                ((Bidder) currentUser).setConnection(null);
+            }
         }
     }
 
