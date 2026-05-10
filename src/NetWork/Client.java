@@ -21,6 +21,18 @@ public class Client {
     private String currentFullname;
     private double currentBalance;
 
+    private List<Observer.Observer> observers = new ArrayList<>();
+    private String currentUsername;
+
+    public void addObserver(Observer.Observer obs) { observers.add(obs); }
+
+    // Hàm thông báo cho giao diện
+    private void notifyObservers(String cmd) {
+        for (Observer.Observer obs : observers) {
+            obs.update(cmd);
+        }
+    }
+
     private volatile boolean running = false;
 
     // ===== KẾT NỐI =====
@@ -93,8 +105,11 @@ public class Client {
             case "LOGIN_SUCCESS":{
                 if (parts.length >= 4) {
                     this.currentRole = parts[1];
+                    this.currentUsername = parts[1]; // Giả định Server gửi kèm username
                     this.currentFullname = parts[2].replace("_", " ");
                     this.currentBalance = Double.parseDouble(parts[3]);
+
+                    notifyObservers("USER_DATA_CHANGED");
 
                     javafx.application.Platform.runLater(() -> {
                         MainFx.showHomeByRole(this.currentRole);
@@ -144,7 +159,10 @@ public class Client {
         }
     }
 
-
+    // Các Getter để Controller lấy dữ liệu
+    public String getCurrentFullname() { return currentFullname; }
+    public double getCurrentBalance() { return currentBalance; }
+    public String getCurrentUsername() { return currentUsername; }
 
     // ===== GỬI DỮ LIỆU =====
     private void send(String message) {
@@ -215,8 +233,19 @@ public class Client {
     public void getItemById(int id) {
         send("GET_ITEM_BY_ID " + id);
     }
-    public void logOut(){
+    public void logOut() {
         send("LOGOUT");
+        // Reset dữ liệu cục bộ ngay lập tức
+        this.currentFullname = "";
+        this.currentBalance = 0.0;
+        this.currentRole = "";
+        this.currentUsername = "";
+        // Xóa các observer cũ để tránh rò rỉ bộ nhớ
+        observers.clear();
+
+        javafx.application.Platform.runLater(() -> {
+            MainFx.showLoginScene();
+        });
     }
 
 
