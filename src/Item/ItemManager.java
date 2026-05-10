@@ -2,6 +2,7 @@ package Item;
 
 import Factory.*;
 import Base.DatabaseManager; // Import DatabaseManager
+import User.Seller; // Import Seller
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -102,7 +103,7 @@ public class ItemManager implements Serializable {
 
         return sb.toString().trim();
     }
-    public Item createItem(String type, String name, double price) {
+    public Item createItem(String type, String name, double price, Seller seller) { // Thêm Seller vào tham số
 
         ItemFactory factory;
 
@@ -124,7 +125,7 @@ public class ItemManager implements Serializable {
                 throw new IllegalArgumentException("UNKNOWN ITEM TYPE");
         }
 
-        Item item = factory.CreateItem(name, price);
+        Item item = factory.CreateItem(name, price, seller); // Gọi CreateItem với seller
 
         // gán ID tại đây
         item.setId(count++); // Giả sử setId đã được thêm lại hoặc Item có constructor với ID

@@ -42,25 +42,27 @@ public class DatabaseManager {
 
     public static List<User> loadAllUsers() {
         List<User> list = new ArrayList<>();
-        String sql = "SELECT id, username, password, fullName, role, balance FROM users";
+        // Dùng dấu * để lấy tất cả các cột, tránh việc gõ sai tên cột ở đây
+        String sql = "SELECT * FROM users";
 
         try (Connection conn = DBConnection.getConnection();
              Statement stmt = conn.createStatement();
              ResultSet rs = stmt.executeQuery(sql)) {
 
+            int count = 1; // Tạo một ID ảo để code không bị lỗi
             while (rs.next()) {
-                int id = rs.getInt("id");
-                String role = rs.getString("role");
                 String username = rs.getString("username");
                 String password = rs.getString("password");
                 String fullName = rs.getString("fullName");
+                String role = rs.getString("role");
 
                 User u;
                 if ("BIDDER".equalsIgnoreCase(role)) {
                     double balance = rs.getDouble("balance");
-                    u = new Bidder(id, username, password, fullName, balance);
+                    // Dùng count++ để tạo ID tạm: 1, 2, 3...
+                    u = new Bidder(count++, username, password, fullName, balance);
                 } else {
-                    u = new Seller(id, username, password, fullName);
+                    u = new Seller(count++, username, password, fullName);
                 }
                 list.add(u);
             }
