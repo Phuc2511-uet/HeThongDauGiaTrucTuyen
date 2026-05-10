@@ -4,8 +4,8 @@ import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 import User.*;
-import Item.*; // Import package chứa Item, Art, Electronic...
-import Auction.*; // Import package chứa Auction
+import Item.*;
+import Auction.*;
 import AuctionManager.AuctionManager;
 import Item.ItemManager;
 
@@ -42,13 +42,14 @@ public class DatabaseManager {
 
     public static List<User> loadAllUsers() {
         List<User> list = new ArrayList<>();
-        String sql = "SELECT * FROM users";
+        String sql = "SELECT id, username, password, fullName, role, balance FROM users";
 
         try (Connection conn = DBConnection.getConnection();
              Statement stmt = conn.createStatement();
              ResultSet rs = stmt.executeQuery(sql)) {
 
             while (rs.next()) {
+                int id = rs.getInt("id");
                 String role = rs.getString("role");
                 String username = rs.getString("username");
                 String password = rs.getString("password");
@@ -57,9 +58,9 @@ public class DatabaseManager {
                 User u;
                 if ("BIDDER".equalsIgnoreCase(role)) {
                     double balance = rs.getDouble("balance");
-                    u = new Bidder(username, password, fullName, balance);
+                    u = new Bidder(id, username, password, fullName, balance);
                 } else {
-                    u = new Seller(username, password, fullName);
+                    u = new Seller(id, username, password, fullName);
                 }
                 list.add(u);
             }
@@ -105,22 +106,21 @@ public class DatabaseManager {
 
     public static List<Item> loadAllItems(List<User> allUsers) {
         List<Item> list = new ArrayList<>();
-        String sql = "SELECT * FROM items";
+        String sql = "SELECT item_id, name, base_price, seller_username FROM items";
 
         try (Connection conn = DBConnection.getConnection();
              Statement stmt = conn.createStatement();
              ResultSet rs = stmt.executeQuery(sql)) {
 
             while (rs.next()) {
+                int itemId = rs.getInt("item_id");
                 String sellerName = rs.getString("seller_username");
-                // Tìm Object User tương ứng để làm Seller
                 User seller = allUsers.stream()
                         .filter(u -> u.getUsername().equals(sellerName))
                         .findFirst().orElse(null);
 
                 if (seller instanceof Seller) {
-                    Item item = new ConcreteItem(rs.getString("name"), rs.getDouble("base_price"), (Seller) seller);
-                    item.setId(rs.getInt("item_id"));
+                    Item item = new ConcreteItem(itemId, rs.getString("name"), rs.getDouble("base_price"), (Seller) seller);
                     list.add(item);
                 }
             }
@@ -136,14 +136,31 @@ public class DatabaseManager {
              PreparedStatement pstmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             pstmt.setString(1, item.getName());
             pstmt.setDouble(2, item.getPrice());
-            pstmt.setString(3, ((ConcreteItem) item).getSeller().getUsername());
+            // Sử dụng item.getSeller() thay vì ép kiểu
+            if (item.getSeller() != null) {
+                pstmt.setString(3, item.getSeller().getUsername());
+            } else {
+                pstmt.setNull(3, Types.VARCHAR);
+            }
             pstmt.executeUpdate();
 
-            // Lấy ID tự sinh từ MySQL gán ngược lại cho Object
             ResultSet rs = pstmt.getGeneratedKeys();
             if (rs.next()) item.setId(rs.getInt(1));
         } catch (Exception e) {
             System.err.println("Lỗi khi lưu vật phẩm: " + e.getMessage());
+        }
+    }
+
+    public static void updateItem(Item item) {
+        String sql = "UPDATE items SET name = ?, base_price = ? WHERE item_id = ?";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setString(1, item.getName());
+            pstmt.setDouble(2, item.getPrice());
+            pstmt.setInt(3, item.getId());
+            pstmt.executeUpdate();
+        } catch (Exception e) {
+            System.err.println("Lỗi khi cập nhật vật phẩm: " + e.getMessage());
         }
     }
 
@@ -153,32 +170,31 @@ public class DatabaseManager {
 
     public static List<Auction> loadAllAuctions(List<Item> allItems, List<User> allUsers) {
         List<Auction> list = new ArrayList<>();
-        String sql = "SELECT * FROM auctions";
+        String sql = "SELECT auction_id, item_id, current_price, highest_bidder_username, status FROM auctions";
 
         try (Connection conn = DBConnection.getConnection();
              Statement stmt = conn.createStatement();
              ResultSet rs = stmt.executeQuery(sql)) {
 
             while (rs.next()) {
+                int auctionId = rs.getInt("auction_id");
                 int itemId = rs.getInt("item_id");
-                // Tìm Item tương ứng
+                double currentPrice = rs.getDouble("current_price");
+                String bidderName = rs.getString("highest_bidder_username");
+                String statusString = rs.getString("status");
+                Auction.Status status = Auction.Status.valueOf(statusString);
+
                 Item item = allItems.stream()
                         .filter(i -> i.getId() == itemId)
                         .findFirst().orElse(null);
 
-                String bidderName = rs.getString("highest_bidder_username");
-                // Tìm User tương ứng làm Highest Bidder
                 User bidder = allUsers.stream()
                         .filter(u -> u.getUsername().equals(bidderName))
                         .findFirst().orElse(null);
 
                 if (item != null) {
-                    Auction auction = new Auction(item, ((ConcreteItem) item).getSeller(), item.getPrice());
-                    auction.setId(rs.getInt("auction_id"));
-                    auction.setCurrentPrice(rs.getDouble("current_price"));
-                    if (bidder instanceof Bidder) {
-                        auction.setHighestBidder((Bidder) bidder);
-                    }
+                    // Sử dụng item.getSeller() thay vì ép kiểu
+                    Auction auction = new Auction(auctionId, item, item.getSeller(), item.getPrice(), currentPrice, (Bidder) bidder, status);
                     list.add(auction);
                 }
             }
@@ -189,7 +205,6 @@ public class DatabaseManager {
     }
 
     public static void saveOrUpdateAuction(Auction auction) {
-        // Sử dụng logic: Nếu chưa có ID thì INSERT, có rồi thì UPDATE
         String sql = (auction.getId() == 0)
                 ? "INSERT INTO auctions (item_id, current_price, highest_bidder_username, status) VALUES (?, ?, ?, ?)"
                 : "UPDATE auctions SET current_price = ?, highest_bidder_username = ?, status = ? WHERE auction_id = ?";
@@ -201,11 +216,11 @@ public class DatabaseManager {
                 pstmt.setInt(1, auction.getItem().getId());
                 pstmt.setDouble(2, auction.getCurrentPrice());
                 pstmt.setString(3, auction.getCurrentBidder() != null ? auction.getCurrentBidder().getUsername() : null);
-                pstmt.setString(4, auction.getStatus().name()); // Sửa lỗi: Lưu trạng thái thực tế
+                pstmt.setString(4, auction.getStatus().name());
             } else {
                 pstmt.setDouble(1, auction.getCurrentPrice());
                 pstmt.setString(2, auction.getCurrentBidder() != null ? auction.getCurrentBidder().getUsername() : null);
-                pstmt.setString(3, auction.getStatus().name()); // Sửa lỗi: Lưu trạng thái thực tế
+                pstmt.setString(3, auction.getStatus().name());
                 pstmt.setInt(4, auction.getId());
             }
 
@@ -219,14 +234,21 @@ public class DatabaseManager {
         }
     }
 }
+
 class ConcreteItem extends Item {
-    private Seller seller;
+    private final Seller seller;
+
+    public ConcreteItem(int id, String name, double price, Seller seller) {
+        super(id, name, price);
+        this.seller = seller;
+    }
 
     public ConcreteItem(String name, double price, Seller seller) {
         super(name, price);
         this.seller = seller;
     }
 
+    @Override
     public Seller getSeller() {
         return seller;
     }

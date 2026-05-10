@@ -1,27 +1,29 @@
 package User;
 
+import Base.DatabaseManager; // Import DatabaseManager
 import java.util.ArrayList;
 import java.util.List;
 
 public class Seller extends User {
 
-    private double ballance = 0;
+    private double balance = 0; // Đã sửa lỗi chính tả từ ballance thành balance
 
-    public Seller(String username, String password, String fullName) {
-        super( username, password, fullName);
+    public Seller(int id,String username, String password, String fullName) {
+        super( id,username, password, fullName);
 
     }
 
     @Override
     public void displayInfo() {
-        System.out.println("[Seller Account] Name: " + getFullName() + " | Ballance: " + ballance + "⭐");
+        System.out.println("[Seller Account] Name: " + getFullName() + " | Balance: " + balance + "⭐");
     }
 
-    public void setBallance(double ballance) {
-        this.ballance = ballance;
+    public void setBalance(double balance) {
+        this.balance = balance;
+        DatabaseManager.updateUserState(this); // Tự động cập nhật vào DB
     }
 
-    public double getBallance() {
-        return ballance;
+    public double getBalance() {
+        return balance;
     }
 }

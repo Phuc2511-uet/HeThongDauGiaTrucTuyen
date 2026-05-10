@@ -48,30 +48,69 @@ public class Sever {
                 String[] parts = message.split(" ");
                 String action = parts[0];
 
-                // ===== LOGIN =====
+                // 1. XỬ LÝ ĐĂNG KÝ (Cho phép thực hiện khi chưa login)
+
+                if (action.equals("NEW_ACCOUNT")) {
+                    String response = handle.handleIfo(message, currentUser);
+                    out.println(response);
+                    continue;
+                }
+                // 2. XỬ LÝ LOGIN
                 if (action.equals("LOGIN")) {
                     try {
-                        String username = parts[1];
-                        String password = parts[2];
+                        currentUser = UserManager.getInstance().authenticate(parts[1], parts[2]);
+                        String role = "UNKNOWN";
+                        double balance = 0.0; // Mặc định cho Admin
 
-                        currentUser = UserManager.getInstance()
-                                .authenticate(username, password);
+                        if (currentUser instanceof Bidder) {
+                            role = "BIDDER";
+                            balance = ((Bidder) currentUser).getBalance();
+                        }
+                        else if (currentUser instanceof Seller) {
+                            role = "SELLER";
+                            balance = ((Seller) currentUser).getBalance();
+                        }
+                        else if (currentUser instanceof Admin) {
+                            role = "ADMIN";
+                            balance = 0.0;
+                        }
 
-                        out.println("LOGIN_SUCCESS");
-
+                        // Gửi về Client    LOGIN_SUCCESS <ROLE> <FULLNAME> <BALANCE>
+                        String response = String.format("LOGIN_SUCCESS %s %s %.2f",
+                                role,
+                                currentUser.getFullName().replace(" ", "_"),
+                                balance);
+                        out.println(response);
                     } catch (Exception e) {
-                        out.println("LOGIN_FAIL");
+                        out.println("LOGIN_FAILED");
+                    }
+                    continue;
+                }
+                // ===== LOGOUT =====
+                if (action.equals("LOGOUT")) {
+
+                    if (currentUser == null) {
+                        out.println("ERROR Not logged in");
+                        continue;
                     }
 
-                    continue; //  không đi xuống dưới
+                    // nếu là bidder thì xóa connection
+                    if (currentUser instanceof Bidder) {
+                        ((Bidder) currentUser).setConnection(null);
+                    }
+
+                    currentUser = null; //  logout thật sự
+
+                    out.println("LOGOUT_SUCCESS");
+                    continue;
                 }
 
-                // ===== CHƯA LOGIN =====
+
+                // 3. CHẶN CÁC LỆNH KHÁC NẾU CHƯA LOGIN
                 if (currentUser == null) {
                     out.println("ERROR Not logged in");
                     continue;
                 }
-
                 // ===== XỬ LÝ REQUEST KHÁC =====
                 String response = handle.handleIfo(message, currentUser);
 
@@ -80,6 +119,10 @@ public class Sever {
 
         } catch (IOException e) {
             System.out.println("Client disconnected: " + socket);
+        }finally {
+            if (currentUser instanceof Bidder) {
+                ((Bidder) currentUser).setConnection(null);
+            }
         }
     }
 
