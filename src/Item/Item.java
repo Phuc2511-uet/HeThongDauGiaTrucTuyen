@@ -29,6 +29,8 @@ public abstract class Item implements Serializable {
         return price;
     }
 
+    public void setId(int id) { this.id = id; }
+
     // ===== ABSTRACT =====
     public abstract void display();
 }

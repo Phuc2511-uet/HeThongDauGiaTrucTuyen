@@ -36,6 +36,8 @@ public abstract class User  implements Serializable,Observer {
         return fullName;
     }
 
+    public String getPassword() { return password; }
+
 
 
     public abstract void displayInfo();

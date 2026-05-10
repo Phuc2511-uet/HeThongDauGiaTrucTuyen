@@ -42,6 +42,18 @@ public class Auction {
         this.currentStatus = Status.OPEN;
     }
 
+    public void setId(int id) {
+        this.id = id;
+    }
+
+    public void setCurrentPrice(double currentPrice) {
+        this.currentPrice = currentPrice;
+    }
+
+    public void setHighestBidder(Bidder bidder) {
+        this.currentBidder = bidder;
+    }
+
     // ===== GETTER CẦN THIẾT (QUAN TRỌNG) =====
     public int getId() {
         return id;

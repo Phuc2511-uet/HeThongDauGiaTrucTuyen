@@ -20,6 +20,10 @@ public class ItemManager implements Serializable {
         return instance;
     }
 
+    public void setItems(List<Item> items) {
+        this.items = items;
+    }
+
     // ===== THÊM ITEM =====
     public void addItem(Item item) {
         items.add(item);

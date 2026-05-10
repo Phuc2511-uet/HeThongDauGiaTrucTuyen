@@ -21,6 +21,10 @@ public class UserManager implements Serializable {
         return instance;
     }
 
+    public void setUsers(List<User> users) {
+        this.users = users;
+    }
+
     // ===== THÊM USER =====
     public boolean addUser(User user) {
         users.add(user);

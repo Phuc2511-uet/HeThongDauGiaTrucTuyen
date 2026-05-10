@@ -15,7 +15,7 @@ public class AuctionManager {
     private static AuctionManager instance;
 
 
-    private final List<Auction> auctions = new ArrayList<>();
+    private List<Auction> auctions = new ArrayList<>();
 
 
     private final ReentrantLock lock = new ReentrantLock();
@@ -28,6 +28,10 @@ public class AuctionManager {
             instance = new AuctionManager();
         }
         return instance;
+    }
+
+    public void setAuctions(List<Auction> auctions) {
+        this.auctions.addAll(auctions);
     }
 
 
