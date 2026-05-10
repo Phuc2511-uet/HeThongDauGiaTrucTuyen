@@ -8,10 +8,10 @@ public abstract class Item implements Serializable {
     protected String name;
     protected double price;
 
-    private static int count = 0;
 
-    public Item(String name, double price) {
-        this.id = count++;   // 👈 tự sinh id giống User
+
+    public Item( String name, double price) {
+
         this.name = name;
         this.price = price;
     }
@@ -19,6 +19,10 @@ public abstract class Item implements Serializable {
     // ===== GETTER =====
     public int getId() {
         return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
     }
 
     public String getName() {

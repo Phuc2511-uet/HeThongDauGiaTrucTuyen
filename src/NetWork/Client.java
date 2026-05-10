@@ -1,5 +1,7 @@
 package NetWork;
 
+import Controller.MainFx;
+
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
@@ -14,6 +16,10 @@ public class Client {
     private Socket socket;
     private PrintWriter out;
     private BufferedReader in;
+
+    private String currentRole;
+    private String currentFullname;
+    private double currentBalance;
 
     private volatile boolean running = false;
 
@@ -80,14 +86,43 @@ public class Client {
 
             case "USER_DETAIL":
 
+            case "SELLER_AUCTIONS":
 
+            case "WON_AUCTIONS":
 
-            case "LOGIN_SUCCESS":
-            case "LOGIN_FAILED":
+            case "LOGIN_SUCCESS":{
+                if (parts.length >= 4) {
+                    this.currentRole = parts[1];
+                    this.currentFullname = parts[2].replace("_", " ");
+                    this.currentBalance = Double.parseDouble(parts[3]);
+
+                    javafx.application.Platform.runLater(() -> {
+                        MainFx.showHomeByRole(this.currentRole);
+                    });
+                }
+                break;
+            }
+            case "LOGIN_FAILED":{
+                javafx.application.Platform.runLater(() -> {
+                    showAlert("Đăng nhập thất bại", "Sai tài khoản hoặc mật khẩu!");
+                });
+                break;
+            }
             case "BID_SUCCESS":
             case "BID_FAILED":
-            case "ACCOUNT_SUCCESS":
-            case "ACCOUNT_FAILED":
+            case "ACCOUNT_SUCCESS":{
+                javafx.application.Platform.runLater(() -> {
+                    showAlert("Thông báo", "Tạo tài khoản thành công! Vui lòng đăng nhập.");
+                    MainFx.showLoginScene();
+                });
+                break;
+            }
+            case "ACCOUNT_FAILED":{
+                javafx.application.Platform.runLater(() -> {
+                    showAlert("Lỗi", "Tạo tài khoản thất bại! Tên đăng nhập có thể đã tồn tại.");
+                });
+                break;
+            }
             case "UPDATE_PRICE_SUCCESS":
             case "UPDATE_PRICE_FAILED":
             case "DELETE_ITEM_SUCCESS":
@@ -96,6 +131,7 @@ public class Client {
             case "DELETE_USER_FAILED":
             case "DEPOSIT_SUCCESS":
             case "DEPOSIT_FAILED":
+
                 System.out.println(command);
                 break;
 
@@ -121,6 +157,13 @@ public class Client {
     }
 
     // ===== CHỨC NĂNG =====
+    public void getWonAuctions() {
+        send("GET_WON_AUCTIONS");
+    }
+    public void getSellerAuctions() {
+        send("GET_SELLER_AUCTIONS");
+    }
+
     public void getUserById(int userId) {
         send("GET_USER_BY_ID " + userId);
     }
@@ -141,6 +184,9 @@ public class Client {
     public void getAuctionById(String id){
         send("GET_AUCTION_BY_ID" + " " + id);
 
+    }
+    public void getCurrentUser(){    //USER_DETAIL 1 phuc BIDDER Nguyen_Dinh_Phuc 5000.0
+        send("GET_CURRENT_USER");
     }
     public void createItem(String type, String name, double price) {
 
@@ -169,6 +215,9 @@ public class Client {
     public void getItemById(int id) {
         send("GET_ITEM_BY_ID " + id);
     }
+    public void logOut(){
+        send("LOGOUT");
+    }
 
 
 
@@ -176,15 +225,17 @@ public class Client {
 
     // ===== NGẮT KẾT NỐI =====
     public void disconnect() {
+        running = false;
         try {
-            running = false;
-
+            // Đóng socket trước để phá vỡ trạng thái blocking của readLine()
+            if (socket != null && !socket.isClosed()) {
+                socket.close();
+            }
             if (in != null) in.close();
             if (out != null) out.close();
-            if (socket != null) socket.close();
-
+            System.out.println("Client disconnected safely.");
         } catch (Exception e) {
-            e.printStackTrace();
+            System.err.println("Error while disconnecting: " + e.getMessage());
         }
     }
     private void onReceiveAuctionList(List<Integer> list) {
@@ -198,6 +249,23 @@ public class Client {
         // sau này  thay bằng update GUI
     }
 
+    //ngăn không cho soket tạo mới khi chuyển màn hình
+    private static Client instance;
+    public static Client getInstance() {
+        if (instance == null) {
+            instance = new Client();
+        }
+        return instance;
+    }
+
+    //thông báo
+    private void showAlert(String title, String content) {
+        javafx.scene.control.Alert alert = new javafx.scene.control.Alert(javafx.scene.control.Alert.AlertType.INFORMATION);
+        alert.setTitle(title);
+        alert.setHeaderText(null);
+        alert.setContentText(content);
+        alert.showAndWait();
+    }
 
 
 }

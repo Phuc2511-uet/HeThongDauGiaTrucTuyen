@@ -9,6 +9,7 @@ public class UserManager implements Serializable {
 
     private static UserManager instance;
     private List<User> users;
+    private int count = 0;
 
     private UserManager() {
         users = new ArrayList<>();
@@ -23,8 +24,15 @@ public class UserManager implements Serializable {
 
     // ===== THÊM USER =====
     public boolean addUser(User user) {
+        // Duyệt danh sách để kiểm tra username đã tồn tại chưa
+        for (User u : users) {
+            if (u.getUsername().equalsIgnoreCase(user.getUsername())) {
+                System.out.println("Lỗi: Username " + user.getUsername() + " đã tồn tại!");
+                return false; // Trả về false nếu trùng
+            }
+        }
         users.add(user);
-        return true;
+        return true; // Chỉ trả về true khi thêm mới thành công
     }
 
     // ===== LOGIN =====
@@ -84,5 +92,27 @@ public class UserManager implements Serializable {
 
     public static void setInstance(UserManager loadedInstance) {
         instance = loadedInstance;
+    }
+    public User createUser(String username, String password, String role, String fullName) {
+
+        int id = count++;
+        User user;
+
+        switch (role.toUpperCase()) {
+            case "BIDDER":
+                user = new Bidder(id, username, password, fullName);
+                break;
+            case "SELLER":
+                user = new Seller(id, username, password, fullName);
+                break;
+            case "ADMIN":
+                user = new Admin(id, username, password, fullName);
+                break;
+            default:
+                throw new IllegalArgumentException("Role không hợp lệ");
+        }
+
+        users.add(user);
+        return user;
     }
 }

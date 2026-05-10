@@ -29,13 +29,13 @@ public class Auction {
     private double currentPrice;
     private Bidder currentBidder;
 
-    private static int count = 0;
+
 
     private final ReentrantLock lock = new ReentrantLock();
 
     // ===== CONSTRUCTOR =====
-    public Auction(Item bidItem, Seller seller, double startPrice) {
-        this.id = count++;
+    public Auction(int id,Item bidItem, Seller seller, double startPrice) {
+        this.id = id;
         this.bidItem = bidItem;
         this.seller = seller;
         this.currentPrice = startPrice;
@@ -227,7 +227,7 @@ public class Auction {
 
             extendAuction();
 
-            message = "Giá mới cho sản phẩm " + bidItem.getName() + " là: " + newPrice;
+            message = "NOTIFY " + id + " " + newPrice;
 
             if (!observers.contains(bidder)) {
                 shouldAddObserver = true;
@@ -255,26 +255,34 @@ public class Auction {
         }
     }
 
-    public void pay() {
+    public boolean pay() {
 
         lock.lock();
         try {
 
+            // ❌ chưa kết thúc
             if (currentStatus != Status.FINISH) {
-                throw new IllegalStateException("Auction must be FINISH before payment");
+                return false;
             }
 
+            // ❌ không có người thắng
             if (currentBidder == null) {
-                throw new IllegalStateException("No winner to pay");
+                return false;
             }
 
             double amount = currentPrice;
 
-            // ===== TRỪ TIỀN BIDDER =====
-            currentBidder.checkBalance(amount);
+            // ❌ không đủ tiền
+            try {
+                currentBidder.checkBalance(amount);
+            } catch (Exception e) {
+                return false;
+            }
+
+            // ===== TRỪ TIỀN =====
             currentBidder.setBalance(currentBidder.getBalance() - amount);
 
-            // ===== CỘNG TIỀN SELLER =====
+            // ===== CỘNG TIỀN =====
             seller.setBalance(seller.getBalance() + amount);
 
             // ===== CHUYỂN TRẠNG THÁI =====
@@ -282,10 +290,9 @@ public class Auction {
 
             System.out.println("PAY SUCCESS: " + amount);
 
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-        finally {
+            return true; //  thành công
+
+        } finally {
             lock.unlock();
         }
     }
