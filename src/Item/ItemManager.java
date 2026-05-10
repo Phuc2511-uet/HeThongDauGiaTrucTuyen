@@ -1,6 +1,8 @@
 package Item;
 
 import Factory.*;
+import Base.DatabaseManager; // Import DatabaseManager
+import User.Seller; // Import Seller
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -23,9 +25,18 @@ public class ItemManager implements Serializable {
         return instance;
     }
 
+    public void setItems(List<Item> items) {
+        this.items = items;
+        // Cập nhật count để tránh trùng ID khi tải từ DB
+        if (!items.isEmpty()) {
+            this.count = items.stream().mapToInt(Item::getId).max().orElse(0) + 1;
+        }
+    }
+
     // ===== THÊM ITEM =====
     public void addItem(Item item) {
         items.add(item);
+        DatabaseManager.saveItem(item); // Tự động lưu vào DB
     }
 
     // ===== LẤY ITEM THEO ID =====
@@ -50,6 +61,7 @@ public class ItemManager implements Serializable {
 
     // ===== XOÁ ITEM =====
     public void remove(int id) {
+        // TODO: Cần thêm logic xóa khỏi DB
         items.removeIf(i -> i.getId() == id);
     }
 
@@ -65,6 +77,7 @@ public class ItemManager implements Serializable {
         }
 
         item.setPrice(newPrice);
+        DatabaseManager.updateItem(item); // Tự động cập nhật vào DB
         return true;
     }
     public String getItemInfoAsString(int id) {
@@ -90,7 +103,7 @@ public class ItemManager implements Serializable {
 
         return sb.toString().trim();
     }
-    public Item createItem(String type, String name, double price) {
+    public Item createItem(String type, String name, double price, Seller seller) { // Thêm Seller vào tham số
 
         ItemFactory factory;
 
@@ -112,12 +125,13 @@ public class ItemManager implements Serializable {
                 throw new IllegalArgumentException("UNKNOWN ITEM TYPE");
         }
 
-        Item item = factory.CreateItem(name, price);
+        Item item = factory.CreateItem(name, price, seller); // Gọi CreateItem với seller
 
         // gán ID tại đây
-        item.setId(count++);
+        item.setId(count++); // Giả sử setId đã được thêm lại hoặc Item có constructor với ID
 
         items.add(item);
+        DatabaseManager.saveItem(item); // Tự động lưu vào DB
 
         return item;
     }

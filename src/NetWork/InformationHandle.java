@@ -500,9 +500,12 @@ public class InformationHandle {
                 return "ERROR ONLY SELLER CAN CREATE ITEM";
             }
 
-            //  tạo qua ItemManager
+            // Ép kiểu currentUser thành Seller
+            Seller seller = (Seller) currentUser;
+
+            //  tạo qua ItemManager, truyền thêm seller
             Item item = ItemManager.getInstance()
-                    .createItem(type, name, price);
+                    .createItem(type, name, price, seller); // Truyền seller vào đây
 
             return "CREATE_ITEM_SUCCESS " + item.getId();
 

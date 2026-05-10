@@ -4,6 +4,7 @@ import Auction.Auction;
 import Item.*;
 import User.Bidder;
 import User.Seller;
+import Base.DatabaseManager; // Import DatabaseManager
 
 
 import java.util.ArrayList;
@@ -16,7 +17,7 @@ public class AuctionManager {
     private int count = 0;
 
 
-    private final List<Auction> auctions = new ArrayList<>();
+    private List<Auction> auctions = new ArrayList<>();
 
 
     private final ReentrantLock lock = new ReentrantLock();
@@ -29,6 +30,14 @@ public class AuctionManager {
             instance = new AuctionManager();
         }
         return instance;
+    }
+
+    public void setAuctions(List<Auction> auctions) {
+        this.auctions.addAll(auctions);
+        // Cập nhật count để tránh trùng ID khi tải từ DB
+        if (!auctions.isEmpty()) {
+            this.count = auctions.stream().mapToInt(Auction::getId).max().orElse(0) + 1;
+        }
     }
 
 
@@ -48,6 +57,7 @@ public class AuctionManager {
             Auction a = new Auction(id,item, seller, startPrice);
 
             auctions.add(a);
+            DatabaseManager.saveOrUpdateAuction(a); // Tự động lưu vào DB
 
         } finally {
             lock.unlock();
@@ -106,6 +116,7 @@ public class AuctionManager {
 
         try {
             auction.placeBid(price, bidder);
+            DatabaseManager.saveOrUpdateAuction(auction); // Tự động cập nhật vào DB
             return true;
         } catch (Exception e){
             System.out.println("Bid failed: " + e.getMessage());
@@ -123,6 +134,7 @@ public class AuctionManager {
         if (auction == null) return false;
 
         auction.pay();
+        DatabaseManager.saveOrUpdateAuction(auction); // Tự động cập nhật vào DB
         return true;
     }
 }

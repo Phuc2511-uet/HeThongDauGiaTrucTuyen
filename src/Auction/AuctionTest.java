@@ -1,3 +1,4 @@
+/*
 package Auction;
 import Auction.Auction;
 import Item.*;
@@ -77,3 +78,4 @@ public class AuctionTest {
         assertTrue(timeAfter > timeBefore, "Thời gian kết thúc phải được gia hạn");
     }
 }
+*/

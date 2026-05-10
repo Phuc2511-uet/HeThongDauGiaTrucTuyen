@@ -4,6 +4,7 @@ import exceptions.AuthenticationException;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
+import Base.DatabaseManager; // Import DatabaseManager
 
 public class UserManager implements Serializable {
 
@@ -22,6 +23,14 @@ public class UserManager implements Serializable {
         return instance;
     }
 
+    public void setUsers(List<User> users) {
+        this.users = users;
+        // Cập nhật count để tránh trùng ID khi tải từ DB
+        if (!users.isEmpty()) {
+            this.count = users.stream().mapToInt(User::getId).max().orElse(0) + 1;
+        }
+    }
+
     // ===== THÊM USER =====
     public boolean addUser(User user) {
         // Duyệt danh sách để kiểm tra username đã tồn tại chưa
@@ -32,6 +41,7 @@ public class UserManager implements Serializable {
             }
         }
         users.add(user);
+        DatabaseManager.saveUser(user); // Tự động lưu vào DB
         return true; // Chỉ trả về true khi thêm mới thành công
     }
 
@@ -56,6 +66,7 @@ public class UserManager implements Serializable {
         return null;
     }
     public boolean removeUser(int id) {
+        // TODO: Cần thêm logic xóa khỏi DB
         return users.removeIf(u -> u.getId() == id);
     }
     public String getAllUserIdsAsString() {
@@ -113,6 +124,7 @@ public class UserManager implements Serializable {
         }
 
         users.add(user);
+        DatabaseManager.saveUser(user); // Tự động lưu vào DB
         return user;
     }
 }

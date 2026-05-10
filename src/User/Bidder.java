@@ -2,6 +2,7 @@ package User;
 
 import Observer.Observer;
 import exceptions.InsufficientBalanceException;
+import Base.DatabaseManager; // Import DatabaseManager
 
 import java.io.PrintWriter;
 
@@ -10,6 +11,12 @@ public class Bidder extends User implements Observer {
     public Bidder(int id,String username, String password, String fullName) {
         super( id,username, password, fullName);
         this.balance = 0;
+    }
+
+    // Constructor mới để tải từ database
+    public Bidder(int id, String username, String password, String fullName, double balance) {
+        super(id, username, password, fullName);
+        this.balance = balance;
     }
 
 
@@ -24,6 +31,7 @@ public class Bidder extends User implements Observer {
 
     public void setBalance(double balance) {
         this.balance = balance;
+        DatabaseManager.updateUserState(this); // Tự động cập nhật vào DB
     }
 
     public void checkBalance(double amount) throws InsufficientBalanceException {
@@ -38,6 +46,7 @@ public class Bidder extends User implements Observer {
         }
 
         this.balance += amount;
+        DatabaseManager.updateUserState(this); // Tự động cập nhật vào DB
         return true;
     }
     private transient PrintWriter out; // ⚠transient nếu bạn serialize
@@ -53,5 +62,3 @@ public class Bidder extends User implements Observer {
         }
     }
 }
-
-
