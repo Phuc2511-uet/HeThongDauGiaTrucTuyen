@@ -3,6 +3,7 @@ package Auction;
 import Item.*;
 import Observer.Observer;
 import User.*;
+import Base.DatabaseManager; // Import DatabaseManager
 
 import java.util.ArrayList;
 import java.util.List;
@@ -30,16 +31,39 @@ public class Auction {
     private Bidder currentBidder;
 
 
-
     private final ReentrantLock lock = new ReentrantLock();
 
-    // ===== CONSTRUCTOR =====
-    public Auction(int id,Item bidItem, Seller seller, double startPrice) {
+    // ===== CONSTRUCTOR cho Auction mới =====
+    public Auction(int id, Item bidItem, Seller seller, double startPrice) {
         this.id = id;
         this.bidItem = bidItem;
         this.seller = seller;
         this.currentPrice = startPrice;
         this.currentStatus = Status.OPEN;
+    }
+
+    // ===== CONSTRUCTOR để tải từ Database =====
+    public Auction(int id, Item bidItem, Seller seller, double startPrice, double currentPrice, Bidder currentBidder, Status status) {
+        this.id = id;
+        this.bidItem = bidItem;
+        this.seller = seller;
+        this.currentPrice = currentPrice; // currentPrice từ DB
+        this.currentBidder = currentBidder; // currentBidder từ DB
+        this.currentStatus = status; // status từ DB
+        // startPrice có thể được lấy từ item.getPrice() hoặc lưu riêng nếu cần
+    }
+
+
+    public void setId(int id) {
+        this.id = id;
+    }
+
+    public void setCurrentPrice(double currentPrice) {
+        this.currentPrice = currentPrice;
+    }
+
+    public void setHighestBidder(Bidder bidder) {
+        this.currentBidder = bidder;
     }
 
     // ===== GETTER CẦN THIẾT (QUAN TRỌNG) =====
@@ -140,6 +164,7 @@ public class Auction {
             throw new IllegalStateException("Invalid transition");
         }
         currentStatus = next;
+        // Không gọi saveOrUpdateAuction ở đây vì các phương thức gọi nó sẽ tự gọi save
     }
 
     private void startAuction() {
@@ -162,6 +187,7 @@ public class Auction {
                 if (currentStatus == Status.RUNNING) {
                     transitionTo(Status.FINISH);
                     System.out.println("Auction auto finished");
+                    DatabaseManager.saveOrUpdateAuction(this); // Lưu khi phiên đấu giá tự động kết thúc
                 }
             } finally {
                 lock.unlock();
@@ -244,12 +270,14 @@ public class Auction {
         if (message != null) {
             notifyObservers(message);
         }
+        // AuctionManager sẽ gọi saveOrUpdateAuction sau khi placeBid
     }
 
     public void cancel() {
         lock.lock();
         try {
             transitionTo(Status.CANCELED);
+            DatabaseManager.saveOrUpdateAuction(this); // Lưu khi phiên đấu giá bị hủy
         } finally {
             lock.unlock();
         }
@@ -294,6 +322,7 @@ public class Auction {
 
         } finally {
             lock.unlock();
+            // AuctionManager sẽ gọi saveOrUpdateAuction sau khi pay
         }
     }
     public long getRemainingTime() {

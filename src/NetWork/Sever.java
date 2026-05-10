@@ -7,6 +7,7 @@ import User.*;
 public class Sever {
 
     public static void main(String args[]) {
+        Base.DatabaseManager.loadEverything();
         String host = "0.0.0.0";
         int port = 3636;
 
