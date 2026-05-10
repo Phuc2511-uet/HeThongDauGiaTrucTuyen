@@ -38,6 +38,8 @@ public class HomeBidderController {
 
     @FXML
     void Logout() {
-        MainFx.showLoginScene();
+        // Gọi hàm logOut trong Client để reset dữ liệu (FullName, Balance)
+        // và xóa danh sách Observers cũ
+        NetWork.Client.getInstance().logOut();
     }
 }

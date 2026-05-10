@@ -20,12 +20,12 @@ public class AuctionTest {
     void setUp() {
         // Khởi tạo dữ liệu giả lập trước mỗi test
         item = new Art("Tranh",1000.0);
-        seller = new Seller("S01", "Nguyen Van A", "sellera");
-        bidder1 = new Bidder( "Tran Van B", "bidderb", "123");
-        bidder2 = new Bidder( "Le Thi C", "bidderc", "123");
+        seller = new Seller(10,"S01", "Nguyen Van A", "sellera");
+        bidder1 = new Bidder( 11,"Tran Van B", "bidderb", "123");
+        bidder2 = new Bidder( 2,"Le Thi C", "bidderc", "123");
 
         // Khởi tạo phiên đấu giá với giá khởi điểm 1000
-        auction = new Auction(item, seller, 1000.0);
+        auction = new Auction(12,item, seller, 1000.0);
     }
 
     @Test
