@@ -77,10 +77,12 @@ public class Sever {
                         }
 
                         // Gửi về Client    LOGIN_SUCCESS <ROLE> <FULLNAME> <BALANCE>
-                        String response = String.format("LOGIN_SUCCESS %s %s %.2f",
+                        String response = String.format("LOGIN_SUCCESS %s %s %.2f %s",
                                 role,
                                 currentUser.getFullName().replace(" ", "_"),
-                                balance);
+                                balance,
+                                currentUser.getUsername()
+                        );
                         out.println(response);
                     } catch (Exception e) {
                         out.println("LOGIN_FAILED");

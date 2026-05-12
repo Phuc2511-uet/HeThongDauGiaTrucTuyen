@@ -102,11 +102,11 @@ public class Client {
             case "WON_AUCTIONS":
 
             case "LOGIN_SUCCESS":{
-                if (parts.length >= 4) {
+                if (parts.length >= 5) {
                     this.currentRole = parts[1];
-                    this.currentUsername = parts[1]; // Giả định Server gửi kèm username
                     this.currentFullname = parts[2].replace("_", " ");
                     this.currentBalance = Double.parseDouble(parts[3]);
+                    this.currentUsername = parts[4];
 
                     notifyObservers("USER_DATA_CHANGED");
 
@@ -223,7 +223,8 @@ public class Client {
         send("CREATE_AUCTION " + itemId + " " + sellerId + " " + startPrice);
     }
     public void newAccount(String username, String password, String role,String fullname) {
-        send("NEW_ACCOUNT " + username + " " + password + " " + role+" " + fullname);
+        String formattedFullname = fullname.replace(" ", "_");
+        send("NEW_ACCOUNT " + username + " " + password + " " + role+" " + formattedFullname);
     }
 
     public void getAuctions() {
