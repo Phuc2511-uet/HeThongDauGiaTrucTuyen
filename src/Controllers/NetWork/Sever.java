@@ -108,6 +108,30 @@ public class Sever {
                     continue;
                 }
 
+                //=====DEPOSIT======
+                if (action.equals("DEPOSIT")) {
+                    try {
+                        double amount = Double.parseDouble(parts[1]);
+
+                        if (currentUser instanceof Bidder) {
+                            Bidder bidder = (Bidder) currentUser;
+
+                            // Gọi hàm deposit có sẵn trong file Bidder.java của bạn
+                            if (bidder.deposit(amount)) {
+                                // Trả về số dư mới sau khi đã cộng thành công
+                                out.println("DEPOSIT_SUCCESS " + bidder.getBalance());
+                            } else {
+                                out.println("DEPOSIT_FAILED So_tien_phai_lon_hon_0");
+                            }
+                        } else {
+                            out.println("DEPOSIT_FAILED Chi_Bidder_moi_co_the_nap_tien");
+                        }
+                    } catch (Exception e) {
+                        out.println("DEPOSIT_FAILED Loi_dinh_dang_so_tien");
+                    }
+                    continue;
+                }
+
 
                 // 3. CHẶN CÁC LỆNH KHÁC NẾU CHƯA LOGIN
                 if (currentUser == null) {
