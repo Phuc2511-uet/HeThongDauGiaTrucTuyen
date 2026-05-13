@@ -45,8 +45,10 @@ public class InformationHandle {
                     return handleGetAuction();
                 case "NEW_ACCOUNT":
                     return handleNewAccount(part);
-                case "GET_AUCTION_BY_ID":
-                    return handleGetAuctionById(part);// thg san tu lam trong client cai nay
+                case "GET_AUCTION_BY_ID": {
+                    int id = Integer.parseInt(part[1]);
+                    return AuctionManager.getInstance().getAuctionDetailMessage(id);
+                }
                 case "UPDATE_ITEM_PRICE":
                     return handleUpdateItemPrice(part, currentUser);
                 case "DELETE_ITEM":

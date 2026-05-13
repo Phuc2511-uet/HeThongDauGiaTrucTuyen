@@ -138,4 +138,38 @@ public class AuctionManager {
         DatabaseManager.saveOrUpdateAuction(auction); // Tự động cập nhật vào DB
         return true;
     }
+
+    // Phương thức trả về danh sách ID|Status để hiển thị lên TableView của Client
+    public String getAuctionListForClient() {
+        lock.lock();
+        try {
+            if (auctions.isEmpty()) {
+                return ""; // Hoặc trả về một thông báo trống
+            }
+            StringBuilder sb = new StringBuilder();
+            for (Auction a : auctions) {
+                // Định dạng: ID|Status (Status thay dấu cách bằng gạch dưới)
+                String status = a.getStatus().name().replace(" ", "_");
+                sb.append(a.getId()).append("|").append(status).append(" ");
+            }
+            return sb.toString().trim();
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    // Phương thức trả về chi tiết 1 Auction khi người dùng click vào xem chi tiết
+    public String getAuctionDetailMessage(int id) {
+        Auction a = getAuctionById(id);
+        if (a == null) return "ERROR Auction_not_found";
+
+        // Định dạng: AUCTION_DETAIL_SUCCESS <ID> <ItemName> <Price> <Seller> <Status>
+        return String.format("AUCTION_DETAIL_SUCCESS %d %s %.2f %s %s",
+                a.getId(),
+                a.getItem().getName().replace(" ", "_"),
+                a.getCurrentPrice(),
+                a.getSeller().getFullName().replace(" ", "_"),
+                a.getStatus().name().replace(" ", "_")
+        );
+    }
 }

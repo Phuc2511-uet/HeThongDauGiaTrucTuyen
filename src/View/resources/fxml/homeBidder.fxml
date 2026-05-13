@@ -23,13 +23,13 @@
                         <Insets left="-8.0" right="-8.0" top="-25.0" />
                      </VBox.margin>
                         </Button>
-                        <Button alignment="CENTER" maxWidth="1.7976931348623157E308" prefHeight="45.0" style="-fx-background-color: #334155; -fx-background-radius: 12; -fx-text-fill: white; -fx-cursor: hand;" text="📊  Danh sách Auction">
+                        <Button alignment="CENTER" maxWidth="1.7976931348623157E308" onAction="#showAuctionList" prefHeight="45.0" style="-fx-background-color: #334155; -fx-background-radius: 12; -fx-text-fill: white; -fx-cursor: hand;" text="📊  Danh sách phiên đấu giá">
                             <font> <Font name="System Bold" size="15.0" /> </font>
                      <VBox.margin>
                         <Insets left="-8.0" right="-8.0" top="5.0" />
                      </VBox.margin>
                         </Button>
-                        <Button alignment="CENTER" maxWidth="1.7976931348623157E308" prefHeight="45.0" style="-fx-background-color: #334155; -fx-text-fill: #F8FAFC; -fx-background-radius: 12; -fx-cursor: hand;" text="📊 Các Auction đã thắng">
+                        <Button alignment="CENTER" maxWidth="1.7976931348623157E308" prefHeight="45.0" style="-fx-background-color: #334155; -fx-text-fill: #F8FAFC; -fx-background-radius: 12; -fx-cursor: hand;" text="📊 Các phiên đấu giá đã thắng">
                             <font> <Font name="System Bold" size="15.0" /> </font>
                      <VBox.margin>
                         <Insets left="-8.0" right="-8.0" top="5.0" />
@@ -77,7 +77,7 @@
                     <VBox.margin> <Insets bottom="25.0" /> </VBox.margin>
                 </HBox>
 
-                <ScrollPane fx:id="mainContent" fitToWidth="true" style="-fx-background-color: transparent; -fx-background: transparent; -fx-border-color: transparent;" VBox.vgrow="ALWAYS">
+                <ScrollPane fx:id="mainContent" fitToHeight="true" fitToWidth="true" style="-fx-background-color: transparent; -fx-background: transparent; -fx-border-color: transparent;" VBox.vgrow="ALWAYS">
                     <content>
                         <GridPane fx:id="gridAuctions" hgap="20.0" style="-fx-background-color: transparent;" vgap="25.0">
                         </GridPane>
