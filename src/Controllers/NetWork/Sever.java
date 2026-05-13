@@ -77,10 +77,12 @@ public class Sever {
                         }
 
                         // Gửi về Client    LOGIN_SUCCESS <ROLE> <FULLNAME> <BALANCE>
-                        String response = String.format("LOGIN_SUCCESS %s %s %.2f",
+                        String response = String.format("LOGIN_SUCCESS %s %s %.2f %s",
                                 role,
                                 currentUser.getFullName().replace(" ", "_"),
-                                balance);
+                                balance,
+                                currentUser.getUsername()
+                        );
                         out.println(response);
                     } catch (Exception e) {
                         out.println("LOGIN_FAILED");
@@ -103,6 +105,30 @@ public class Sever {
                     currentUser = null; //  logout thật sự
 
                     out.println("LOGOUT_SUCCESS");
+                    continue;
+                }
+
+                //=====DEPOSIT======
+                if (action.equals("DEPOSIT")) {
+                    try {
+                        double amount = Double.parseDouble(parts[1]);
+
+                        if (currentUser instanceof Bidder) {
+                            Bidder bidder = (Bidder) currentUser;
+
+                            // Gọi hàm deposit có sẵn trong file Bidder.java của bạn
+                            if (bidder.deposit(amount)) {
+                                // Trả về số dư mới sau khi đã cộng thành công
+                                out.println("DEPOSIT_SUCCESS " + bidder.getBalance());
+                            } else {
+                                out.println("DEPOSIT_FAILED So_tien_phai_lon_hon_0");
+                            }
+                        } else {
+                            out.println("DEPOSIT_FAILED Chi_Bidder_moi_co_the_nap_tien");
+                        }
+                    } catch (Exception e) {
+                        out.println("DEPOSIT_FAILED Loi_dinh_dang_so_tien");
+                    }
                     continue;
                 }
 

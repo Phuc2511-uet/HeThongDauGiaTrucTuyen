@@ -102,11 +102,11 @@ public class Client {
             case "WON_AUCTIONS":
 
             case "LOGIN_SUCCESS":{
-                if (parts.length >= 4) {
+                if (parts.length >= 5) {
                     this.currentRole = parts[1];
-                    this.currentUsername = parts[1]; // Giả định Server gửi kèm username
                     this.currentFullname = parts[2].replace("_", " ");
                     this.currentBalance = Double.parseDouble(parts[3]);
+                    this.currentUsername = parts[4];
 
                     notifyObservers("USER_DATA_CHANGED");
 
@@ -143,7 +143,18 @@ public class Client {
             case "DELETE_ITEM_FAILED":
             case "DELETE_USER_SUCCESS":
             case "DELETE_USER_FAILED":
-            case "DEPOSIT_SUCCESS":
+            case "DEPOSIT_SUCCESS":{
+                // Cập nhật số dư cục bộ trong Client từ dữ liệu Server gửi về
+                this.currentBalance = Double.parseDouble(parts[1]);
+
+                // Thông báo để các Controller (Observer) biết update lại tiền
+                notifyObservers("USER_DATA_CHANGED");
+
+                javafx.application.Platform.runLater(() -> {
+                    showAlert("Thành công", "Nạp tiền thành công! Số dư mới: " + this.currentBalance + "$");
+                });
+                break;
+            }
             case "DEPOSIT_FAILED":
 
                 System.out.println(command);
@@ -223,7 +234,11 @@ public class Client {
         send("CREATE_AUCTION " + itemId + " " + sellerId + " " + startPrice);
     }
     public void newAccount(String username, String password, String role,String fullname) {
-        send("NEW_ACCOUNT " + username + " " + password + " " + role+" " + fullname);
+        String formattedFullname = fullname.replace(" ", "_");
+        send("NEW_ACCOUNT " + username + " " + password + " " + role+" " + formattedFullname);
+    }
+    public void deposit(double amount) {
+        send("DEPOSIT " + amount);
     }
 
     public void getAuctions() {
