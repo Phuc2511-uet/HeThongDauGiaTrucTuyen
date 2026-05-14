@@ -125,10 +125,8 @@ public class DatabaseManager {
                         .filter(u -> u.getUsername().equals(sellerName))
                         .findFirst().orElse(null);
 
-                if (seller instanceof Seller) {
-                    Item item = new ConcreteItem(itemId, rs.getString("name"), rs.getDouble("base_price"), (Seller) seller);
-                    list.add(item);
-                }
+                Item item = new ConcreteItem(itemId, rs.getString("name"), rs.getDouble("base_price"), (Seller) seller);
+                list.add(item);
             }
         } catch (Exception e) {
             System.err.println("Lỗi khi tải vật phẩm: " + e.getMessage());

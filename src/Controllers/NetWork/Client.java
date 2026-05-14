@@ -88,11 +88,10 @@ public class Client {
 
         // ===== XỬ LÝ =====
         switch (command) {
-            case "AUCTION_DETAIL":{
+            case "AUCTION_DETAIL_SUCCESS":{
                 notifyObservers(message);
                 break;
             }
-
             case "LIST_AUCTION":{
                 notifyObservers(message);
                 break;
@@ -102,7 +101,10 @@ public class Client {
 
             case "ITEM_DETAIL":
 
-            case "USER_IDS":
+            case "USER_IDS":{
+                notifyObservers(message);
+                break;
+            }
 
             case "USER_DETAIL":
 
@@ -218,10 +220,11 @@ public class Client {
     public void getUserIds() {
         send("GET_USER_IDS");
     }
-    public void getAuctionById(int id){
-        send("GET_AUCTION_BY_ID" + " " + id);
 
+    public void getAuctionById(int id){
+        send("GET_AUCTION_BY_ID " + id);
     }
+
     public void getCurrentUser(){    //USER_DETAIL 1 phuc BIDDER Nguyen_Dinh_Phuc 5000.0
         send("GET_CURRENT_USER");
     }

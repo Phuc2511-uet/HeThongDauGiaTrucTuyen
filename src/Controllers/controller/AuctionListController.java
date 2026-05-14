@@ -46,10 +46,6 @@ public class AuctionListController implements Observer {
                 if (event.getClickCount() == 1 && (!row.isEmpty())) {
                     AuctionModel rowData = row.getItem();
                     Client.selectedAuctionId = rowData.getId();
-
-                    // Trước khi chuyển trang, hủy đăng ký để tránh chồng chéo Observer
-                    Client.getInstance().removeObserver(this);
-
                     HomeBidderController.setPage("/View/resources/fxml/auctionDetail.fxml");
                 }
             });
@@ -65,19 +61,21 @@ public class AuctionListController implements Observer {
         if (message.startsWith("LIST_AUCTION")) {
             Platform.runLater(() -> {
                 auctionList.clear();
-                String[] parts = message.split(" ");
+                // parts[0] = LIST_AUCTION, parts[1] = 1|RUNNING...
+                String[] parts = message.split("\\s+");
 
-                // Giả sử server gửi: LIST_AUCTION 1|Đang_diễn_ra 2|Sắp_kết_thúc
                 for (int i = 1; i < parts.length; i++) {
                     try {
+                        // Tách cặp ID và Status bằng |
                         String[] data = parts[i].split("\\|");
                         if (data.length == 2) {
                             int id = Integer.parseInt(data[0]);
-                            String status = data[1].replace("_", " ");
-                            auctionList.add(new AuctionModel(id, status));
+                            String statusStr = data[1].replace("_", " ");
+
+                            auctionList.add(new AuctionModel(id, statusStr));
                         }
                     } catch (Exception e) {
-                        System.err.println("Lỗi parse dữ liệu auction: " + parts[i]);
+                        System.err.println("Lỗi parse Auction: " + parts[i]);
                     }
                 }
             });

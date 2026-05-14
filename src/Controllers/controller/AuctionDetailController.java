@@ -17,28 +17,22 @@ public class AuctionDetailController implements Observer {
 
         int id = Client.selectedAuctionId;
         lblTitle.setText("Thông tin chi tiết của phiên đấu giá #" + id);
-
-        // Gửi yêu cầu lấy dữ liệu chi tiết dựa trên ID đã lưu trong Client
-        if (Client.selectedAuctionId != 0) {
-            Client.getInstance().send("GET_AUCTION_DETAIL " + id);
-        } else {
-            System.err.println("Lỗi: Chưa chọn Auction ID nào!");
-        }
+        Client.getInstance().getAuctionById(id);
     }
 
     @Override
     public void update(String message) {
         // Kiểm tra đúng tiền tố lệnh từ Server
         if (message.startsWith("AUCTION_DETAIL_SUCCESS")) {
-            String[] parts = message.split(" ");
+            String[] parts = message.split("\\s+");
 
             // Kiểm tra độ dài mảng để tránh lỗi index
             if (parts.length >= 6) {
                 Platform.runLater(() -> {
-                    lblAuctionId.setText("Mã phiên: #" + parts[1]);
+                    lblAuctionId.setText(parts[1]);
                     lblItemName.setText(parts[2].replace("_", " "));
                     lblCurrentPrice.setText(parts[3] + " $");
-                    lblSeller.setText(parts[4].replace("_", " "));
+                    lblSeller.setText(parts[4]);
 
                     // Xử lý màu sắc cho trạng thái (Tùy chọn thêm cho đẹp)
                     String status = parts[5].replace("_", " ");

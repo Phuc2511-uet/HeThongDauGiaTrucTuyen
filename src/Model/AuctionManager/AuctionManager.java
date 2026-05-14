@@ -86,13 +86,19 @@ public class AuctionManager {
         lock.lock();
         try {
             StringBuilder sb = new StringBuilder("LIST_AUCTION");
+            List<Auction> auctions = getAllAuctions();
 
             for (Auction a : auctions) {
-                sb.append(" ").append(a.getId());
+                // a.getStatus() là Enum, .name() sẽ trả về "OPEN", "RUNNING",...
+                String statusStr = a.getStatus().name();
+
+                sb.append(" ")
+                        .append(a.getId())
+                        .append("|")
+                        .append(statusStr);
             }
-
             return sb.toString();
-
+            // Kết quả gửi đi: "LIST_AUCTION 1|OPEN 2|RUNNING"
         } finally {
             lock.unlock();
         }

@@ -59,14 +59,6 @@ public class HomeBidderController {
 
     @FXML
     void Logout() {
-        // 1. Báo cho Server để xóa connection (Lệnh này bạn đã viết trong Server)
-        Client.getInstance().send("LOGOUT");
-
-        // 2. Xóa các Observer để tránh rò rỉ bộ nhớ
-        Client.getInstance().getObservers().clear();
-
-        // 3. Chuyển về màn hình Đăng nhập (Dùng MainFx hoặc thay đổi Scene)
-        // Ví dụ giả định bạn có hàm chuyển Scene chính:
-        // MainFx.setRoot("/View/resources/fxml/login.fxml");
+        Client.getInstance().logOut();
     }
 }
