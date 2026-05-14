@@ -168,7 +168,6 @@ public class AuctionManager {
     public String getAuctionDetailMessage(int id) {
         Auction a = getAuctionById(id);
         if (a == null) return "ERROR Auction_not_found";
-
         // Định dạng: AUCTION_DETAIL_SUCCESS <ID> <ItemName> <Price> <Seller> <Status>
         return String.format("AUCTION_DETAIL_SUCCESS %d %s %.2f %s %s",
                 a.getId(),

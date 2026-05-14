@@ -470,7 +470,6 @@ public class InformationHandle {
             if (a == null) {
                 return "ERROR Auction not found";
             }
-
             return "AUCTION_DETAIL_SUCCESS "
                     + a.getId() + " "
                     + a.getItem().getName().replace(" ", "_") + " "
@@ -478,7 +477,6 @@ public class InformationHandle {
                     + a.getSeller().getUsername() + " "
                     + a.getStatus()+ " "
                     + (a.getCurrentBidder() != null ? a.getCurrentBidder().getUsername() : "NONE");
-
         } catch (Exception e) {
             return "ERROR " + e.getMessage();
         }
