@@ -482,9 +482,10 @@ public class InformationHandle {
             return "AUCTION_DETAIL_SUCCESS "
                     + a.getId() + " "
                     + a.getItem().getName().replace(" ", "_") + " "
+                    + a.getItem().getId() + " "
                     + a.getCurrentPrice() + " "
                     + a.getSeller().getUsername() + " "
-                    + a.getStatus()+ " "
+                    + a.getStatus().name()+ " "
                     + (a.getCurrentBidder() != null ? a.getCurrentBidder().getUsername() : "NONE");
         } catch (Exception e) {
             return "ERROR " + e.getMessage();

@@ -107,9 +107,10 @@ public class AuctionManager {
     }
 
     // =====  THÊM BID MỚI  =====
-    public synchronized boolean placeBid(int auctionId, Bidder bidder, double price) throws AuctionClosedException, InvalidBidException {
-        Auction auction;
+    public synchronized void placeBid(int auctionId, Bidder bidder, double price)
+            throws AuctionClosedException, InvalidBidException {
 
+        Auction auction;
 
         lock.lock();
         try {
@@ -119,19 +120,14 @@ public class AuctionManager {
         }
 
         if (auction == null){
-            return false;
+            throw new InvalidBidException("Auction_không_tồn_tại");
         }
 
+        auction.placeBid(price, bidder);
 
-        try {
-            auction.placeBid(price, bidder);
-            DatabaseManager.saveOrUpdateAuction(auction); // Tự động cập nhật vào DB
-            return true;
-        } catch (Exception e){
-            System.out.println("Bid failed: " + e.getMessage());
-            return false;
-        }
+        DatabaseManager.saveOrUpdateAuction(auction);
     }
+
     public List<Auction> getAllAuctions() {
         return new ArrayList<>(auctions);
     }

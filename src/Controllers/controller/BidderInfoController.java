@@ -30,7 +30,7 @@ public class BidderInfoController implements Observer {
     private void refreshUI() {
         Client client = Client.getInstance();
         lblFullname.setText(client.getCurrentFullname());
-        lblBalance.setText(String.format("%.2f $", client.getCurrentBalance()));
+        lblBalance.setText(String.format("%,.2f $", client.getCurrentBalance()));
         lblUsername.setText(client.getCurrentUsername());
     }
 

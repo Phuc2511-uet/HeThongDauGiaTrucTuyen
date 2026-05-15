@@ -133,8 +133,22 @@ public class Client {
                 });
                 break;
             }
-            case "BID_SUCCESS":
-            case "BID_FAILED":
+            case "BID_SUCCESS":{
+                javafx.application.Platform.runLater(() -> {
+                    showAlert("Thành công", "Đặt giá thành công!");
+                });
+                break;
+            }
+            case "BID_FAILED":{
+                String reason = message.replace("BID_FAILED ", "")
+                        .replace("_", " ");
+
+                javafx.application.Platform.runLater(() -> {
+                    showAlert("Đấu giá thất bại", reason);
+                });
+
+                break;
+            }
             case "ACCOUNT_SUCCESS":{
                 javafx.application.Platform.runLater(() -> {
                     showAlert("Thông báo", "Tạo tài khoản thành công! Vui lòng đăng nhập.");
