@@ -102,12 +102,12 @@ public class Client {
             case "WON_AUCTIONS":
 
             case "LOGIN_SUCCESS":{
-                System.out.println("DEBUG: Parts length = " + parts.length);
                 if (parts.length >= 5) {
                     this.currentRole = parts[1];
                     this.currentFullname = parts[2].replace("_", " ");
                     this.currentBalance = Double.parseDouble(parts[3]);
                     this.currentUsername = parts[4];
+
                     notifyObservers("USER_DATA_CHANGED");
 
                     javafx.application.Platform.runLater(() -> {
@@ -124,9 +124,6 @@ public class Client {
             }
             case "BID_SUCCESS":
             case "BID_FAILED":
-
-
-
             case "ACCOUNT_SUCCESS":{
                 javafx.application.Platform.runLater(() -> {
                     showAlert("Thông báo", "Tạo tài khoản thành công! Vui lòng đăng nhập.");
@@ -140,17 +137,25 @@ public class Client {
                 });
                 break;
             }
-            case "AUTO_BID_SUCCESS":
-            case "AUTO_BID_FAILED":
             case "UPDATE_PRICE_SUCCESS":
             case "UPDATE_PRICE_FAILED":
             case "DELETE_ITEM_SUCCESS":
             case "DELETE_ITEM_FAILED":
             case "DELETE_USER_SUCCESS":
             case "DELETE_USER_FAILED":
-            case "DEPOSIT_SUCCESS":
-            case "DEPOSIT_FAILED":
+            case "DEPOSIT_SUCCESS":{
+                // Cập nhật số dư cục bộ trong Client từ dữ liệu Server gửi về
+                this.currentBalance = Double.parseDouble(parts[1]);
 
+                // Thông báo để các Controller (Observer) biết update lại tiền
+                notifyObservers("USER_DATA_CHANGED");
+
+                javafx.application.Platform.runLater(() -> {
+                    showAlert("Thành công", "Nạp tiền thành công! Số dư mới: " + this.currentBalance + "$");
+                });
+                break;
+            }
+            case "DEPOSIT_FAILED":
 
                 System.out.println(command);
                 break;
@@ -180,7 +185,6 @@ public class Client {
     }
 
     // ===== CHỨC NĂNG =====
-
     public void getWonAuctions() {
         send("GET_WON_AUCTIONS");
     }
@@ -216,9 +220,6 @@ public class Client {
 
         send("CREATE_ITEM " + type + " " + name.replace(" ", "_") + " " + price);
     }
-    public void deleteItem(String id){
-        send("DELETE_ITEM " + id);
-    }
 
     public void login(String username, String password) {
         send("LOGIN " + username + " " + password);
@@ -235,6 +236,9 @@ public class Client {
     public void newAccount(String username, String password, String role,String fullname) {
         String formattedFullname = fullname.replace(" ", "_");
         send("NEW_ACCOUNT " + username + " " + password + " " + role+" " + formattedFullname);
+    }
+    public void deposit(double amount) {
+        send("DEPOSIT " + amount);
     }
 
     public void getAuctions() {
@@ -256,9 +260,6 @@ public class Client {
         javafx.application.Platform.runLater(() -> {
             MainFx.showLoginScene();
         });
-    }
-    public void registerAutoBid(int auctionId, double maxPrice) {
-        send("AUTO_BID " + auctionId + " " + maxPrice);
     }
 
 
@@ -308,7 +309,6 @@ public class Client {
         alert.setContentText(content);
         alert.showAndWait();
     }
-
 
 
 }

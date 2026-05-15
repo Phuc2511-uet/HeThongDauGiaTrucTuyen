@@ -13,7 +13,7 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
-<AnchorPane prefWidth="550.0" style="-fx-background-color: transparent;" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="Controllers.controller.BidderInfoController">
+<AnchorPane prefWidth="550.0" style="-fx-background-color: transparent;" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="Controller.HomeBidderController">
     <children>
         <VBox spacing="20.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
             <children>
@@ -31,15 +31,12 @@
                                 </VBox>
                                 <VBox spacing="5.0">
                                     <children>
-                                        <Label fx:id="lblUsername" text="Tên người dùng" textFill="WHITE">
+                                        <Label fx:id="lblFullname" text="Tên người dùng" textFill="WHITE">
                                             <font>
                                                 <Font name="System Bold" size="24.0" />
                                             </font>
-                                 <VBox.margin>
-                                    <Insets top="10.0" />
-                                 </VBox.margin>
                                         </Label>
-                                        <Label fx:id="lblRole" text="Bidder" textFill="#94A3B8">
+                                        <Label text="Thành viên Bidder" textFill="#94A3B8">
                                             <font>
                                                 <Font size="14.0" />
                                             </font>
@@ -65,7 +62,7 @@
                                         <Font name="System Bold" size="30.0" />
                                     </font>
                                 </Label>
-                                <Button maxWidth="1.7976931348623157E308" onAction="#DepositClick" style="-fx-background-color: #0D9488; -fx-text-fill: white; -fx-background-radius: 10; -fx-cursor: hand;" text="Nạp thêm tiền">
+                                <Button maxWidth="1.7976931348623157E308" style="-fx-background-color: #0D9488; -fx-text-fill: white; -fx-background-radius: 10; -fx-cursor: hand;" text="Nạp thêm tiền">
                                     <VBox.margin>
                                         <Insets top="10.0" />
                                     </VBox.margin>
@@ -82,7 +79,7 @@
                     <children>
                         <Label text="Chi tiết tài khoản" textFill="WHITE">
                             <font>
-                                <Font name="System Bold" size="20.0" />
+                                <Font name="System Bold" size="18.0" />
                             </font>
                         </Label>
                         <GridPane vgap="15.0">
@@ -95,28 +92,10 @@
                                 <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
                             </rowConstraints>
                             <children>
-                                <Label text="Fullname:" textFill="#94A3B8">
-                           <font>
-                              <Font size="14.0" />
-                           </font></Label>
-                                <Label fx:id="lblFullname" text="duytan" textFill="WHITE" GridPane.columnIndex="1">
-                           <font>
-                              <Font size="14.0" />
-                           </font></Label>
-                                <Label text="Trạng thái:" textFill="#94A3B8" GridPane.rowIndex="1">
-                           <font>
-                              <Font size="14.0" />
-                           </font>
-                           <GridPane.margin>
-                              <Insets top="-15.0" />
-                           </GridPane.margin></Label>
-                                <Label text="Đang hoạt động" textFill="#4ADE80" GridPane.columnIndex="1" GridPane.rowIndex="1">
-                           <font>
-                              <Font size="14.0" />
-                           </font>
-                           <GridPane.margin>
-                              <Insets top="-15.0" />
-                           </GridPane.margin></Label>
+                                <Label text="Username:" textFill="#94A3B8" />
+                                <Label fx:id="lblUsername" text="duytan" textFill="WHITE" GridPane.columnIndex="1" />
+                                <Label text="Trạng thái:" textFill="#94A3B8" GridPane.rowIndex="1" />
+                                <Label text="Đang hoạt động" textFill="#4ADE80" GridPane.columnIndex="1" GridPane.rowIndex="1" />
                             </children>
                         </GridPane>
                     </children>
