@@ -124,6 +124,9 @@ public class Client {
             }
             case "BID_SUCCESS":
             case "BID_FAILED":
+
+
+
             case "ACCOUNT_SUCCESS":{
                 javafx.application.Platform.runLater(() -> {
                     showAlert("Thông báo", "Tạo tài khoản thành công! Vui lòng đăng nhập.");
@@ -137,6 +140,8 @@ public class Client {
                 });
                 break;
             }
+            case "AUTO_BID_SUCCESS":
+            case "AUTO_BID_FAILED":
             case "UPDATE_PRICE_SUCCESS":
             case "UPDATE_PRICE_FAILED":
             case "DELETE_ITEM_SUCCESS":
@@ -145,6 +150,7 @@ public class Client {
             case "DELETE_USER_FAILED":
             case "DEPOSIT_SUCCESS":
             case "DEPOSIT_FAILED":
+
 
                 System.out.println(command);
                 break;
@@ -174,6 +180,7 @@ public class Client {
     }
 
     // ===== CHỨC NĂNG =====
+
     public void getWonAuctions() {
         send("GET_WON_AUCTIONS");
     }
@@ -208,6 +215,9 @@ public class Client {
     public void createItem(String type, String name, double price) {
 
         send("CREATE_ITEM " + type + " " + name.replace(" ", "_") + " " + price);
+    }
+    public void deleteItem(String id){
+        send("DELETE_ITEM " + id);
     }
 
     public void login(String username, String password) {
@@ -246,6 +256,9 @@ public class Client {
         javafx.application.Platform.runLater(() -> {
             MainFx.showLoginScene();
         });
+    }
+    public void registerAutoBid(int auctionId, double maxPrice) {
+        send("AUTO_BID " + auctionId + " " + maxPrice);
     }
 
 
@@ -295,6 +308,7 @@ public class Client {
         alert.setContentText(content);
         alert.showAndWait();
     }
+
 
 
 }

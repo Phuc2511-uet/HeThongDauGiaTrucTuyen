@@ -1,5 +1,7 @@
 package Model.AuctionManager;
 
+import Controllers.Exceptions.AuctionClosedException;
+import Controllers.Exceptions.InvalidBidException;
 import Model.Auction.Auction;
 import Model.Item.Item;
 import Model.Item.ItemManager;
@@ -99,7 +101,7 @@ public class AuctionManager {
     }
 
     // =====  THÊM BID MỚI  =====
-    public boolean placeBid(int auctionId, Bidder bidder, double price){
+    public synchronized boolean placeBid(int auctionId, Bidder bidder, double price) throws AuctionClosedException, InvalidBidException {
         Auction auction;
 
 
@@ -130,7 +132,7 @@ public class AuctionManager {
 
 
 
-    public boolean payAuction(int auctionId){
+    public synchronized boolean payAuction(int auctionId){
         Auction auction = getAuctionById(auctionId);
         if (auction == null) return false;
 

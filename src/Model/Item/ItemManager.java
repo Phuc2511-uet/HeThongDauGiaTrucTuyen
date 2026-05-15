@@ -37,7 +37,7 @@ public class ItemManager implements Serializable {
     }
 
     // ===== THÊM ITEM =====
-    public void addItem(Item item) {
+    public synchronized void addItem(Item item) {
         items.add(item);
         DatabaseManager.saveItem(item); // Tự động lưu vào DB
     }
@@ -63,7 +63,7 @@ public class ItemManager implements Serializable {
     }
 
     // ===== XOÁ ITEM =====
-    public void remove(int id) {
+    public synchronized void remove(int id) {
         // TODO: Cần thêm logic xóa khỏi DB
         items.removeIf(i -> i.getId() == id);
     }
@@ -72,7 +72,7 @@ public class ItemManager implements Serializable {
     public List<Item> getItems() {
         return items;
     }
-    public boolean updatePrice(int id, double newPrice) {
+    public synchronized boolean updatePrice(int id, double newPrice) {
         Item item = getById(id);
 
         if (item == null) {
@@ -106,7 +106,7 @@ public class ItemManager implements Serializable {
 
         return sb.toString().trim();
     }
-    public Item createItem(String type, String name, double price, Seller seller) { // Thêm Seller vào tham số
+    public synchronized Item createItem(String type, String name, double price, Seller seller) { // Thêm Seller vào tham số
 
         ItemFactory factory;
 

@@ -1,5 +1,7 @@
 package Controllers.NetWork;
 
+import Controllers.Exceptions.AuctionClosedException;
+import Controllers.Exceptions.InvalidBidException;
 import Model.Auction.Auction;
 import Model.AuctionManager.AuctionManager;
 import Model.Item.Item;
@@ -73,6 +75,8 @@ public class InformationHandle {
                     return handleGetSellerAuctions(currentUser);
                 case "GET_CURRENT_USER":
                     return handleGetCurrentUser(currentUser);
+                case "AUTO_BID":
+                    return handleAutoBid(part, currentUser);
 
                 default:
                     return "ERROR Unknown action";
@@ -359,9 +363,12 @@ public class InformationHandle {
 
             return "BID_SUCCESS";
 
-        } catch (Exception e) {
-            return "ERROR " + e.getMessage();
+        } catch (AuctionClosedException e) {
+            return "BID_FAILED " + e.getMessage();
+        } catch (InvalidBidException e) {
+            return "BID_FAILED " + e.getMessage();
         }
+
     }
     private String handleUpdateItemPrice(String[] parts, User currentUser) {  //UPDATE_ITEM_PRICE itemId newPrice
 
@@ -381,7 +388,7 @@ public class InformationHandle {
                     .updatePrice(itemId, newPrice);
 
             if (!ok) {
-                return "ERROR ITEM NOT FOUND OR UPDATE FAILED";
+                return "UPDATE_PRICE_FAILED";
             }
 
             return "UPDATE_PRICE_SUCCESS";
@@ -411,13 +418,13 @@ public class InformationHandle {
 
         try {
             if (parts.length < 2) {
-                return "ERROR INVALID FORMAT";
+                return "DELETE_ITEM_FAILED";
             }
 
             int itemId = Integer.parseInt(parts[1]);
 
-            if (!(currentUser instanceof Seller)) {
-                return "ERROR ONLY SELLER CAN DELETE ITEM";
+            if (!(currentUser instanceof Admin)) {
+                return "DELETE_ITEM_FAILED";
             }
 
             ItemManager.getInstance().remove(itemId);
@@ -425,7 +432,7 @@ public class InformationHandle {
             return "DELETE_ITEM_SUCCESS";
 
         } catch (Exception e) {
-            return "ERROR " + e.getMessage();
+            return "DELETE_ITEM_FAILED";
         }
     }
     private String handleNewAccount(String[] parts) {
@@ -514,5 +521,30 @@ public class InformationHandle {
         } catch (Exception e) {
             return "ERROR CREATE_ITEM_FAILED";
         }
+    }private String handleAutoBid(String[] parts, User user) {
+
+        try {
+            if (!(user instanceof Bidder)) {
+                return "AUTO_BID_FAILED";
+            }
+
+            int auctionId = Integer.parseInt(parts[1]);
+            double maxPrice = Double.parseDouble(parts[2]);
+
+            Auction auction = AuctionManager.getInstance().getAuctionById(auctionId);
+
+            if (auction == null) {
+                return " Auction_không_tồn_tại";
+            }
+
+            auction.registerAutoBid((Bidder) user, maxPrice);
+
+            return "AUTO_BID_SUCCESS";
+
+        } catch (Exception e) {
+            return "AUTO_BID_FAILED " + e.getMessage();
+        }
     }
+
+
 }
