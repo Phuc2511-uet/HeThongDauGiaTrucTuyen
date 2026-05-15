@@ -13,7 +13,7 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
-<AnchorPane prefWidth="550.0" style="-fx-background-color: transparent;" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="Controller.HomeBidderController">
+<AnchorPane prefWidth="550.0" style="-fx-background-color: transparent;" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="Controllers.controller.HomeBidderController">
     <children>
         <VBox spacing="20.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
             <children>
@@ -31,12 +31,12 @@
                                 </VBox>
                                 <VBox spacing="5.0">
                                     <children>
-                                        <Label fx:id="lblFullname" text="Tên người dùng" textFill="WHITE">
+                                        <Label fx:id="lblUsername" text="Tên người dùng" textFill="WHITE">
                                             <font>
                                                 <Font name="System Bold" size="24.0" />
                                             </font>
                                         </Label>
-                                        <Label text="Thành viên Bidder" textFill="#94A3B8">
+                                        <Label fx:id="lblRole" text="Thành viên Bidder" textFill="#94A3B8">
                                             <font>
                                                 <Font size="14.0" />
                                             </font>
@@ -92,8 +92,8 @@
                                 <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
                             </rowConstraints>
                             <children>
-                                <Label text="Username:" textFill="#94A3B8" />
-                                <Label fx:id="lblUsername" text="duytan" textFill="WHITE" GridPane.columnIndex="1" />
+                                <Label text="Fullname:" textFill="#94A3B8" />
+                                <Label fx:id="lblFullname" text="duytan" textFill="WHITE" GridPane.columnIndex="1" />
                                 <Label text="Trạng thái:" textFill="#94A3B8" GridPane.rowIndex="1" />
                                 <Label text="Đang hoạt động" textFill="#4ADE80" GridPane.columnIndex="1" GridPane.rowIndex="1" />
                             </children>

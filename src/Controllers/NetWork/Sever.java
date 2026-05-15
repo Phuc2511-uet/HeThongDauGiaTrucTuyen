@@ -3,6 +3,7 @@ package Controllers.NetWork;
 import java.io.*;
 import java.net.*;
 
+import Model.AuctionManager.AuctionManager;
 import Model.User.*;
 
 public class Sever {
@@ -113,6 +114,7 @@ public class Sever {
                     out.println("ERROR Not logged in");
                     continue;
                 }
+
                 // ===== XỬ LÝ REQUEST KHÁC =====
                 String response = handle.handleIfo(message, currentUser);
 

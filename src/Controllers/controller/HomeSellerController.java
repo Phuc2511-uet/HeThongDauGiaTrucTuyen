@@ -7,12 +7,11 @@ import javafx.scene.Parent;
 import javafx.scene.control.ScrollPane;
 import java.io.IOException;
 
-public class HomeBidderController {
+public class HomeSellerController {
 
     @FXML
     private ScrollPane mainContent;
-
-    private static HomeBidderController instance;
+    private static HomeSellerController instance;
 
     @FXML
     public void initialize() {
@@ -39,26 +38,28 @@ public class HomeBidderController {
     }
 
     @FXML
-    void showInfo() {
-        setPage("/View/resources/fxml/bidderInfo.fxml");
-    }
-
-    @FXML
-    void showAuctionList() {
-        // 1. Chuyển trang trước
-        setPage("/View/resources/fxml/auctionList.fxml");
-        // 2. Gửi lệnh lấy dữ liệu (đảm bảo lệnh này khớp với Server)
-        Client.getInstance().send("GET_AUCTIONS");
-    }
-
-
-    @FXML
-    void showWonAuctions() {
-        setPage("/View/resources/fxml/wonAuctions.fxml");
+    void showInfoSeller() {
+        setPage("/View/resources/fxml/sellerInfo.fxml");
     }
 
     @FXML
     void Logout() {
         Client.getInstance().logOut();
+    }
+
+    @FXML
+    void showAuction() {
+        System.out.println("Show Auction List");
+    }
+
+    @FXML
+    void createItem() {
+        System.out.println("Create Item Page");
+    }
+
+    // 4. Hàm cho nút Tạo phiên đấu giá
+    @FXML
+    void createAuction() {
+        System.out.println("Create Auction Page");
     }
 }

@@ -20,6 +20,9 @@ public class Client {
     private String currentFullname;
     private double currentBalance;
 
+    // Dùng để lưu ID khi người dùng click vào hàng
+    public static int selectedAuctionId;
+
     private List<Observer> observers = new ArrayList<>();
     private String currentUsername;
 
@@ -85,15 +88,23 @@ public class Client {
 
         // ===== XỬ LÝ =====
         switch (command) {
-            case "AUCTION_DETAIL":
-
-            case "LIST_AUCTION":
+            case "AUCTION_DETAIL_SUCCESS":{
+                notifyObservers(message);
+                break;
+            }
+            case "LIST_AUCTION":{
+                notifyObservers(message);
+                break;
+            }
 
             case "ITEM_IDS":
 
             case "ITEM_DETAIL":
 
-            case "USER_IDS":
+            case "USER_IDS":{
+                notifyObservers(message);
+                break;
+            }
 
             case "USER_DETAIL":
 
@@ -175,7 +186,7 @@ public class Client {
     public String getCurrentUsername() { return currentUsername; }
 
     // ===== GỬI DỮ LIỆU =====
-    private void send(String message) {
+    public void send(String message) {
         if (socket != null && socket.isConnected() && !socket.isClosed()) {
 
             out.println(message);
@@ -209,10 +220,11 @@ public class Client {
     public void getUserIds() {
         send("GET_USER_IDS");
     }
-    public void getAuctionById(String id){
-        send("GET_AUCTION_BY_ID" + " " + id);
 
+    public void getAuctionById(int id){
+        send("GET_AUCTION_BY_ID " + id);
     }
+
     public void getCurrentUser(){    //USER_DETAIL 1 phuc BIDDER Nguyen_Dinh_Phuc 5000.0
         send("GET_CURRENT_USER");
     }
@@ -310,5 +322,12 @@ public class Client {
         alert.showAndWait();
     }
 
+    public void removeObserver(Observer obs) {
+        observers.remove(obs);
+    }
+
+    public List<Observer> getObservers() {
+        return observers;
+    }
 
 }

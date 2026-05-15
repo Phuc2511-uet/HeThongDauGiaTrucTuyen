@@ -48,7 +48,7 @@ public class InformationHandle {
                 case "NEW_ACCOUNT":
                     return handleNewAccount(part);
                 case "GET_AUCTION_BY_ID":
-                    return handleGetAuctionById(part);// thg san tu lam trong client cai nay
+                    return handleGetAuctionById(part);
                 case "UPDATE_ITEM_PRICE":
                     return handleUpdateItemPrice(part, currentUser);
                 case "DELETE_ITEM":
@@ -477,17 +477,13 @@ public class InformationHandle {
             if (a == null) {
                 return "ERROR Auction not found";
             }
-
-            return "AUCTION_DETAIL "
+            return "AUCTION_DETAIL_SUCCESS "
                     + a.getId() + " "
-                    + a.getItem().getId() + " "
+                    + a.getItem().getName().replace(" ", "_") + " "
                     + a.getCurrentPrice() + " "
                     + a.getSeller().getUsername() + " "
-                    + a.getStatus() + " "
-                    + (a.getCurrentBidder() != null
-                    ? a.getCurrentBidder().getUsername()
-                    : "NONE");
-
+                    + a.getStatus()+ " "
+                    + (a.getCurrentBidder() != null ? a.getCurrentBidder().getUsername() : "NONE");
         } catch (Exception e) {
             return "ERROR " + e.getMessage();
         }
