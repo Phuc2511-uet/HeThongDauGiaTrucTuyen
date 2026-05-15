@@ -32,7 +32,7 @@ public class UserManager implements Serializable {
     }
 
     // ===== THÊM USER =====
-    public boolean addUser(User user) {
+    public synchronized boolean addUser(User user) {
         // Duyệt danh sách để kiểm tra username đã tồn tại chưa
         for (User u : users) {
             if (u.getUsername().equalsIgnoreCase(user.getUsername())) {
@@ -65,7 +65,7 @@ public class UserManager implements Serializable {
         }
         return null;
     }
-    public boolean removeUser(int id) {
+    public synchronized boolean removeUser(int id) {
         // TODO: Cần thêm logic xóa khỏi DB
         return users.removeIf(u -> u.getId() == id);
     }
@@ -104,7 +104,7 @@ public class UserManager implements Serializable {
     public static void setInstance(UserManager loadedInstance) {
         instance = loadedInstance;
     }
-    public User createUser(String username, String password, String role, String fullName) {
+    public synchronized User createUser(String username, String password, String role, String fullName) {
 
         int id = count++;
         User user;
