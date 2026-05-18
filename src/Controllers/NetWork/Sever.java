@@ -3,6 +3,7 @@ package Controllers.NetWork;
 import java.io.*;
 import java.net.*;
 
+import Model.AuctionManager.AuctionManager;
 import Model.User.*;
 
 public class Sever {
@@ -75,12 +76,13 @@ public class Sever {
                             role = "ADMIN";
                             balance = 0.0;
                         }
-
-                        // Gửi về Client    LOGIN_SUCCESS <ROLE> <FULLNAME> <BALANCE>
-                        String response = String.format("LOGIN_SUCCESS %s %s %.2f",
+                        // Gửi về: LOGIN_SUCCESS <ROLE> <FULLNAME> <BALANCE> <USERNAME>
+                        String response = String.format("LOGIN_SUCCESS %s %s %.2f %s",
                                 role,
                                 currentUser.getFullName().replace(" ", "_"),
-                                balance);
+                                balance,
+                                currentUser.getUsername()
+                        );
                         out.println(response);
                     } catch (Exception e) {
                         out.println("LOGIN_FAILED");
@@ -112,6 +114,7 @@ public class Sever {
                     out.println("ERROR Not logged in");
                     continue;
                 }
+
                 // ===== XỬ LÝ REQUEST KHÁC =====
                 String response = handle.handleIfo(message, currentUser);
 

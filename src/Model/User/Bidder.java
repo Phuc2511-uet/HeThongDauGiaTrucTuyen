@@ -36,7 +36,7 @@ public class Bidder extends User implements Observer {
 
     public void checkBalance(double amount) throws InsufficientBalanceException {
         if (this.balance < amount) {
-            throw new InsufficientBalanceException("Tài khoản không đủ số dư để thực hiện đặt giá này!");
+            throw new InsufficientBalanceException("Tài_khoản_không_đủ_số_dư_để_thực_hiện_đặt_giá_này!");
         }
     }
     public boolean deposit(double amount) {
@@ -49,7 +49,7 @@ public class Bidder extends User implements Observer {
         DatabaseManager.updateUserState(this); // Tự động cập nhật vào DB
         return true;
     }
-    private transient PrintWriter out; // ⚠transient nếu bạn serialize
+    private transient PrintWriter out;
 
     public void setConnection(PrintWriter out) {
         this.out = out;
