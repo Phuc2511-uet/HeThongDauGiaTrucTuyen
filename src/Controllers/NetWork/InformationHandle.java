@@ -78,6 +78,10 @@ public class InformationHandle {
                 case "AUTO_BID":
                     return handleAutoBid(part, currentUser);
 
+
+                case "GET_MY_ITEMS":
+                    return ItemManager.getInstance().getAvailableItemsBySeller(currentUser.getId());
+
                 default:
                     return "ERROR Unknown action";
             }
