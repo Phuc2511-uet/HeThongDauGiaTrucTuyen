@@ -305,4 +305,27 @@ class ConcreteItem extends Item {
     public void display() {
         // Do nothing
     }
+
+
+    public static boolean deleteItem(int itemId) {
+
+        String sql = "DELETE FROM items WHERE item_id = ?";
+
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+            pstmt.setInt(1, itemId);
+
+            int rows = pstmt.executeUpdate();
+
+            return rows > 0;
+
+        } catch (Exception e) {
+            System.err.println("Lỗi khi xóa item: " + e.getMessage());
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+
 }

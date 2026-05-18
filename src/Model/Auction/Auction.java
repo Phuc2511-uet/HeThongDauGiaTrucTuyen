@@ -415,7 +415,7 @@ public class Auction {
                 lock.unlock();
             }
 
-            notifyObservers("AUTO_BID " + id + " " + currentPrice);
+            notifyObservers("NOTIFY " + id + " " + currentPrice);
         }
     }
 
