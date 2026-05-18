@@ -64,8 +64,23 @@ public class ItemManager implements Serializable {
 
     // ===== XOÁ ITEM =====
     public void remove(int id) {
-        // TODO: Cần thêm logic xóa khỏi DB
-        items.removeIf(i -> i.getId() == id);
+        // 1. Xóa tất cả các phiên đấu giá liên quan đến Item này trong DB trước để cắt dây xích (Khóa ngoại)
+        boolean auctionDeleted = DatabaseManager.deleteItem(id);
+
+        if (auctionDeleted) {
+            // 2. Sau khi đường đã sạch, tiến hành xóa Item dưới DB
+            boolean itemDeleted = DatabaseManager.deleteItem(id);
+
+            // 3. Nếu DB đã xóa thành công, tiến hành xóa nốt trên RAM để đồng bộ giao diện
+            if (itemDeleted) {
+                items.removeIf(item -> item.getId() == id);
+                System.out.println(">>> Đã xóa sạch Item ID: " + id + " và các phiên đấu giá liên quan khỏi RAM và DB!");
+            } else {
+                System.err.println(">>> Lỗi: Không thể xóa Item ID: " + id + " dưới Database.");
+            }
+        } else {
+            System.err.println(">>> Lỗi: Không thể dọn dẹp các phiên đấu giá của Item ID: " + id + ". Dừng thao tác xóa.");
+        }
     }
 
     // ===== LẤY DANH SÁCH =====

@@ -196,6 +196,22 @@ public class DatabaseManager {
             e.printStackTrace();
         }
     }
+    public static boolean deleteItem(int itemId) {
+        String sql = "DELETE FROM items WHERE item_id = ?";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+            pstmt.setInt(1, itemId);
+            int rowsAffected = pstmt.executeUpdate();
+
+            System.out.println(">>> Đã xóa Item ID: " + itemId + " dưới DB (Ảnh hưởng: " + rowsAffected + " dòng).");
+            return true;
+        } catch (Exception e) {
+            System.err.println("Lỗi khi thực hiện xóa vật phẩm: " + e.getMessage());
+            e.printStackTrace();
+            return false;
+        }
+    }
 
     // ============================================================
     // PHẦN 3: QUẢN LÝ AUCTION
@@ -305,4 +321,5 @@ class ConcreteItem extends Item {
     public void display() {
         // Do nothing
     }
+
 }
