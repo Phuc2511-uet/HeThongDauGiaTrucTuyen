@@ -5,22 +5,23 @@ import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.control.ScrollPane;
+
 import java.io.IOException;
 
 public class HomeSellerController {
-
     @FXML
     private ScrollPane mainContent;
+
     private static HomeSellerController instance;
 
     @FXML
     public void initialize() {
         instance = this;
     }
-
+    // LOAD PAGE
     public static void setPage(String fxmlPath) {
         if (instance == null || instance.mainContent == null) {
-            System.err.println("HomeBidderController chưa được khởi tạo!");
+            System.err.println("HomeSellerController chưa được khởi tạo!");
             return;
         }
         try {
@@ -31,35 +32,37 @@ public class HomeSellerController {
             }
             Parent fxml = FXMLLoader.load(resource);
             instance.mainContent.setContent(fxml);
+            instance.mainContent.setVvalue(0);
         } catch (IOException e) {
             System.err.println("Lỗi khi tải trang: " + fxmlPath);
             e.printStackTrace();
         }
     }
-
     @FXML
     void showInfoSeller() {
         setPage("/View/resources/fxml/sellerInfo.fxml");
     }
 
     @FXML
-    void Logout() {
-        Client.getInstance().logOut();
+    void createItem() {
+        setPage("/View/resources/fxml/createItem.fxml");
+    }
+
+    @FXML
+    void createAuction() {
+
+        setPage("/View/resources/fxml/createAuction.fxml");
     }
 
     @FXML
     void showAuction() {
-        System.out.println("Show Auction List");
+
+        setPage("/View/resources/fxml/sellerAuctionList.fxml");
     }
 
     @FXML
-    void createItem() {
-        System.out.println("Create Item Page");
-    }
+    void Logout() {
 
-    // 4. Hàm cho nút Tạo phiên đấu giá
-    @FXML
-    void createAuction() {
-        System.out.println("Create Auction Page");
+        Client.getInstance().logOut();
     }
 }

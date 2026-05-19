@@ -215,6 +215,9 @@ public class InformationHandle {
             }
 
             double amount = Double.parseDouble(parts[1]);
+            if (amount <= 0) {
+                return "DEPOSIT_FAILED INVALID_AMOUNT";
+            }
 
             Bidder bidder = (Bidder) currentUser;
 
@@ -223,8 +226,7 @@ public class InformationHandle {
             if (!ok) {
                 return "DEPOSIT_FAILED";
             }
-
-            return "DEPOSIT_SUCCESS";
+            return "DEPOSIT_SUCCESS " + bidder.getBalance();
 
         } catch (Exception e) {
             return "ERROR " + e.getMessage();
@@ -484,9 +486,10 @@ public class InformationHandle {
             return "AUCTION_DETAIL_SUCCESS "
                     + a.getId() + " "
                     + a.getItem().getName().replace(" ", "_") + " "
+                    + a.getItem().getId() + " "
                     + a.getCurrentPrice() + " "
                     + a.getSeller().getUsername() + " "
-                    + a.getStatus()+ " "
+                    + a.getStatus().name()+ " "
                     + (a.getCurrentBidder() != null ? a.getCurrentBidder().getUsername() : "NONE");
         } catch (Exception e) {
             return "ERROR " + e.getMessage();

@@ -194,23 +194,42 @@ public class Auction {
 
     private void scheduleFinish() {
         long delay = Math.max(0, endTime - System.currentTimeMillis());
-
         finishTask = scheduler.schedule(() -> {
+            boolean shouldNotify = false;
             lock.lock();
             try {
+                // ***
+                // nếu đã được extend thì task cũ không được finish nữa
+                if (System.currentTimeMillis() < endTime) {
+                    return;
+                }
                 if (currentStatus == Status.RUNNING) {
                     transitionTo(Status.FINISH);
                     System.out.println("Auction auto finished");
-                    DatabaseManager.saveOrUpdateAuction(this); // Lưu khi phiên đấu giá tự động kết thúc
+                    DatabaseManager.saveOrUpdateAuction(this);
+                    shouldNotify = true;
                 }
             } finally {
                 lock.unlock();
+            }
+            // notify ngoài lock
+            if (shouldNotify) {
+                notifyObservers("STATUS_CHANGED " + id + " FINISH");
+                notifyObservers("AUCTION_FINISHED " + id);
             }
         }, delay, TimeUnit.MILLISECONDS);
     }
 
     private void extendAuction() {
-        endTime += EXTEND_TIME;
+
+        long now = System.currentTimeMillis();
+
+        // nếu endTime đã hết hoặc chưa có
+        if (endTime < now) {
+            endTime = now + EXTEND_TIME;
+        } else {
+            endTime += EXTEND_TIME;
+        }
 
         if (finishTask != null) {
             finishTask.cancel(false);
@@ -238,9 +257,12 @@ public class Auction {
 
             // ===== CASE 1: OPEN =====
             if (currentStatus == Status.OPEN) {
-
                 if (newPrice <= currentPrice) {
                     throw new InvalidBidException("Giá_Không_hợp_lệ");
+                }
+
+                if (newPrice - currentPrice < 100) {
+                    throw new InvalidBidException("Bước_giá_tối_thiểu_là_100");
                 }
 
                 currentPrice = newPrice;
@@ -251,16 +273,28 @@ public class Auction {
                 startAuction();
                 handleAutoBid();
 
+                // lưu DB
+                DatabaseManager.saveOrUpdateAuction(this);
+
+                // notify cho client
+                message = "NOTIFY " + id + " " + newPrice;
+
                 if (!observers.contains(bidder)) {
                     shouldAddObserver = true;
                 }
-
                 return;
             }
 
             // ===== CASE 2: KHÔNG RUNNING =====
             if (currentStatus != Status.RUNNING) {
                 throw new AuctionClosedException("Phiên_đang_đóng");
+            }
+
+            // không được tự bid chính mình
+            if (currentBidder != null &&
+                    currentBidder.getId() == bidder.getId()) {
+
+                throw new InvalidBidException("Bạn_đang_là_người_giữ_giá_cao_nhất");
             }
 
             // ===== CHECK GIÁ =====
@@ -305,6 +339,7 @@ public class Auction {
         lock.lock();
         try {
             transitionTo(Status.CANCELED);
+            notifyObservers("STATUS_CHANGED " + id + " CANCELED");
             DatabaseManager.saveOrUpdateAuction(this); // Lưu khi phiên đấu giá bị hủy
         } finally {
             lock.unlock();
@@ -343,6 +378,7 @@ public class Auction {
 
             // ===== CHUYỂN TRẠNG THÁI =====
             transitionTo(Status.PAID);
+            notifyObservers("STATUS_CHANGED " + id + " PAID");
 
             System.out.println("PAY SUCCESS: " + amount);
 
@@ -411,6 +447,8 @@ public class Auction {
 
                 bidHistory.add(new BidTransaction(bidItem, currentBidder, currentPrice));
 
+                // auto bid cũng gia hạn
+                extendAuction();
             } finally {
                 lock.unlock();
             }
