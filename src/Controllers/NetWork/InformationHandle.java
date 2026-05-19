@@ -56,7 +56,7 @@ public class InformationHandle {
                 case "CREATE_ITEM":
                     return handleCreateItem(part, currentUser);
                 case "GET_USER_BY_ID":
-                    return handleGetUserById(part);//thg san tu lam trong client
+                    return handleGetUserById(part);
                 case "DELETE_USER":
                     return handleDeleteUser(part, currentUser);
                 case "GET_USER_IDS":
@@ -77,8 +77,6 @@ public class InformationHandle {
                     return handleGetCurrentUser(currentUser);
                 case "AUTO_BID":
                     return handleAutoBid(part, currentUser);
-
-
                 case "GET_MY_ITEMS":
                     return ItemManager.getInstance().getAvailableItemsBySeller(currentUser.getId());
 

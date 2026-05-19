@@ -44,20 +44,14 @@ public class HomeSellerController {
     }
 
     @FXML
-    void createItem() {
-        setPage("/View/resources/fxml/createItem.fxml");
+    void manageItem() {
+        setPage("/View/resources/fxml/manageItem.fxml");
     }
 
     @FXML
-    void createAuction() {
+    void manageAuction() {
 
-        setPage("/View/resources/fxml/createAuction.fxml");
-    }
-
-    @FXML
-    void showAuction() {
-
-        setPage("/View/resources/fxml/sellerAuctionList.fxml");
+        setPage("/View/resources/fxml/manageAuction.fxml");
     }
 
     @FXML

@@ -99,8 +99,6 @@ public class Client {
 
             case "ITEM_IDS":
 
-            case "ITEM_DETAIL":
-
             case "USER_IDS":{
                 notifyObservers(message);
                 break;
@@ -189,7 +187,11 @@ public class Client {
                 System.out.println("Lỗi: " + String.join(" ", data));
                 break;
             case "SELLER_AVAILABLE_ITEMS":
-
+            case "ITEM_DETAIL":
+            case "CREATE_ITEM_SUCCESS":
+            case "CREATE_AUCTION_SUCCESS":
+                notifyObservers(message);
+                break;
             default:
                 System.out.println("Unknown: " + message);
         }
