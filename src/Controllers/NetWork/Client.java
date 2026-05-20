@@ -188,6 +188,7 @@ public class Client {
             case "ERROR":
                 System.out.println("Lỗi: " + String.join(" ", data));
                 break;
+            case "SELLER_AVAILABLE_ITEMS":
 
             default:
                 System.out.println("Unknown: " + message);
@@ -205,11 +206,14 @@ public class Client {
 
             out.println(message);
         } else {
-            out.println("Chưa kết nối server!");
+            System.out.println("Chưa kết nối server!");
         }
     }
 
     // ===== CHỨC NĂNG =====
+    public void getMyItems() {
+        send("GET_MY_ITEMS");
+    }
     public void getWonAuctions() {
         send("GET_WON_AUCTIONS");
     }

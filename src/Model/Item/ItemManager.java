@@ -1,6 +1,7 @@
 package Model.Item;
 
 import Controllers.Base.DatabaseManager; // Import DatabaseManager
+import Model.AuctionManager.AuctionManager;
 import Model.Factory.ArtCreator;
 import Model.Factory.ElectronicCreator;
 import Model.Factory.ItemFactory;
@@ -66,6 +67,7 @@ public class ItemManager implements Serializable {
     public synchronized void remove(int id) {
         // TODO: Cần thêm logic xóa khỏi DB
         items.removeIf(i -> i.getId() == id);
+
     }
 
     // ===== LẤY DANH SÁCH =====
@@ -101,11 +103,17 @@ public class ItemManager implements Serializable {
         StringBuilder sb = new StringBuilder("ITEM_IDS ");
 
         for (Item i : items) {
-            sb.append(i.getId()).append(" ");
+
+            //  nếu item đã có auction → bỏ qua (ẩn)
+            if (AuctionManager.getInstance().getAuctionByItemId(i.getId()) == null) {
+                sb.append(i.getId()).append(" ");
+            }
         }
 
         return sb.toString().trim();
     }
+
+
     public synchronized Item createItem(String type, String name, double price, Seller seller) { // Thêm Seller vào tham số
 
         ItemFactory factory;
@@ -137,5 +145,23 @@ public class ItemManager implements Serializable {
         DatabaseManager.saveItem(item); // Tự động lưu vào DB
 
         return item;
+    }
+    public String getAvailableItemsBySeller(int sellerId) {
+
+        StringBuilder sb = new StringBuilder("SELLER_AVAILABLE_ITEMS ");
+
+        for (Item i : items) {
+
+            if (i.getSeller() != null &&
+                    i.getSeller().getId() == sellerId) {
+
+                // 🔥 chưa có auction → hiện
+                if (AuctionManager.getInstance().getAuctionByItemId(i.getId()) == null) {
+                    sb.append(i.getId()).append(" ");
+                }
+            }
+        }
+
+        return sb.toString().trim();
     }
 }

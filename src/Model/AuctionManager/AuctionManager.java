@@ -66,6 +66,24 @@ public class AuctionManager {
             lock.unlock();
         }
     }
+    public void restoreAuctions() {
+
+        long now = System.currentTimeMillis();
+
+        for (Auction a : auctions) {
+
+            if (a.getStatus() == Auction.Status.RUNNING) {
+
+                if (a.getEndTime() <= now) {
+                    // ✅ quá hạn → finish ngay
+                    a.forceFinish();
+                } else {
+                    // ✅ chưa hết → chạy lại timer
+                    a.resumeAfterRestart();
+                }
+            }
+        }
+    }
 
 
     public Auction getAuctionById(int id){
@@ -134,13 +152,24 @@ public class AuctionManager {
 
 
 
-    public synchronized boolean payAuction(int auctionId){
+    public boolean payAuction(int auctionId) {
+
         Auction auction = getAuctionById(auctionId);
+
         if (auction == null) return false;
 
-        auction.pay();
-        DatabaseManager.saveOrUpdateAuction(auction); // Tự động cập nhật vào DB
-        return true;
+        boolean success = auction.pay();
+
+        if (success) {
+
+            //  XÓA ITEM TẠI ĐÂY
+            ItemManager.getInstance().remove(auction.getItem().getId());
+
+            // lưu DB
+            DatabaseManager.saveOrUpdateAuction(auction);
+        }
+
+        return success;
     }
 
     // Phương thức trả về danh sách ID|Status để hiển thị lên TableView của Client
@@ -175,4 +204,15 @@ public class AuctionManager {
                 a.getStatus().name().replace(" ", "_")
         );
     }
+    public Auction getAuctionByItemId(int itemId) {
+
+        for (Auction a : auctions) {
+            if (a.getItem().getId() == itemId) {
+                return a;
+            }
+        }
+
+        return null;
+    }
+
 }
