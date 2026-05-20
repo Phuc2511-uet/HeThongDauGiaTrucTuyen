@@ -52,6 +52,24 @@ public class AuctionManager {
             lock.unlock();
         }
     }
+    public void restoreAuctions() {
+
+        long now = System.currentTimeMillis();
+
+        for (Auction a : auctions) {
+
+            if (a.getStatus() == Auction.Status.RUNNING) {
+
+                if (a.getEndTime() <= now) {
+                    // ✅ quá hạn → finish ngay
+                    a.forceFinish();
+                } else {
+                    // ✅ chưa hết → chạy lại timer
+                    a.resumeAfterRestart();
+                }
+            }
+        }
+    }
 
 
     public Auction getAuctionById(int id){
