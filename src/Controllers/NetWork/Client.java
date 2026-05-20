@@ -105,10 +105,24 @@ public class Client {
             }
 
             case "USER_DETAIL":
+                if (parts.length >= 6) {
+                    try {
+                        this.currentFullname = parts[4].replace("_", " ");
+                        this.currentBalance = Double.parseDouble(parts[5]);
 
+                        // Phát tín hiệu thông báo cho toàn bộ các giao diện (như Header, Info) vẽ lại số dư mới
+                        notifyObservers("USER_DATA_CHANGED");
+                    } catch (Exception e) {
+                        System.err.println("Lỗi cập nhật số dư từ USER_DETAIL: " + e.getMessage());
+                    }
+                }
+                notifyObservers(message);
+                break;
             case "SELLER_AUCTIONS":
 
-            case "WON_AUCTIONS":
+            case "WON_AUCTIONS_LIST":
+            case "PAY_SUCCESS":
+            case "PAY_FAILED":
                 notifyObservers(message);
                 break;
             case "LOGIN_SUCCESS":{

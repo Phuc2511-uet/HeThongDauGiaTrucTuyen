@@ -120,26 +120,28 @@ public class InformationHandle {
 
 
     private String handleGetWonAuctions(User currentUser) {
-
         try {
+            // Chỉ Bidder mới có danh sách
             if (!(currentUser instanceof Bidder)) {
                 return "ERROR ONLY BIDDER";
             }
 
             Bidder bidder = (Bidder) currentUser;
-
             List<Auction> auctions = AuctionManager.getInstance().getAllAuctions();
 
             StringBuilder sb = new StringBuilder();
-            sb.append("WON_AUCTIONS");
+            sb.append("WON_AUCTIONS_LIST");
 
             for (Auction a : auctions) {
+                // Phiên ở trạng thái Finsh hoặc Paid
+                // và người giữ giá cao nhất hiện tại chính là người dùng này
+                if ((a.getStatus() == Auction.Status.FINISH || a.getStatus() == Auction.Status.PAID) && bidder.equals(a.getCurrentBidder())) {
+                    int auctionId = a.getId();
+                    String itemName = a.getItem().getName().replace(" ", "_");
+                    double winPrice = a.getCurrentPrice();
 
-                if ((a.getStatus() == Auction.Status.FINISH
-                        || a.getStatus() == Auction.Status.PAID)
-                        && bidder.equals(a.getCurrentBidder())) {
-
-                    sb.append(" ").append(a.getId());
+                    // Định dạng: ID|Tên_Vật_Phẩm|Giá_Thắng|trạng thái
+                    sb.append(" ").append(auctionId).append("|").append(itemName).append("|").append(winPrice).append("|").append(a.getStatus().name());
                 }
             }
 

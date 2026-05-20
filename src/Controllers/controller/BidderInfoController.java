@@ -10,7 +10,8 @@ public class BidderInfoController implements Observer {
 
     @FXML
     public void initialize() {
-        // 1. Đăng ký nhận thông báo từ Client
+        // 1. Gỡ observe để tránh trùng lặp đồng thời Đăng ký nhận thông báo từ Client
+        Client.getInstance().removeObserver(this);
         Client.getInstance().addObserver(this);
         // 2. Hiển thị dữ liệu đang có sẵn trong Client ngay lập tức
         refreshUI();
