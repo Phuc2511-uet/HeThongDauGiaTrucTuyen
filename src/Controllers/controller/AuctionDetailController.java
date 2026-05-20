@@ -10,7 +10,7 @@ import javafx.scene.control.TextField;
 
 public class AuctionDetailController implements Observer {
     @FXML
-    private Label lblAuctionId, lblItemName, lblCurrentPrice, lblSeller, lblStatus,lblTitle,lblItemId;
+    private Label lblAuctionId, lblItemName, lblCurrentPrice, lblSeller, lblStatus,lblTitle,lblItemId, lblCurrentBidder;
 
     @FXML
     private TextField txtBidPrice;
@@ -47,16 +47,14 @@ public class AuctionDetailController implements Observer {
                         lblCurrentPrice.setText(parts[4] + " $");
                     }
                     lblSeller.setText(parts[5]);
-                    String statusStr = parts[7].toUpperCase();
+                    String statusStr = parts[6].toUpperCase();
                     if (statusStr.equals("0")) statusStr = "OPEN";
                     else if (statusStr.equals("1")) statusStr = "RUNNING";
                     else if (statusStr.equals("2")) statusStr = "FINISH";
                     else if (statusStr.equals("3")) statusStr = "PAID";
                     else if (statusStr.equals("4")) statusStr = "CANCELED";
                     lblStatus.setText(statusStr);
-                    boolean canBid =
-                            statusStr.equals("OPEN")
-                                    || statusStr.equals("RUNNING");
+                    boolean canBid = statusStr.equals("OPEN") || statusStr.equals("RUNNING");
                     btnBid.setDisable(!canBid);
                     if (!canBid) {
                         btnBid.setText("Không thể bid");
@@ -146,6 +144,10 @@ public class AuctionDetailController implements Observer {
             double price = Double.parseDouble(text);
             int auctionId = Integer.parseInt(lblAuctionId.getText());
             Client.getInstance().placeBid(auctionId, price);
+
+            // reload dữ liệu auction
+            Client.getInstance().getAuctionById(auctionId);
+
             txtBidPrice.clear();
         } catch (NumberFormatException e) {
             showAlert("Lỗi", "Giá bid không hợp lệ!");
