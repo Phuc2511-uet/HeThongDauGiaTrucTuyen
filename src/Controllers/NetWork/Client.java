@@ -192,6 +192,8 @@ public class Client {
                 notifyObservers(message);
                 break;
             case "CREATE_ITEM_SUCCESS":
+            case "CREATE_ITEM_FAILED":
+
             case "CREATE_AUCTION_SUCCESS":
                 notifyObservers(message);
                 break;
