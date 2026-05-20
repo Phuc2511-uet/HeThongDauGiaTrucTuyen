@@ -109,7 +109,8 @@ public class Client {
             case "SELLER_AUCTIONS":
 
             case "WON_AUCTIONS":
-
+                notifyObservers(message);
+                break;
             case "LOGIN_SUCCESS":{
                 if (parts.length >= 5) {
                     this.currentRole = parts[1];
@@ -188,8 +189,13 @@ public class Client {
                 break;
             case "SELLER_AVAILABLE_ITEMS":
             case "ITEM_DETAIL":
+                notifyObservers(message);
+                break;
             case "CREATE_ITEM_SUCCESS":
             case "CREATE_AUCTION_SUCCESS":
+                notifyObservers(message);
+                break;
+            case "SELLER_DELETE_ITEM_SUCCESS":
                 notifyObservers(message);
                 break;
             default:
@@ -293,8 +299,14 @@ public class Client {
             MainFx.showLoginScene();
         });
     }
+    public void deleteItem(int itemId) {
+        send("DELETE_ITEM " + itemId);
+    }
 
+    public void sellerDeleteItem(int itemId) {
 
+        send("SELLER_DELETE_ITEM " + itemId);
+    }
 
 
 

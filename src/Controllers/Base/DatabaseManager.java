@@ -161,6 +161,26 @@ public class DatabaseManager {
         return list;
     }
 
+    public static boolean deleteItem(int itemId) {
+
+        String sql = "DELETE FROM items WHERE item_id = ?";
+
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+            pstmt.setInt(1, itemId);
+
+            int rows = pstmt.executeUpdate();
+
+            return rows > 0;
+
+        } catch (Exception e) {
+            System.err.println("Lỗi khi xóa item: " + e.getMessage());
+            e.printStackTrace();
+            return false;
+        }
+    }
+
     public static void saveItem(Item item) {
         String sql = "INSERT INTO items (name, base_price, seller_username) VALUES (?, ?, ?)";
         try (Connection conn = DBConnection.getConnection();
@@ -304,27 +324,6 @@ class ConcreteItem extends Item {
     @Override
     public void display() {
         // Do nothing
-    }
-
-
-    public static boolean deleteItem(int itemId) {
-
-        String sql = "DELETE FROM items WHERE item_id = ?";
-
-        try (Connection conn = DBConnection.getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(sql)) {
-
-            pstmt.setInt(1, itemId);
-
-            int rows = pstmt.executeUpdate();
-
-            return rows > 0;
-
-        } catch (Exception e) {
-            System.err.println("Lỗi khi xóa item: " + e.getMessage());
-            e.printStackTrace();
-            return false;
-        }
     }
 
 

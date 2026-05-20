@@ -65,9 +65,16 @@ public class ItemManager implements Serializable {
 
     // ===== XOÁ ITEM =====
     public synchronized void remove(int id) {
-        // TODO: Cần thêm logic xóa khỏi DB
-        items.removeIf(i -> i.getId() == id);
+        try {
+            // 1. Thực hiện xóa vĩnh viễn vật phẩm dưới Database MySQL
+            DatabaseManager.deleteItem(id);
+            System.out.println("Server >> Đã xóa thành công vật phẩm ID " + id + " dưới DB.");
+        } catch (Exception e) {
+            System.err.println("Server >> Lỗi khi thực hiện xóa vật phẩm dưới DB: " + e.getMessage());
+        }
 
+        // 2. Xóa vật phẩm khỏi danh sách bộ nhớ đệm (RAM) của Server
+        items.removeIf(i -> i.getId() == id);
     }
 
     // ===== LẤY DANH SÁCH =====
@@ -154,10 +161,9 @@ public class ItemManager implements Serializable {
 
             if (i.getSeller() != null &&
                     i.getSeller().getId() == sellerId) {
-
-                // 🔥 chưa có auction → hiện
+                //format:    SELLER_AVAILABLE_ITEMS 30|xiaomi_car|1000.0
                 if (AuctionManager.getInstance().getAuctionByItemId(i.getId()) == null) {
-                    sb.append(i.getId()).append(" ");
+                    sb.append(" ").append(i.getId()).append("|").append(i.getName().replace(" ", "_")).append("|").append(i.getPrice());
                 }
             }
         }

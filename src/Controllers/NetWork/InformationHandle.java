@@ -79,7 +79,8 @@ public class InformationHandle {
                     return handleAutoBid(part, currentUser);
                 case "GET_MY_ITEMS":
                     return ItemManager.getInstance().getAvailableItemsBySeller(currentUser.getId());
-
+                case "SELLER_DELETE_ITEM":
+                    return handleSellerDeleteItem(part, currentUser);
                 default:
                     return "ERROR Unknown action";
             }
@@ -88,9 +89,6 @@ public class InformationHandle {
             return "ERROR " + e.getMessage();
         }
     }
-
-
-
 
     private String handleGetSellerAuctions(User currentUser) {
 
@@ -109,7 +107,7 @@ public class InformationHandle {
             for (Auction a : auctions) {
 
                 if (seller.equals(a.getSeller())) {
-                    sb.append(" ").append(a.getId());
+                    sb.append(" ").append(a.getId()).append("|").append(a.getItem().getName().replace(" ","_"));
                 }
             }
 
@@ -547,5 +545,41 @@ public class InformationHandle {
         }
     }
 
+    private String handleSellerDeleteItem(String[] parts, User currentUser) {
+        try {
+            if (parts.length < 2) {
+                return "SELLER_DELETE_ITEM_FAILED";
+            }
+            if (!(currentUser instanceof Seller)) {
+                return "SELLER_DELETE_ITEM_FAILED";
+            }
+            int itemId = Integer.parseInt(parts[1]);
+            Item item = ItemManager.getInstance().getById(itemId);
 
+            if (item == null) {
+                return "SELLER_DELETE_ITEM_FAILED";
+            }
+
+            Seller seller = (Seller) currentUser;
+
+            // chỉ được xóa item của mình
+            if (item.getSeller().getId() != seller.getId()) {
+                return "SELLER_DELETE_ITEM_FAILED";
+            }
+
+            // item đã được đưa lên auction
+            // -> không cho xóa
+            if (AuctionManager.getInstance().getAuctionByItemId(itemId) != null) {
+                return "SELLER_DELETE_ITEM_FAILED";
+            }
+
+            ItemManager.getInstance().remove(itemId);
+
+            return "SELLER_DELETE_ITEM_SUCCESS";
+
+        } catch (Exception e) {
+
+            return "SELLER_DELETE_ITEM_FAILED";
+        }
+    }
 }

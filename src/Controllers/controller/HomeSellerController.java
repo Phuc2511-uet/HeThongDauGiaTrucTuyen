@@ -56,7 +56,11 @@ public class HomeSellerController {
 
     @FXML
     void Logout() {
-
         Client.getInstance().logOut();
+    }
+
+    public static void setPageNode(Parent root) {
+        instance.mainContent.setContent(root);
+        instance.mainContent.setVvalue(0);
     }
 }
