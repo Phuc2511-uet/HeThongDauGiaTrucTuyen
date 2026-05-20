@@ -1,6 +1,7 @@
 package Model.Item;
 
 import Controllers.Base.DatabaseManager; // Import DatabaseManager
+import Model.AuctionManager.AuctionManager;
 import Model.Factory.ArtCreator;
 import Model.Factory.ElectronicCreator;
 import Model.Factory.ItemFactory;
@@ -37,7 +38,7 @@ public class ItemManager implements Serializable {
     }
 
     // ===== THÊM ITEM =====
-    public void addItem(Item item) {
+    public synchronized void addItem(Item item) {
         items.add(item);
         DatabaseManager.saveItem(item); // Tự động lưu vào DB
     }
@@ -63,8 +64,16 @@ public class ItemManager implements Serializable {
     }
 
     // ===== XOÁ ITEM =====
-    public void remove(int id) {
-        // TODO: Cần thêm logic xóa khỏi DB
+    public synchronized void remove(int id) {
+        try {
+            // 1. Thực hiện xóa vĩnh viễn vật phẩm dưới Database MySQL
+            DatabaseManager.deleteItem(id);
+            System.out.println("Server >> Đã xóa thành công vật phẩm ID " + id + " dưới DB.");
+        } catch (Exception e) {
+            System.err.println("Server >> Lỗi khi thực hiện xóa vật phẩm dưới DB: " + e.getMessage());
+        }
+
+        // 2. Xóa vật phẩm khỏi danh sách bộ nhớ đệm (RAM) của Server
         items.removeIf(i -> i.getId() == id);
     }
 
@@ -72,7 +81,7 @@ public class ItemManager implements Serializable {
     public List<Item> getItems() {
         return items;
     }
-    public boolean updatePrice(int id, double newPrice) {
+    public synchronized boolean updatePrice(int id, double newPrice) {
         Item item = getById(id);
 
         if (item == null) {
@@ -101,41 +110,89 @@ public class ItemManager implements Serializable {
         StringBuilder sb = new StringBuilder("ITEM_IDS ");
 
         for (Item i : items) {
-            sb.append(i.getId()).append(" ");
+
+            //  nếu item đã có auction → bỏ qua (ẩn)
+            if (AuctionManager.getInstance().getAuctionByItemId(i.getId()) == null) {
+                sb.append(i.getId()).append(" ");
+            }
         }
 
         return sb.toString().trim();
     }
-    public Item createItem(String type, String name, double price, Seller seller) { // Thêm Seller vào tham số
 
+
+    public synchronized Item createItem(String type, String name, double price, Seller seller) {
+
+        // ===== VALIDATION =====
+        if (type == null || type.trim().isEmpty()) {
+            throw new IllegalArgumentException("Loại_vật_phẩm_không_hợp_lệ");
+        }
+
+        if (name == null || name.trim().isEmpty()) {
+            throw new IllegalArgumentException("Tên_vật_phẩm_không_hợp_lệ");
+        }
+
+        if (seller == null) {
+            throw new IllegalArgumentException("Seller_không_hợp_lệ");
+        }
+
+        // 👉 CHECK GIÁ (QUAN TRỌNG)
+        if (price <= 0) {
+            throw new IllegalArgumentException("Giá_phải_lớn_hơn_0");
+        }
+
+        // (tuỳ chọn) tránh giá quá nhỏ gây spam
+        if (price < 100) {
+            throw new IllegalArgumentException("Giá_tối_thiểu_là_100");
+        }
+
+        // (tuỳ chọn) giới hạn max để tránh lỗi hệ thống
+        if (price > 1_000_000_000) {
+            throw new IllegalArgumentException("Giá_quá_lớn");
+        }
+
+        // ===== FACTORY =====
         ItemFactory factory;
 
         switch (type.toUpperCase()) {
-
             case "ELECTRONIC":
                 factory = new ElectronicCreator();
                 break;
-
             case "VEHICLE":
                 factory = new VehicleCreator();
                 break;
-
             case "ART":
                 factory = new ArtCreator();
                 break;
-
             default:
                 throw new IllegalArgumentException("UNKNOWN ITEM TYPE");
         }
 
-        Item item = factory.CreateItem(name, price, seller); // Gọi CreateItem với seller
+        Item item = factory.CreateItem(name.trim(), price, seller);
 
-        // gán ID tại đây
-        item.setId(count++); // Giả sử setId đã được thêm lại hoặc Item có constructor với ID
+        // ===== ID =====
+        item.setId(count++);
 
         items.add(item);
-        DatabaseManager.saveItem(item); // Tự động lưu vào DB
+        DatabaseManager.saveItem(item);
 
         return item;
+    }
+    public String getAvailableItemsBySeller(int sellerId) {
+
+        StringBuilder sb = new StringBuilder("SELLER_AVAILABLE_ITEMS ");
+
+        for (Item i : items) {
+
+            if (i.getSeller() != null &&
+                    i.getSeller().getId() == sellerId) {
+                //format:    SELLER_AVAILABLE_ITEMS 30|xiaomi_car|1000.0
+                if (AuctionManager.getInstance().getAuctionByItemId(i.getId()) == null) {
+                    sb.append(" ").append(i.getId()).append("|").append(i.getName().replace(" ", "_")).append("|").append(i.getPrice());
+                }
+            }
+        }
+
+        return sb.toString().trim();
     }
 }

@@ -1,5 +1,7 @@
 package Model.Auction;
 
+import Controllers.Exceptions.AuctionClosedException;
+import Controllers.Exceptions.InvalidBidException;
 import Model.Item.Item;
 import Model.User.Bidder;
 import Model.User.Seller;
@@ -22,6 +24,17 @@ public class Auction {
     }
 
     private Status currentStatus;
+    // ===== AUTO BID =====
+    private final java.util.Map<Integer, AutoBid> autoBidMap = new java.util.HashMap<>();
+
+    private final java.util.PriorityQueue<AutoBid> autoBidQueue =
+            new java.util.PriorityQueue<>((a, b) -> {
+                int cmp = Double.compare(b.getMaxPrice(), a.getMaxPrice());
+                if (cmp != 0) return cmp;
+                return Long.compare(a.getTimestamp(), b.getTimestamp());
+            });
+
+    private static final double MIN_INCREMENT = 100;
 
     private List<Observer> observers = new ArrayList<>();
     private int id;
@@ -32,15 +45,25 @@ public class Auction {
     private Bidder currentBidder;
 
 
+
     private final ReentrantLock lock = new ReentrantLock();
 
     // ===== CONSTRUCTOR cho Auction mới =====
-    public Auction(int id, Item bidItem, Seller seller, double startPrice) {
+    public Auction(int id, Item bidItem, Seller seller, double startPrice, double currentPrice, Bidder currentBidder, Status status, long startTime, long endTime) {
         this.id = id;
         this.bidItem = bidItem;
         this.seller = seller;
-        this.currentPrice = startPrice;
-        this.currentStatus = Status.OPEN;
+        this.currentPrice = currentPrice;
+        this.currentBidder = currentBidder;
+        this.currentStatus = status;
+        this.startTime = startTime;
+        this.endTime = endTime;
+    }
+
+    // ===== CONSTRUCTOR DỰ PHÒNG (Dành cho AuctionManager gọi) =====
+    public Auction(int id, Item bidItem, Seller seller, double startPrice) {
+        // Nó sẽ tự động gọi cái Constructor 9 tham số, với startTime = 0 và endTime = 0
+        this(id, bidItem, seller, startPrice, startPrice, null, Status.OPEN, 0, 0);
     }
 
     // ===== CONSTRUCTOR để tải từ Database =====
@@ -92,6 +115,14 @@ public class Auction {
         return currentBidder;
     }
 
+    public long getStartTime() {
+        return startTime;
+    }
+
+    public long getEndTime() {
+        return endTime;
+    }
+
     // 👉 helper cho server (rất nên có)
     public String toNetworkString() {
         return id + " "
@@ -138,6 +169,7 @@ public class Auction {
     private long startTime;
     private long endTime;
 
+
     private static final long DURATION = 60 * 60 * 1000;
     private static final long EXTEND_TIME = 60 * 1000;
 
@@ -177,37 +209,82 @@ public class Auction {
         transitionTo(Status.RUNNING);
 
         scheduleFinish();
+
+        DatabaseManager.saveOrUpdateAuction(this); //  THÊM
     }
 
     private void scheduleFinish() {
         long delay = Math.max(0, endTime - System.currentTimeMillis());
-
         finishTask = scheduler.schedule(() -> {
+            boolean shouldNotify = false;
             lock.lock();
             try {
+                // ***
+                // nếu đã được extend thì task cũ không được finish nữa
+                if (System.currentTimeMillis() < endTime) {
+                    return;
+                }
                 if (currentStatus == Status.RUNNING) {
                     transitionTo(Status.FINISH);
                     System.out.println("Auction auto finished");
-                    DatabaseManager.saveOrUpdateAuction(this); // Lưu khi phiên đấu giá tự động kết thúc
+                    DatabaseManager.saveOrUpdateAuction(this);
+                    shouldNotify = true;
                 }
             } finally {
                 lock.unlock();
             }
+            // notify ngoài lock
+            if (shouldNotify) {
+                notifyObservers("STATUS_CHANGED " + id + " FINISH");
+                notifyObservers("AUCTION_FINISHED " + id);
+            }
         }, delay, TimeUnit.MILLISECONDS);
     }
-
     private void extendAuction() {
-        endTime += EXTEND_TIME;
+
+        long now = System.currentTimeMillis();
+
+        if (endTime < now) {
+            endTime = now + EXTEND_TIME;
+        } else {
+            endTime += EXTEND_TIME;
+        }
 
         if (finishTask != null) {
             finishTask.cancel(false);
         }
 
         scheduleFinish();
+
+        DatabaseManager.saveOrUpdateAuction(this);
+    }
+    public void resumeAfterRestart() {
+        scheduleFinish();
+    }
+    public void forceFinish() {
+
+        boolean shouldNotify = false;
+
+        lock.lock();
+        try {
+            if (currentStatus == Status.RUNNING) {
+                transitionTo(Status.FINISH);
+                DatabaseManager.saveOrUpdateAuction(this);
+                shouldNotify = true;
+            }
+        } finally {
+            lock.unlock();
+        }
+
+        if (shouldNotify) {
+
+            notifyObservers("AUCTION_FINISHED " + id);
+        }
     }
 
-    // ===== BID =====
-    public void placeBid(double newPrice, Bidder bidder) {
+
+    public void placeBid(double newPrice, Bidder bidder)
+            throws AuctionClosedException, InvalidBidException {
 
         String message = null;
         boolean shouldAddObserver = false;
@@ -215,10 +292,22 @@ public class Auction {
         lock.lock();
         try {
 
+            // ===== CHECK BALANCE =====
+            try {
+                bidder.checkBalance(newPrice);
+            } catch (Exception e) {
+                throw new InvalidBidException("Không_đủ_số_dư");
+            }
+
+            // ===== CASE OPEN =====
             if (currentStatus == Status.OPEN) {
 
                 if (newPrice <= currentPrice) {
-                    throw new IllegalArgumentException("Must be higher than start price");
+                    throw new InvalidBidException("Giá_Không_hợp_lệ");
+                }
+
+                if (newPrice - currentPrice < MIN_INCREMENT) {
+                    throw new InvalidBidException("Bước_giá_tối_thiểu_là_100");
                 }
 
                 currentPrice = newPrice;
@@ -227,43 +316,58 @@ public class Auction {
                 bidHistory.add(new BidTransaction(bidItem, bidder, newPrice));
 
                 startAuction();
+                handleAutoBid();
+
+                DatabaseManager.saveOrUpdateAuction(this);
+
+                message = "NOTIFY " + id + " " + currentPrice;
 
                 if (!observers.contains(bidder)) {
                     shouldAddObserver = true;
                 }
 
-                return;
             }
+            // ===== CASE RUNNING =====
+            else if (currentStatus == Status.RUNNING) {
 
-            if (currentStatus != Status.RUNNING) {
-                throw new IllegalStateException("Auction not running");
+                if (currentBidder != null &&
+                        currentBidder.getId() == bidder.getId()) {
+
+                    throw new InvalidBidException("Bạn_đang_là_người_giữ_giá_cao_nhất");
+                }
+
+                if (newPrice <= currentPrice) {
+                    throw new InvalidBidException("Giá_mới_phải_cao_hơn_hiện_tại");
+                }
+
+                if (newPrice - currentPrice < MIN_INCREMENT) {
+                    throw new InvalidBidException("Bước_giá_tối_thiểu_là_100");
+                }
+
+                currentPrice = newPrice;
+                currentBidder = bidder;
+
+                bidHistory.add(new BidTransaction(bidItem, bidder, newPrice));
+
+                extendAuction();
+                handleAutoBid();
+
+                message = "NOTIFY " + id + " " + currentPrice;
+
+                if (!observers.contains(bidder)) {
+                    shouldAddObserver = true;
+                }
             }
-
-            if (newPrice <= currentPrice) {
-                throw new IllegalArgumentException("Must be higher");
-            }
-
-            if (newPrice - currentPrice < 100) {
-                throw new IllegalArgumentException("Min increment 100");
-            }
-
-            currentPrice = newPrice;
-            currentBidder = bidder;
-
-            bidHistory.add(new BidTransaction(bidItem, bidder, newPrice));
-
-            extendAuction();
-
-            message = "NOTIFY " + id + " " + newPrice;
-
-            if (!observers.contains(bidder)) {
-                shouldAddObserver = true;
+            // ===== CASE KHÁC =====
+            else {
+                throw new AuctionClosedException("Phiên_đang_đóng");
             }
 
         } finally {
             lock.unlock();
         }
 
+        // ===== NGOÀI LOCK =====
         if (shouldAddObserver) {
             addObserver(bidder);
         }
@@ -271,13 +375,16 @@ public class Auction {
         if (message != null) {
             notifyObservers(message);
         }
-        // AuctionManager sẽ gọi saveOrUpdateAuction sau khi placeBid
     }
+
+
+
 
     public void cancel() {
         lock.lock();
         try {
             transitionTo(Status.CANCELED);
+            notifyObservers("STATUS_CHANGED " + id + " CANCELED");
             DatabaseManager.saveOrUpdateAuction(this); // Lưu khi phiên đấu giá bị hủy
         } finally {
             lock.unlock();
@@ -289,19 +396,19 @@ public class Auction {
         lock.lock();
         try {
 
-            // ❌ chưa kết thúc
+            //  chưa kết thúc
             if (currentStatus != Status.FINISH) {
                 return false;
             }
 
-            // ❌ không có người thắng
+            //  không có người thắng
             if (currentBidder == null) {
                 return false;
             }
 
             double amount = currentPrice;
 
-            // ❌ không đủ tiền
+            //  không đủ tiền
             try {
                 currentBidder.checkBalance(amount);
             } catch (Exception e) {
@@ -316,6 +423,7 @@ public class Auction {
 
             // ===== CHUYỂN TRẠNG THÁI =====
             transitionTo(Status.PAID);
+            notifyObservers("STATUS_CHANGED " + id + " PAID");
 
             System.out.println("PAY SUCCESS: " + amount);
 
@@ -326,6 +434,74 @@ public class Auction {
             // AuctionManager sẽ gọi saveOrUpdateAuction sau khi pay
         }
     }
+    public void registerAutoBid(Bidder bidder, double maxPrice) {
+        lock.lock();
+        try {
+            AutoBid existing = autoBidMap.get(bidder.getId());
+
+            if (existing != null) {
+                autoBidQueue.remove(existing);
+                existing.setMaxPrice(maxPrice);
+                autoBidQueue.add(existing);
+            } else {
+                AutoBid autoBid = new AutoBid(bidder, maxPrice);
+                autoBidMap.put(bidder.getId(), autoBid);
+                autoBidQueue.add(autoBid);
+            }
+
+        } finally {
+            lock.unlock();
+        }
+    }
+    private void handleAutoBid() {
+
+        while (true) {
+
+            AutoBid top;
+
+            lock.lock();
+            try {
+                if (autoBidQueue.isEmpty()) return;
+
+                top = autoBidQueue.peek();
+
+                // nếu đã là người dẫn đầu → dừng
+                if (top.getBidder().equals(currentBidder)) return;
+
+                double nextPrice = currentPrice + MIN_INCREMENT;
+
+                // vượt max → loại
+                if (nextPrice > top.getMaxPrice()) {
+                    autoBidQueue.poll();
+                    autoBidMap.remove(top.getBidder().getId());
+                    continue;
+                }
+
+                // không đủ tiền → loại
+                try {
+                    top.getBidder().checkBalance(nextPrice);
+                } catch (Exception e) {
+                    autoBidQueue.poll();
+                    autoBidMap.remove(top.getBidder().getId());
+                    continue;
+                }
+
+                // ===== AUTO BID =====
+                currentPrice = nextPrice;
+                currentBidder = top.getBidder();
+
+                bidHistory.add(new BidTransaction(bidItem, currentBidder, currentPrice));
+
+                // auto bid cũng gia hạn
+                extendAuction();
+            } finally {
+                lock.unlock();
+            }
+
+            notifyObservers("NOTIFY " + id + " " + currentPrice);
+        }
+    }
+
     public long getRemainingTime() {
         return Math.max(0, endTime - System.currentTimeMillis());
     }

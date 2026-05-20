@@ -20,6 +20,9 @@ public class Client {
     private String currentFullname;
     private double currentBalance;
 
+    // Dùng để lưu ID khi người dùng click vào hàng
+    public static int selectedAuctionId;
+
     private List<Observer> observers = new ArrayList<>();
     private String currentUsername;
 
@@ -85,28 +88,35 @@ public class Client {
 
         // ===== XỬ LÝ =====
         switch (command) {
-            case "AUCTION_DETAIL":
-
-            case "LIST_AUCTION":
+            case "AUCTION_DETAIL_SUCCESS":{
+                notifyObservers(message);
+                break;
+            }
+            case "LIST_AUCTION":{
+                notifyObservers(message);
+                break;
+            }
 
             case "ITEM_IDS":
 
-            case "ITEM_DETAIL":
-
-            case "USER_IDS":
+            case "USER_IDS":{
+                notifyObservers(message);
+                break;
+            }
 
             case "USER_DETAIL":
 
             case "SELLER_AUCTIONS":
 
             case "WON_AUCTIONS":
-
+                notifyObservers(message);
+                break;
             case "LOGIN_SUCCESS":{
-                if (parts.length >= 4) {
+                if (parts.length >= 5) {
                     this.currentRole = parts[1];
-                    this.currentUsername = parts[1]; // Giả định Server gửi kèm username
                     this.currentFullname = parts[2].replace("_", " ");
                     this.currentBalance = Double.parseDouble(parts[3]);
+                    this.currentUsername = parts[4];
 
                     notifyObservers("USER_DATA_CHANGED");
 
@@ -122,8 +132,22 @@ public class Client {
                 });
                 break;
             }
-            case "BID_SUCCESS":
-            case "BID_FAILED":
+            case "BID_SUCCESS":{
+                javafx.application.Platform.runLater(() -> {
+                    showAlert("Thành công", "Đặt giá thành công!");
+                });
+                break;
+            }
+            case "BID_FAILED":{
+                String reason = message.replace("BID_FAILED ", "")
+                        .replace("_", " ");
+
+                javafx.application.Platform.runLater(() -> {
+                    showAlert("Đấu giá thất bại", reason);
+                });
+
+                break;
+            }
             case "ACCOUNT_SUCCESS":{
                 javafx.application.Platform.runLater(() -> {
                     showAlert("Thông báo", "Tạo tài khoản thành công! Vui lòng đăng nhập.");
@@ -143,7 +167,18 @@ public class Client {
             case "DELETE_ITEM_FAILED":
             case "DELETE_USER_SUCCESS":
             case "DELETE_USER_FAILED":
-            case "DEPOSIT_SUCCESS":
+            case "DEPOSIT_SUCCESS":{
+                // Cập nhật số dư cục bộ trong Client từ dữ liệu Server gửi về
+                this.currentBalance = Double.parseDouble(parts[1]);
+
+                // Thông báo để các Controller (Observer) biết update lại tiền
+                notifyObservers("USER_DATA_CHANGED");
+
+                javafx.application.Platform.runLater(() -> {
+                    showAlert("Thành công", "Nạp tiền thành công! Số dư mới: " + this.currentBalance + "$");
+                });
+                break;
+            }
             case "DEPOSIT_FAILED":
 
                 System.out.println(command);
@@ -152,7 +187,19 @@ public class Client {
             case "ERROR":
                 System.out.println("Lỗi: " + String.join(" ", data));
                 break;
+            case "SELLER_AVAILABLE_ITEMS":
+            case "ITEM_DETAIL":
+                notifyObservers(message);
+                break;
+            case "CREATE_ITEM_SUCCESS":
+            case "CREATE_ITEM_FAILED":
 
+            case "CREATE_AUCTION_SUCCESS":
+                notifyObservers(message);
+                break;
+            case "SELLER_DELETE_ITEM_SUCCESS":
+                notifyObservers(message);
+                break;
             default:
                 System.out.println("Unknown: " + message);
         }
@@ -164,16 +211,19 @@ public class Client {
     public String getCurrentUsername() { return currentUsername; }
 
     // ===== GỬI DỮ LIỆU =====
-    private void send(String message) {
+    public void send(String message) {
         if (socket != null && socket.isConnected() && !socket.isClosed()) {
 
             out.println(message);
         } else {
-            out.println("Chưa kết nối server!");
+            System.out.println("Chưa kết nối server!");
         }
     }
 
     // ===== CHỨC NĂNG =====
+    public void getMyItems() {
+        send("GET_MY_ITEMS");
+    }
     public void getWonAuctions() {
         send("GET_WON_AUCTIONS");
     }
@@ -198,10 +248,11 @@ public class Client {
     public void getUserIds() {
         send("GET_USER_IDS");
     }
-    public void getAuctionById(String id){
-        send("GET_AUCTION_BY_ID" + " " + id);
 
+    public void getAuctionById(int id){
+        send("GET_AUCTION_BY_ID " + id);
     }
+
     public void getCurrentUser(){    //USER_DETAIL 1 phuc BIDDER Nguyen_Dinh_Phuc 5000.0
         send("GET_CURRENT_USER");
     }
@@ -223,7 +274,11 @@ public class Client {
         send("CREATE_AUCTION " + itemId + " " + sellerId + " " + startPrice);
     }
     public void newAccount(String username, String password, String role,String fullname) {
-        send("NEW_ACCOUNT " + username + " " + password + " " + role+" " + fullname);
+        String formattedFullname = fullname.replace(" ", "_");
+        send("NEW_ACCOUNT " + username + " " + password + " " + role+" " + formattedFullname);
+    }
+    public void deposit(double amount) {
+        send("DEPOSIT " + amount);
     }
 
     public void getAuctions() {
@@ -246,8 +301,14 @@ public class Client {
             MainFx.showLoginScene();
         });
     }
+    public void deleteItem(int itemId) {
+        send("DELETE_ITEM " + itemId);
+    }
 
+    public void sellerDeleteItem(int itemId) {
 
+        send("SELLER_DELETE_ITEM " + itemId);
+    }
 
 
 
@@ -295,5 +356,12 @@ public class Client {
         alert.showAndWait();
     }
 
+    public void removeObserver(Observer obs) {
+        observers.remove(obs);
+    }
+
+    public List<Observer> getObservers() {
+        return observers;
+    }
 
 }
