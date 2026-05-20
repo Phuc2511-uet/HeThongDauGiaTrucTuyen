@@ -516,9 +516,9 @@ public class InformationHandle {
             return "CREATE_ITEM_SUCCESS " ;
 
         } catch (IllegalArgumentException e) {
-            return "ERROR " + e.getMessage();
+            return "CREATE_ITEM_FAILED " + e.getMessage();
         } catch (Exception e) {
-            return "ERROR CREATE_ITEM_FAILED";
+            return "CREATE_ITEM_FAILED";
         }
     }private String handleAutoBid(String[] parts, User user) {
 

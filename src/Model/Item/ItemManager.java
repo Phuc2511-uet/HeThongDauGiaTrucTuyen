@@ -121,35 +121,60 @@ public class ItemManager implements Serializable {
     }
 
 
-    public synchronized Item createItem(String type, String name, double price, Seller seller) { // Thêm Seller vào tham số
+    public synchronized Item createItem(String type, String name, double price, Seller seller) {
 
+        // ===== VALIDATION =====
+        if (type == null || type.trim().isEmpty()) {
+            throw new IllegalArgumentException("Loại_vật_phẩm_không_hợp_lệ");
+        }
+
+        if (name == null || name.trim().isEmpty()) {
+            throw new IllegalArgumentException("Tên_vật_phẩm_không_hợp_lệ");
+        }
+
+        if (seller == null) {
+            throw new IllegalArgumentException("Seller_không_hợp_lệ");
+        }
+
+        // 👉 CHECK GIÁ (QUAN TRỌNG)
+        if (price <= 0) {
+            throw new IllegalArgumentException("Giá_phải_lớn_hơn_0");
+        }
+
+        // (tuỳ chọn) tránh giá quá nhỏ gây spam
+        if (price < 100) {
+            throw new IllegalArgumentException("Giá_tối_thiểu_là_100");
+        }
+
+        // (tuỳ chọn) giới hạn max để tránh lỗi hệ thống
+        if (price > 1_000_000_000) {
+            throw new IllegalArgumentException("Giá_quá_lớn");
+        }
+
+        // ===== FACTORY =====
         ItemFactory factory;
 
         switch (type.toUpperCase()) {
-
             case "ELECTRONIC":
                 factory = new ElectronicCreator();
                 break;
-
             case "VEHICLE":
                 factory = new VehicleCreator();
                 break;
-
             case "ART":
                 factory = new ArtCreator();
                 break;
-
             default:
                 throw new IllegalArgumentException("UNKNOWN ITEM TYPE");
         }
 
-        Item item = factory.CreateItem(name, price, seller); // Gọi CreateItem với seller
+        Item item = factory.CreateItem(name.trim(), price, seller);
 
-        // gán ID tại đây
-        item.setId(count++); // Giả sử setId đã được thêm lại hoặc Item có constructor với ID
+        // ===== ID =====
+        item.setId(count++);
 
         items.add(item);
-        DatabaseManager.saveItem(item); // Tự động lưu vào DB
+        DatabaseManager.saveItem(item);
 
         return item;
     }
