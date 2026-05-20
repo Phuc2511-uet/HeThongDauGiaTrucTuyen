@@ -10,6 +10,8 @@ public class Sever {
 
     public static void main(String args[]) {
         Controllers.Base.DatabaseManager.loadEverything();
+        AuctionManager.getInstance().restoreAuctions();
+
         String host = "0.0.0.0";
         int port = 3636;
 
@@ -61,6 +63,9 @@ public class Sever {
                 if (action.equals("LOGIN")) {
                     try {
                         currentUser = UserManager.getInstance().authenticate(parts[1], parts[2]);
+                        if (currentUser instanceof Bidder){
+                            ((Bidder) currentUser).setConnection(out);
+                        }
                         String role = "UNKNOWN";
                         double balance = 0.0; // Mặc định cho Admin
 
