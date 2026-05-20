@@ -32,15 +32,25 @@ public class Auction {
     private Bidder currentBidder;
 
 
+
     private final ReentrantLock lock = new ReentrantLock();
 
     // ===== CONSTRUCTOR cho Auction mới =====
-    public Auction(int id, Item bidItem, Seller seller, double startPrice) {
+    public Auction(int id, Item bidItem, Seller seller, double startPrice, double currentPrice, Bidder currentBidder, Status status, long startTime, long endTime) {
         this.id = id;
         this.bidItem = bidItem;
         this.seller = seller;
-        this.currentPrice = startPrice;
-        this.currentStatus = Status.OPEN;
+        this.currentPrice = currentPrice;
+        this.currentBidder = currentBidder;
+        this.currentStatus = status;
+        this.startTime = startTime;
+        this.endTime = endTime;
+    }
+
+    // ===== CONSTRUCTOR DỰ PHÒNG (Dành cho AuctionManager gọi) =====
+    public Auction(int id, Item bidItem, Seller seller, double startPrice) {
+        // Nó sẽ tự động gọi cái Constructor 9 tham số, với startTime = 0 và endTime = 0
+        this(id, bidItem, seller, startPrice, startPrice, null, Status.OPEN, 0, 0);
     }
 
     // ===== CONSTRUCTOR để tải từ Database =====
@@ -90,6 +100,14 @@ public class Auction {
 
     public Bidder getCurrentBidder() {
         return currentBidder;
+    }
+
+    public long getStartTime() {
+        return startTime;
+    }
+
+    public long getEndTime() {
+        return endTime;
     }
 
     // 👉 helper cho server (rất nên có)
