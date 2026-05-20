@@ -5,23 +5,23 @@ import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.control.ScrollPane;
+
 import java.io.IOException;
 
-public class HomeBidderController {
-
+public class HomeSellerController {
     @FXML
     private ScrollPane mainContent;
 
-    private static HomeBidderController instance;
+    private static HomeSellerController instance;
 
     @FXML
     public void initialize() {
         instance = this;
     }
-
+    // LOAD PAGE
     public static void setPage(String fxmlPath) {
         if (instance == null || instance.mainContent == null) {
-            System.err.println("HomeBidderController chưa được khởi tạo!");
+            System.err.println("HomeSellerController chưa được khởi tạo!");
             return;
         }
         try {
@@ -32,33 +32,37 @@ public class HomeBidderController {
             }
             Parent fxml = FXMLLoader.load(resource);
             instance.mainContent.setContent(fxml);
+            instance.mainContent.setVvalue(0);
         } catch (IOException e) {
             System.err.println("Lỗi khi tải trang: " + fxmlPath);
             e.printStackTrace();
         }
     }
-
     @FXML
-    void showInfo() {
-        setPage("/View/resources/fxml/bidderInfo.fxml");
+    void showInfoSeller() {
+        setPage("/View/resources/fxml/sellerInfo.fxml");
     }
 
     @FXML
-    void showAuctionList() {
-        // 1. Chuyển trang trước
-        setPage("/View/resources/fxml/auctionList.fxml");
-        // 2. Gửi lệnh lấy dữ liệu (đảm bảo lệnh này khớp với Server)
-        Client.getInstance().send("GET_AUCTIONS");
+    void createItem() {
+        setPage("/View/resources/fxml/createItem.fxml");
     }
 
+    @FXML
+    void createAuction() {
+
+        setPage("/View/resources/fxml/createAuction.fxml");
+    }
 
     @FXML
-    void showWonAuctions() {
-        setPage("/View/resources/fxml/wonAuctions.fxml");
+    void showAuction() {
+
+        setPage("/View/resources/fxml/sellerAuctionList.fxml");
     }
 
     @FXML
     void Logout() {
+
         Client.getInstance().logOut();
     }
 }

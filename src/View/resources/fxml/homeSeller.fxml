@@ -10,32 +10,40 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
-<BorderPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="520.0" prefWidth="850.0" style="-fx-background-color: #0F172A;" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="Controllers.controller.HomeBidderController">
+<BorderPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="520.0" prefWidth="850.0" style="-fx-background-color: #0F172A;" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="Controllers.controller.HomeSellerController">
 
     <left>
         <VBox prefHeight="513.0" prefWidth="268.0" style="-fx-background-color: #1E293B; -fx-background-radius: 0 30 30 0;" BorderPane.alignment="CENTER">
             <children>
                 <VBox alignment="CENTER" prefHeight="171.0" prefWidth="268.0" spacing="10.0" style="-fx-padding: 40 20 40 20;">
-               <children>
-                        <Button alignment="CENTER" contentDisplay="CENTER" maxWidth="1.7976931348623157E308" onAction="#showInfo" prefHeight="45.0" style="-fx-background-color: #334155; -fx-text-fill: #F8FAFC; -fx-background-radius: 12; -fx-cursor: hand;" text="👤  Thông tin Bidder">
+                    <children>
+                        <Button alignment="CENTER" contentDisplay="CENTER" maxWidth="1.7976931348623157E308" onAction="#showInfoSeller" prefHeight="45.0" style="-fx-background-color: #334155; -fx-text-fill: #F8FAFC; -fx-background-radius: 12; -fx-cursor: hand;" text="👤  Thông tin Seller">
                             <font> <Font name="System Bold" size="15.0" /> </font>
-                     <VBox.margin>
-                        <Insets left="-8.0" right="-8.0" top="-25.0" />
-                     </VBox.margin>
+                            <VBox.margin>
+                                <Insets left="-8.0" right="-8.0" top="-25.0" />
+                            </VBox.margin>
                         </Button>
-                        <Button alignment="CENTER" maxWidth="1.7976931348623157E308" onAction="#showAuctionList" prefHeight="45.0" style="-fx-background-color: #334155; -fx-background-radius: 12; -fx-text-fill: white; -fx-cursor: hand;" text="📊  Danh sách phiên đấu giá">
+                        <Button alignment="CENTER" maxWidth="1.7976931348623157E308" onAction="#showAuction" prefHeight="45.0" style="-fx-background-color: #334155; -fx-background-radius: 12; -fx-text-fill: white; -fx-cursor: hand;" text="📊  Phiên đấu giá">
                             <font> <Font name="System Bold" size="15.0" /> </font>
+                            <VBox.margin>
+                                <Insets left="-8.0" right="-8.0" top="5.0" />
+                            </VBox.margin>
+                        </Button>
+                        <Button alignment="CENTER" maxWidth="1.7976931348623157E308" onAction="#createItem" prefHeight="45.0" style="-fx-background-color: #334155; -fx-text-fill: #F8FAFC; -fx-background-radius: 12; -fx-cursor: hand;" text="📊 Tạo vật phẩm">
+                            <font> <Font name="System Bold" size="15.0" /> </font>
+                            <VBox.margin>
+                                <Insets left="-8.0" right="-8.0" top="5.0" />
+                            </VBox.margin>
+                        </Button>
+                  <Button alignment="CENTER" layoutX="22.0" layoutY="117.0" maxWidth="1.7976931348623157E308" onAction="#createAuction" prefHeight="45.0" style="-fx-background-color: #334155; -fx-text-fill: #F8FAFC; -fx-background-radius: 12; -fx-cursor: hand;" text="📊 Tạo phiên đấu giá">
+                     <font>
+                        <Font name="System Bold" size="15.0" />
+                     </font>
                      <VBox.margin>
                         <Insets left="-8.0" right="-8.0" top="5.0" />
                      </VBox.margin>
-                        </Button>
-                        <Button alignment="CENTER" maxWidth="1.7976931348623157E308" prefHeight="45.0" style="-fx-background-color: #334155; -fx-text-fill: #F8FAFC; -fx-background-radius: 12; -fx-cursor: hand;" text="📊 Các phiên đấu giá đã thắng">
-                            <font> <Font name="System Bold" size="15.0" /> </font>
-                     <VBox.margin>
-                        <Insets left="-8.0" right="-8.0" top="5.0" />
-                     </VBox.margin>
-                        </Button>
-               </children>
+                  </Button>
+                    </children>
                 </VBox>
 
                 <VBox spacing="10.0" style="-fx-padding: 0 15 0 15;" />

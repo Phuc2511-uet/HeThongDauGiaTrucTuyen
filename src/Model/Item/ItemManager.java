@@ -1,6 +1,7 @@
 package Model.Item;
 
 import Controllers.Base.DatabaseManager; // Import DatabaseManager
+import Model.AuctionManager.AuctionManager;
 import Model.Factory.ArtCreator;
 import Model.Factory.ElectronicCreator;
 import Model.Factory.ItemFactory;
@@ -37,7 +38,7 @@ public class ItemManager implements Serializable {
     }
 
     // ===== THÊM ITEM =====
-    public void addItem(Item item) {
+    public synchronized void addItem(Item item) {
         items.add(item);
         DatabaseManager.saveItem(item); // Tự động lưu vào DB
     }
@@ -63,31 +64,17 @@ public class ItemManager implements Serializable {
     }
 
     // ===== XOÁ ITEM =====
-    public void remove(int id) {
-        // 1. Xóa tất cả các phiên đấu giá liên quan đến Item này trong DB trước để cắt dây xích (Khóa ngoại)
-        boolean auctionDeleted = DatabaseManager.deleteItem(id);
+    public synchronized void remove(int id) {
+        // TODO: Cần thêm logic xóa khỏi DB
+        items.removeIf(i -> i.getId() == id);
 
-        if (auctionDeleted) {
-            // 2. Sau khi đường đã sạch, tiến hành xóa Item dưới DB
-            boolean itemDeleted = DatabaseManager.deleteItem(id);
-
-            // 3. Nếu DB đã xóa thành công, tiến hành xóa nốt trên RAM để đồng bộ giao diện
-            if (itemDeleted) {
-                items.removeIf(item -> item.getId() == id);
-                System.out.println(">>> Đã xóa sạch Item ID: " + id + " và các phiên đấu giá liên quan khỏi RAM và DB!");
-            } else {
-                System.err.println(">>> Lỗi: Không thể xóa Item ID: " + id + " dưới Database.");
-            }
-        } else {
-            System.err.println(">>> Lỗi: Không thể dọn dẹp các phiên đấu giá của Item ID: " + id + ". Dừng thao tác xóa.");
-        }
     }
 
     // ===== LẤY DANH SÁCH =====
     public List<Item> getItems() {
         return items;
     }
-    public boolean updatePrice(int id, double newPrice) {
+    public synchronized boolean updatePrice(int id, double newPrice) {
         Item item = getById(id);
 
         if (item == null) {
@@ -116,12 +103,18 @@ public class ItemManager implements Serializable {
         StringBuilder sb = new StringBuilder("ITEM_IDS ");
 
         for (Item i : items) {
-            sb.append(i.getId()).append(" ");
+
+            //  nếu item đã có auction → bỏ qua (ẩn)
+            if (AuctionManager.getInstance().getAuctionByItemId(i.getId()) == null) {
+                sb.append(i.getId()).append(" ");
+            }
         }
 
         return sb.toString().trim();
     }
-    public Item createItem(String type, String name, double price, Seller seller) { // Thêm Seller vào tham số
+
+
+    public synchronized Item createItem(String type, String name, double price, Seller seller) { // Thêm Seller vào tham số
 
         ItemFactory factory;
 
@@ -152,5 +145,23 @@ public class ItemManager implements Serializable {
         DatabaseManager.saveItem(item); // Tự động lưu vào DB
 
         return item;
+    }
+    public String getAvailableItemsBySeller(int sellerId) {
+
+        StringBuilder sb = new StringBuilder("SELLER_AVAILABLE_ITEMS ");
+
+        for (Item i : items) {
+
+            if (i.getSeller() != null &&
+                    i.getSeller().getId() == sellerId) {
+
+                // 🔥 chưa có auction → hiện
+                if (AuctionManager.getInstance().getAuctionByItemId(i.getId()) == null) {
+                    sb.append(i.getId()).append(" ");
+                }
+            }
+        }
+
+        return sb.toString().trim();
     }
 }

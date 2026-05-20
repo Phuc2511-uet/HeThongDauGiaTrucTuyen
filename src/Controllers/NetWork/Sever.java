@@ -3,12 +3,15 @@ package Controllers.NetWork;
 import java.io.*;
 import java.net.*;
 
+import Model.AuctionManager.AuctionManager;
 import Model.User.*;
 
 public class Sever {
 
     public static void main(String args[]) {
         Controllers.Base.DatabaseManager.loadEverything();
+        AuctionManager.getInstance().restoreAuctions();
+
         String host = "0.0.0.0";
         int port = 3636;
 
@@ -60,6 +63,9 @@ public class Sever {
                 if (action.equals("LOGIN")) {
                     try {
                         currentUser = UserManager.getInstance().authenticate(parts[1], parts[2]);
+                        if (currentUser instanceof Bidder){
+                            ((Bidder) currentUser).setConnection(out);
+                        }
                         String role = "UNKNOWN";
                         double balance = 0.0; // Mặc định cho Admin
 
@@ -75,12 +81,13 @@ public class Sever {
                             role = "ADMIN";
                             balance = 0.0;
                         }
-
-                        // Gửi về Client    LOGIN_SUCCESS <ROLE> <FULLNAME> <BALANCE>
-                        String response = String.format("LOGIN_SUCCESS %s %s %.2f",
+                        // Gửi về: LOGIN_SUCCESS <ROLE> <FULLNAME> <BALANCE> <USERNAME>
+                        String response = String.format("LOGIN_SUCCESS %s %s %.2f %s",
                                 role,
                                 currentUser.getFullName().replace(" ", "_"),
-                                balance);
+                                balance,
+                                currentUser.getUsername()
+                        );
                         out.println(response);
                     } catch (Exception e) {
                         out.println("LOGIN_FAILED");
@@ -112,6 +119,7 @@ public class Sever {
                     out.println("ERROR Not logged in");
                     continue;
                 }
+
                 // ===== XỬ LÝ REQUEST KHÁC =====
                 String response = handle.handleIfo(message, currentUser);
 

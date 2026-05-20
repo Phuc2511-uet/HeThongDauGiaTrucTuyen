@@ -1,5 +1,7 @@
 package Model.AuctionManager;
 
+import Controllers.Exceptions.AuctionClosedException;
+import Controllers.Exceptions.InvalidBidException;
 import Model.Auction.Auction;
 import Model.Item.Item;
 import Model.Item.ItemManager;
@@ -64,6 +66,24 @@ public class AuctionManager {
             lock.unlock();
         }
     }
+    public void restoreAuctions() {
+
+        long now = System.currentTimeMillis();
+
+        for (Auction a : auctions) {
+
+            if (a.getStatus() == Auction.Status.RUNNING) {
+
+                if (a.getEndTime() <= now) {
+                    // ✅ quá hạn → finish ngay
+                    a.forceFinish();
+                } else {
+                    // ✅ chưa hết → chạy lại timer
+                    a.resumeAfterRestart();
+                }
+            }
+        }
+    }
 
 
     public Auction getAuctionById(int id){
@@ -86,22 +106,29 @@ public class AuctionManager {
         lock.lock();
         try {
             StringBuilder sb = new StringBuilder("LIST_AUCTION");
+            List<Auction> auctions = getAllAuctions();
 
             for (Auction a : auctions) {
-                sb.append(" ").append(a.getId());
+                // a.getStatus() là Enum, .name() sẽ trả về "OPEN", "RUNNING",...
+                String statusStr = a.getStatus().name();
+
+                sb.append(" ")
+                        .append(a.getId())
+                        .append("|")
+                        .append(statusStr);
             }
-
             return sb.toString();
-
+            // Kết quả gửi đi: "LIST_AUCTION 1|OPEN 2|RUNNING"
         } finally {
             lock.unlock();
         }
     }
 
     // =====  THÊM BID MỚI  =====
-    public boolean placeBid(int auctionId, Bidder bidder, double price){
-        Auction auction;
+    public synchronized void placeBid(int auctionId, Bidder bidder, double price)
+            throws AuctionClosedException, InvalidBidException {
 
+        Auction auction;
 
         lock.lock();
         try {
@@ -111,31 +138,81 @@ public class AuctionManager {
         }
 
         if (auction == null){
-            return false;
+            throw new InvalidBidException("Auction_không_tồn_tại");
         }
 
+        auction.placeBid(price, bidder);
 
-        try {
-            auction.placeBid(price, bidder);
-            DatabaseManager.saveOrUpdateAuction(auction); // Tự động cập nhật vào DB
-            return true;
-        } catch (Exception e){
-            System.out.println("Bid failed: " + e.getMessage());
-            return false;
-        }
+        DatabaseManager.saveOrUpdateAuction(auction);
     }
+
     public List<Auction> getAllAuctions() {
         return new ArrayList<>(auctions);
     }
 
 
 
-    public boolean payAuction(int auctionId){
+    public boolean payAuction(int auctionId) {
+
         Auction auction = getAuctionById(auctionId);
+
         if (auction == null) return false;
 
-        auction.pay();
-        DatabaseManager.saveOrUpdateAuction(auction); // Tự động cập nhật vào DB
-        return true;
+        boolean success = auction.pay();
+
+        if (success) {
+
+            //  XÓA ITEM TẠI ĐÂY
+            ItemManager.getInstance().remove(auction.getItem().getId());
+
+            // lưu DB
+            DatabaseManager.saveOrUpdateAuction(auction);
+        }
+
+        return success;
     }
+
+    // Phương thức trả về danh sách ID|Status để hiển thị lên TableView của Client
+    public String getAuctionListForClient() {
+        lock.lock();
+        try {
+            if (auctions.isEmpty()) {
+                return ""; // Hoặc trả về một thông báo trống
+            }
+            StringBuilder sb = new StringBuilder();
+            for (Auction a : auctions) {
+                // Định dạng: ID|Status (Status thay dấu cách bằng gạch dưới)
+                String status = a.getStatus().name().replace(" ", "_");
+                sb.append(a.getId()).append("|").append(status).append(" ");
+            }
+            return sb.toString().trim();
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    // Phương thức trả về chi tiết 1 Auction khi người dùng click vào xem chi tiết
+    public String getAuctionDetailMessage(int id) {
+        Auction a = getAuctionById(id);
+        if (a == null) return "ERROR Auction_not_found";
+        // Định dạng: AUCTION_DETAIL_SUCCESS <ID> <ItemName> <Price> <Seller> <Status>
+        return String.format("AUCTION_DETAIL_SUCCESS %d %s %.2f %s %s",
+                a.getId(),
+                a.getItem().getName().replace(" ", "_"),
+                a.getCurrentPrice(),
+                a.getSeller().getFullName().replace(" ", "_"),
+                a.getStatus().name().replace(" ", "_")
+        );
+    }
+    public Auction getAuctionByItemId(int itemId) {
+
+        for (Auction a : auctions) {
+            if (a.getItem().getId() == itemId) {
+                return a;
+            }
+        }
+
+        return null;
+    }
+
 }
