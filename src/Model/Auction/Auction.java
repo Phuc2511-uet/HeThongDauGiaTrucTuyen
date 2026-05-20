@@ -426,7 +426,8 @@ public class Auction {
             notifyObservers("STATUS_CHANGED " + id + " PAID");
 
             System.out.println("PAY SUCCESS: " + amount);
-
+            //lưu db
+            DatabaseManager.saveOrUpdateAuction(this);
             return true; //  thành công
 
         } finally {

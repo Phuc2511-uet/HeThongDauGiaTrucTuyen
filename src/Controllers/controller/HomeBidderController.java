@@ -54,7 +54,8 @@ public class HomeBidderController {
 
     @FXML
     void showWonAuctions() {
-        setPage("/View/resources/fxml/wonAuctions.fxml");
+        setPage("/View/resources/fxml/auctionWon.fxml");
+        Client.getInstance().send("GET_WON_AUCTIONS");
     }
 
     @FXML
