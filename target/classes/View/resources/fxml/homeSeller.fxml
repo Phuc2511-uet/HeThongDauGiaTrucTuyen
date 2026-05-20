@@ -23,26 +23,18 @@
                                 <Insets left="-8.0" right="-8.0" top="-25.0" />
                             </VBox.margin>
                         </Button>
-                        <Button alignment="CENTER" maxWidth="1.7976931348623157E308" onAction="#showAuction" prefHeight="45.0" style="-fx-background-color: #334155; -fx-background-radius: 12; -fx-text-fill: white; -fx-cursor: hand;" text="📊  Phiên đấu giá">
+                        <Button alignment="CENTER" maxWidth="1.7976931348623157E308" onAction="#manageItem" prefHeight="45.0" style="-fx-background-color: #334155; -fx-background-radius: 12; -fx-text-fill: white; -fx-cursor: hand;" text="📊  Quản lý vật phẩm">
                             <font> <Font name="System Bold" size="15.0" /> </font>
                             <VBox.margin>
                                 <Insets left="-8.0" right="-8.0" top="5.0" />
                             </VBox.margin>
                         </Button>
-                        <Button alignment="CENTER" maxWidth="1.7976931348623157E308" onAction="#createItem" prefHeight="45.0" style="-fx-background-color: #334155; -fx-text-fill: #F8FAFC; -fx-background-radius: 12; -fx-cursor: hand;" text="📊 Tạo vật phẩm">
+                        <Button alignment="CENTER" maxWidth="1.7976931348623157E308" onAction="#manageAuction" prefHeight="45.0" style="-fx-background-color: #334155; -fx-text-fill: #F8FAFC; -fx-background-radius: 12; -fx-cursor: hand;" text="📊 Quản lý phiên đấu giá">
                             <font> <Font name="System Bold" size="15.0" /> </font>
                             <VBox.margin>
                                 <Insets left="-8.0" right="-8.0" top="5.0" />
                             </VBox.margin>
                         </Button>
-                  <Button alignment="CENTER" layoutX="22.0" layoutY="117.0" maxWidth="1.7976931348623157E308" onAction="#createAuction" prefHeight="45.0" style="-fx-background-color: #334155; -fx-text-fill: #F8FAFC; -fx-background-radius: 12; -fx-cursor: hand;" text="📊 Tạo phiên đấu giá">
-                     <font>
-                        <Font name="System Bold" size="15.0" />
-                     </font>
-                     <VBox.margin>
-                        <Insets left="-8.0" right="-8.0" top="5.0" />
-                     </VBox.margin>
-                  </Button>
                     </children>
                 </VBox>
 

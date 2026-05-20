@@ -44,25 +44,23 @@ public class HomeSellerController {
     }
 
     @FXML
-    void createItem() {
-        setPage("/View/resources/fxml/createItem.fxml");
+    void manageItem() {
+        setPage("/View/resources/fxml/manageItem.fxml");
     }
 
     @FXML
-    void createAuction() {
+    void manageAuction() {
 
-        setPage("/View/resources/fxml/createAuction.fxml");
-    }
-
-    @FXML
-    void showAuction() {
-
-        setPage("/View/resources/fxml/sellerAuctionList.fxml");
+        setPage("/View/resources/fxml/manageAuction.fxml");
     }
 
     @FXML
     void Logout() {
-
         Client.getInstance().logOut();
+    }
+
+    public static void setPageNode(Parent root) {
+        instance.mainContent.setContent(root);
+        instance.mainContent.setVvalue(0);
     }
 }

@@ -17,16 +17,9 @@ import java.util.concurrent.locks.ReentrantLock;
 public class AuctionManager {
 
     private static AuctionManager instance;
-    private int count = 0;
-
-
     private List<Auction> auctions = new ArrayList<>();
-
-
     private final ReentrantLock lock = new ReentrantLock();
-
     private AuctionManager(){}
-
 
     public static synchronized AuctionManager getInstance(){
         if (instance == null){
@@ -37,10 +30,6 @@ public class AuctionManager {
 
     public void setAuctions(List<Auction> auctions) {
         this.auctions.addAll(auctions);
-        // Cập nhật count để tránh trùng ID khi tải từ DB
-        if (!auctions.isEmpty()) {
-            this.count = auctions.stream().mapToInt(Auction::getId).max().orElse(0) + 1;
-        }
     }
 
 
@@ -54,14 +43,11 @@ public class AuctionManager {
                 throw new IllegalArgumentException("Item không tồn tại");
             }
 
-            // tạo auction (id đã tự sinh bên trong)
-            int id = count;
-            count ++;
-            Auction a = new Auction(id,item, seller, startPrice);
+            // tạo auction (db đã tự sinh id)
+            Auction a = new Auction(0,item, seller, startPrice);
 
             auctions.add(a);
             DatabaseManager.saveOrUpdateAuction(a); // Tự động lưu vào DB
-
         } finally {
             lock.unlock();
         }
@@ -149,7 +135,6 @@ public class AuctionManager {
     public List<Auction> getAllAuctions() {
         return new ArrayList<>(auctions);
     }
-
 
 
     public boolean payAuction(int auctionId) {

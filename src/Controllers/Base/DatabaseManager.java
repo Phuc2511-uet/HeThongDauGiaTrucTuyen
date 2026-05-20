@@ -1,10 +1,8 @@
 package Controllers.Base;
 
-import java.util.*;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
-import java.time.*;
 
 import Model.Auction.Auction;
 import Model.Item.Item;
@@ -163,6 +161,26 @@ public class DatabaseManager {
         return list;
     }
 
+    public static boolean deleteItem(int itemId) {
+
+        String sql = "DELETE FROM items WHERE item_id = ?";
+
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+            pstmt.setInt(1, itemId);
+
+            int rows = pstmt.executeUpdate();
+
+            return rows > 0;
+
+        } catch (Exception e) {
+            System.err.println("Lỗi khi xóa item: " + e.getMessage());
+            e.printStackTrace();
+            return false;
+        }
+    }
+
     public static void saveItem(Item item) {
         String sql = "INSERT INTO items (name, base_price, seller_username) VALUES (?, ?, ?)";
         try (Connection conn = DBConnection.getConnection();
@@ -198,22 +216,6 @@ public class DatabaseManager {
             e.printStackTrace();
         }
     }
-    public static boolean deleteItem(int itemId) {
-        String sql = "DELETE FROM items WHERE item_id = ?";
-        try (Connection conn = DBConnection.getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(sql)) {
-
-            pstmt.setInt(1, itemId);
-            int rowsAffected = pstmt.executeUpdate();
-
-            System.out.println(">>> Đã xóa Item ID: " + itemId + " dưới DB (Ảnh hưởng: " + rowsAffected + " dòng).");
-            return true;
-        } catch (Exception e) {
-            System.err.println("Lỗi khi thực hiện xóa vật phẩm: " + e.getMessage());
-            e.printStackTrace();
-            return false;
-        }
-    }
 
     // ============================================================
     // PHẦN 3: QUẢN LÝ AUCTION
@@ -221,8 +223,7 @@ public class DatabaseManager {
 
     public static List<Auction> loadAllAuctions(Connection conn, List<Item> allItems, List<User> allUsers) {
         List<Auction> list = new ArrayList<>();
-        // Thêm start_time, end_time vào câu SELECT
-        String sql = "SELECT auction_id, item_id, current_price, highest_bidder_username, status, start_time, end_time FROM auctions";
+        String sql = "SELECT auction_id, item_id, current_price, highest_bidder_username, status FROM auctions";
 
         try (Statement stmt = conn.createStatement();
              ResultSet rs = stmt.executeQuery(sql)) {
@@ -233,24 +234,32 @@ public class DatabaseManager {
                 double currentPrice = rs.getDouble("current_price");
                 String bidderName = rs.getString("highest_bidder_username");
                 String statusString = rs.getString("status");
-                long startTime = rs.getLong("start_time"); // Đọc start_time
-                long endTime = rs.getLong("end_time");     // Đọc end_time
 
-                Auction.Status status = Auction.Status.valueOf(statusString.trim().toUpperCase());
+                Auction.Status status;
+                try {
+                    status = Auction.Status.valueOf(statusString.trim().toUpperCase());
+                } catch (IllegalArgumentException ex) {
+                    System.err.println("[CẢNH BÁO] Bỏ qua phiên đấu giá " + auctionId + " vì trạng thái lỗi: " + statusString);
+                    continue; // Bỏ qua dòng lỗi này, nạp tiếp các dòng khác
+                }
 
-                Item item = allItems.stream().filter(i -> i.getId() == itemId).findFirst().orElse(null);
+                Item item = allItems.stream()
+                        .filter(i -> i.getId() == itemId)
+                        .findFirst().orElse(null);
 
                 Bidder validBidder = null;
                 if (bidderName != null) {
                     User bidderUser = allUsers.stream()
                             .filter(u -> u.getUsername() != null && u.getUsername().trim().equalsIgnoreCase(bidderName.trim()))
                             .findFirst().orElse(null);
-                    if (bidderUser instanceof Bidder) validBidder = (Bidder) bidderUser;
+
+                    if (bidderUser instanceof Bidder) {
+                        validBidder = (Bidder) bidderUser;
+                    }
                 }
 
                 if (item != null) {
-                    // TRUYỀN THÊM startTime và endTime vào constructor của Auction
-                    Auction auction = new Auction(auctionId, item, item.getSeller(), item.getPrice(), currentPrice, validBidder, status, startTime, endTime);
+                    Auction auction = new Auction(auctionId, item, item.getSeller(), item.getPrice(), currentPrice, validBidder, status);
                     list.add(auction);
                 }
             }
@@ -262,10 +271,9 @@ public class DatabaseManager {
     }
 
     public static void saveOrUpdateAuction(Auction auction) {
-        // Thêm cột start_time, end_time vào câu lệnh SQL
         String sql = (auction.getId() == 0)
-                ? "INSERT INTO auctions (item_id, current_price, highest_bidder_username, status, start_time, end_time) VALUES (?, ?, ?, ?, ?, ?)"
-                : "UPDATE auctions SET current_price = ?, highest_bidder_username = ?, status = ?, start_time = ?, end_time = ? WHERE auction_id = ?";
+                ? "INSERT INTO auctions (item_id, current_price, highest_bidder_username, status) VALUES (?, ?, ?, ?)"
+                : "UPDATE auctions SET current_price = ?, highest_bidder_username = ?, status = ? WHERE auction_id = ?";
 
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
@@ -275,15 +283,11 @@ public class DatabaseManager {
                 pstmt.setDouble(2, auction.getCurrentPrice());
                 pstmt.setString(3, auction.getCurrentBidder() != null ? auction.getCurrentBidder().getUsername() : null);
                 pstmt.setString(4, auction.getStatus().name());
-                pstmt.setLong(5, auction.getStartTime()); // Lưu start_time
-                pstmt.setLong(6, auction.getEndTime());   // Lưu end_time
             } else {
                 pstmt.setDouble(1, auction.getCurrentPrice());
                 pstmt.setString(2, auction.getCurrentBidder() != null ? auction.getCurrentBidder().getUsername() : null);
                 pstmt.setString(3, auction.getStatus().name());
-                pstmt.setLong(4, auction.getStartTime()); // Lưu start_time update
-                pstmt.setLong(5, auction.getEndTime());   // Lưu end_time update
-                pstmt.setInt(6, auction.getId());
+                pstmt.setInt(4, auction.getId());
             }
 
             pstmt.executeUpdate();
@@ -321,5 +325,6 @@ class ConcreteItem extends Item {
     public void display() {
         // Do nothing
     }
+
 
 }

@@ -1,0 +1,29 @@
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.control.Button?>
+<VBox xmlns:fx="http://javafx.com/fxml"
+      fx:controller="Controllers.controller.ManageItemController"
+      spacing="20"
+      style="-fx-background-color:#0F172A;-fx-padding:25;">
+    <Label text="Quản lý vật phẩm"
+           style="-fx-text-fill:white;-fx-font-size:25;-fx-font-weight:bold;"/>
+    <VBox VBox.vgrow="ALWAYS"
+          spacing="20">
+        <ScrollPane fitToWidth="true"
+                    VBox.vgrow="ALWAYS"
+                    style="-fx-background:#0F172A;-fx-background-color:transparent;">
+            <content>
+                <VBox fx:id="itemContainer"
+                      spacing="15"
+                      style="-fx-padding:10;"/>
+            </content>
+        </ScrollPane>
+        <HBox alignment="BOTTOM_RIGHT">
+            <Button text="+ Tạo vật phẩm"
+                    onAction="#openCreateItemPage"
+                    style="-fx-background-color:#2563EB;-fx-text-fill:white;-fx-font-size:16;-fx-background-radius:15;"/>
+        </HBox>
+    </VBox>
+</VBox>
