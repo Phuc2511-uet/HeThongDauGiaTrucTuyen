@@ -259,7 +259,30 @@ public class Auction {
         DatabaseManager.saveOrUpdateAuction(this);
     }
     public void resumeAfterRestart() {
-        scheduleFinish();
+
+        long now = System.currentTimeMillis();
+
+        // ✅ Nếu đã hết hạn
+        if (endTime <= now && currentStatus == Status.RUNNING) {
+
+            lock.lock();
+            try {
+                transitionTo(Status.FINISH);
+                DatabaseManager.saveOrUpdateAuction(this);
+            } finally {
+                lock.unlock();
+            }
+
+            notifyObservers("STATUS_CHANGED " + id + " FINISH");
+            notifyObservers("AUCTION_FINISHED " + id);
+
+            return;
+        }
+
+        // ✅ Nếu chưa hết hạn → schedule lại
+        if (currentStatus == Status.RUNNING) {
+            scheduleFinish();
+        }
     }
     public void forceFinish() {
 
@@ -350,6 +373,13 @@ public class Auction {
                 if (newPrice - currentPrice < MIN_INCREMENT) {
                     throw new InvalidBidException("Bước_giá_tối_thiểu_là_100");
                 }
+                // nhả tiền người cũ
+                if (currentBidder != null) {
+                    currentBidder.release(currentPrice);
+                }
+
+                // giữ tiền người mới
+                bidder.reserve(newPrice);
 
                 // 👉 GÀI VÀO ĐÂY: LUỒNG TIỀN CHO PHIÊN ĐANG CHẠY
                 // 1. Nhả tiền đóng băng cho người giữ giá cũ (Bidder A)
