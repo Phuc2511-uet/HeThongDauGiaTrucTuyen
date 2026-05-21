@@ -8,6 +8,19 @@ import java.io.PrintWriter;
 
 public class Bidder extends User implements Observer {
     private double balance;
+    private double reservedBalance = 0;
+    public double getAvailableBalance() {
+        return balance - reservedBalance;
+    }
+
+    public void reserve(double amount) {
+        reservedBalance += amount;
+    }
+
+    public void release(double amount) {
+        reservedBalance -= amount;
+        if (reservedBalance < 0) reservedBalance = 0;
+    }
     public Bidder(int id,String username, String password, String fullName) {
         super( id,username, password, fullName);
         this.balance = 0;
@@ -33,12 +46,13 @@ public class Bidder extends User implements Observer {
         this.balance = balance;
         DatabaseManager.updateUserState(this); // Tự động cập nhật vào DB
     }
-
     public void checkBalance(double amount) throws InsufficientBalanceException {
-        if (this.balance < amount) {
-            throw new InsufficientBalanceException("Tài_khoản_không_đủ_số_dư_để_thực_hiện_đặt_giá_này!");
+        if (this.getAvailableBalance() < amount) {
+            throw new InsufficientBalanceException("Không_đủ_số_dư_khả_dụng");
         }
     }
+
+
     public boolean deposit(double amount) {
 
         if (amount <= 0) {
