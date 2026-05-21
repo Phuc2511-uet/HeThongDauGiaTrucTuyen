@@ -6,10 +6,7 @@ import java.util.List;
 
 import Model.Auction.Auction;
 import Model.Item.Item;
-import Model.User.Bidder;
-import Model.User.Seller;
-import Model.User.User;
-import Model.User.UserManager;
+import Model.User.*;
 import Model.AuctionManager.AuctionManager;
 import Model.Item.ItemManager;
 
@@ -72,9 +69,12 @@ public class DatabaseManager {
 
                     // Truyền chuẩn 6 tham số vào khuôn Bidder
                     u = new Bidder(id, username, password, fullName, balance, reservedBalance);
+                } else if ("ADMIN".equalsIgnoreCase(role)) {
+                    u = new Admin(id, username, password, fullName);
                 } else {
                     u = new Seller(id, username, password, fullName);
                 }
+
                 list.add(u);
             }
         } catch (Exception e) {
