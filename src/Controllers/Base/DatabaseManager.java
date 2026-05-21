@@ -6,10 +6,7 @@ import java.util.List;
 
 import Model.Auction.Auction;
 import Model.Item.Item;
-import Model.User.Bidder;
-import Model.User.Seller;
-import Model.User.User;
-import Model.User.UserManager;
+import Model.User.*;
 import Model.AuctionManager.AuctionManager;
 import Model.Item.ItemManager;
 
@@ -58,8 +55,6 @@ public class DatabaseManager {
              ResultSet rs = stmt.executeQuery(sql)) {
 
             while (rs.next()) {
-                // Lấy ID thật từ Database thay vì dùng biến đếm ảo
-                // Nếu cột id của bạn tên khác (VD: user_id), hãy sửa ở đây
                 int id = rs.getInt("id");
                 String username = rs.getString("username");
                 String password = rs.getString("password");
@@ -69,10 +64,17 @@ public class DatabaseManager {
                 User u;
                 if ("BIDDER".equalsIgnoreCase(role)) {
                     double balance = rs.getDouble("balance");
-                    u = new Bidder(id, username, password, fullName, balance);
+                    // Đọc chuẩn cột mới từ DB
+                    double reservedBalance = rs.getDouble("reserved_balance");
+
+                    // Truyền chuẩn 6 tham số vào khuôn Bidder
+                    u = new Bidder(id, username, password, fullName, balance, reservedBalance);
+                } else if ("ADMIN".equalsIgnoreCase(role)) {
+                    u = new Admin(id, username, password, fullName);
                 } else {
                     u = new Seller(id, username, password, fullName);
                 }
+
                 list.add(u);
             }
         } catch (Exception e) {
@@ -82,9 +84,9 @@ public class DatabaseManager {
         return list;
     }
 
+    // ===== DÁN ĐÈ HÀM SAVEUSER =====
     public static void saveUser(User user) {
-        String sql = "INSERT INTO users (username, password, fullName, role, balance) VALUES (?, ?, ?, ?, ?)";
-        // Thêm Statement.RETURN_GENERATED_KEYS để lấy lại ID thật do Database cấp
+        String sql = "INSERT INTO users (username, password, fullName, role, balance, reserved_balance) VALUES (?, ?, ?, ?, ?, ?)";
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
 
@@ -93,14 +95,13 @@ public class DatabaseManager {
             pstmt.setString(3, user.getFullName());
             pstmt.setString(4, (user instanceof Bidder) ? "BIDDER" : "SELLER");
             pstmt.setDouble(5, (user instanceof Bidder) ? ((Bidder) user).getBalance() : 0.0);
+            pstmt.setDouble(6, (user instanceof Bidder) ? ((Bidder) user).getReservedBalance() : 0.0); // Lưu reserved_balance
             pstmt.executeUpdate();
 
-            // Cập nhật ID thật cho User trên RAM
             ResultSet rs = pstmt.getGeneratedKeys();
             if (rs.next()) {
                 user.setId(rs.getInt(1));
             }
-
             System.out.println(">>> Đã lưu User: " + user.getUsername() + " với ID: " + user.getId());
         } catch (Exception e) {
             System.err.println("Lỗi khi lưu người dùng: " + e.getMessage());
@@ -108,14 +109,16 @@ public class DatabaseManager {
         }
     }
 
+    // ===== DÁN ĐÈ HÀM UPDATEUSERSTATE =====
     public static void updateUserState(User user) {
-        String sql = "UPDATE users SET password = ?, fullName = ?, balance = ? WHERE username = ?";
+        String sql = "UPDATE users SET password = ?, fullName = ?, balance = ?, reserved_balance = ? WHERE username = ?";
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setString(1, user.getPassword());
             pstmt.setString(2, user.getFullName());
             pstmt.setDouble(3, (user instanceof Bidder) ? ((Bidder) user).getBalance() : 0.0);
-            pstmt.setString(4, user.getUsername());
+            pstmt.setDouble(4, (user instanceof Bidder) ? ((Bidder) user).getReservedBalance() : 0.0); // Cập nhật reserved_balance
+            pstmt.setString(5, user.getUsername());
             pstmt.executeUpdate();
         } catch (Exception e) {
             System.err.println("Lỗi khi cập nhật trạng thái người dùng: " + e.getMessage());
@@ -223,7 +226,8 @@ public class DatabaseManager {
 
     public static List<Auction> loadAllAuctions(Connection conn, List<Item> allItems, List<User> allUsers) {
         List<Auction> list = new ArrayList<>();
-        String sql = "SELECT auction_id, item_id, current_price, highest_bidder_username, status FROM auctions";
+        // 1. LẤY THÊM: start_time và end_time từ SQL
+        String sql = "SELECT auction_id, item_id, current_price, highest_bidder_username, status, start_time, end_time FROM auctions";
 
         try (Statement stmt = conn.createStatement();
              ResultSet rs = stmt.executeQuery(sql)) {
@@ -234,13 +238,16 @@ public class DatabaseManager {
                 double currentPrice = rs.getDouble("current_price");
                 String bidderName = rs.getString("highest_bidder_username");
                 String statusString = rs.getString("status");
+                // Đọc dữ liệu thời gian kiểu long
+                long startTime = rs.getLong("start_time");
+                long endTime = rs.getLong("end_time");
 
                 Auction.Status status;
                 try {
                     status = Auction.Status.valueOf(statusString.trim().toUpperCase());
                 } catch (IllegalArgumentException ex) {
                     System.err.println("[CẢNH BÁO] Bỏ qua phiên đấu giá " + auctionId + " vì trạng thái lỗi: " + statusString);
-                    continue; // Bỏ qua dòng lỗi này, nạp tiếp các dòng khác
+                    continue;
                 }
 
                 Item item = allItems.stream()
@@ -259,7 +266,15 @@ public class DatabaseManager {
                 }
 
                 if (item != null) {
-                    Auction auction = new Auction(auctionId, item, item.getSeller(), item.getPrice(), currentPrice, validBidder, status);
+                    // 2. GỌI KHUÔN 9 THAM SỐ: Đưa thời gian lịch trình lên RAM
+                    Auction auction = new Auction(auctionId, item, item.getSeller(), item.getPrice(), currentPrice, validBidder, status, startTime, endTime);
+
+                    // 3. KHÔI PHỤC TIMER: Nếu phiên đang chạy (RUNNING), tự động kích hoạt đếm ngược tiếp
+                    if (status == Auction.Status.RUNNING) {
+                        auction.resumeAfterRestart();
+                        System.out.println(">>> Đã khôi phục bộ đếm ngược chạy ngầm cho phiên ID: " + auctionId);
+                    }
+
                     list.add(auction);
                 }
             }
@@ -271,9 +286,10 @@ public class DatabaseManager {
     }
 
     public static void saveOrUpdateAuction(Auction auction) {
+        // Thêm cột start_time, end_time vào cả câu lệnh INSERT và UPDATE
         String sql = (auction.getId() == 0)
-                ? "INSERT INTO auctions (item_id, current_price, highest_bidder_username, status) VALUES (?, ?, ?, ?)"
-                : "UPDATE auctions SET current_price = ?, highest_bidder_username = ?, status = ? WHERE auction_id = ?";
+                ? "INSERT INTO auctions (item_id, current_price, highest_bidder_username, status, start_time, end_time) VALUES (?, ?, ?, ?, ?, ?)"
+                : "UPDATE auctions SET current_price = ?, highest_bidder_username = ?, status = ?, start_time = ?, end_time = ? WHERE auction_id = ?";
 
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
@@ -283,11 +299,15 @@ public class DatabaseManager {
                 pstmt.setDouble(2, auction.getCurrentPrice());
                 pstmt.setString(3, auction.getCurrentBidder() != null ? auction.getCurrentBidder().getUsername() : null);
                 pstmt.setString(4, auction.getStatus().name());
+                pstmt.setLong(5, auction.getStartTime());
+                pstmt.setLong(6, auction.getEndTime());
             } else {
                 pstmt.setDouble(1, auction.getCurrentPrice());
                 pstmt.setString(2, auction.getCurrentBidder() != null ? auction.getCurrentBidder().getUsername() : null);
                 pstmt.setString(3, auction.getStatus().name());
-                pstmt.setInt(4, auction.getId());
+                pstmt.setLong(4, auction.getStartTime());
+                pstmt.setLong(5, auction.getEndTime());
+                pstmt.setInt(6, auction.getId()); // WHERE auction_id = ?
             }
 
             pstmt.executeUpdate();

@@ -267,6 +267,7 @@ public class Auction {
 
         lock.lock();
         try {
+
             if (currentStatus == Status.RUNNING) {
                 transitionTo(Status.FINISH);
                 DatabaseManager.saveOrUpdateAuction(this);
@@ -309,6 +310,13 @@ public class Auction {
                 if (newPrice - currentPrice < MIN_INCREMENT) {
                     throw new InvalidBidException("Bước_giá_tối_thiểu_là_100");
                 }
+                // nhả tiền người cũ
+                if (currentBidder != null) {
+                    currentBidder.release(currentPrice);
+                }
+
+                // giữ tiền người mới
+                bidder.reserve(newPrice);
 
                 currentPrice = newPrice;
                 currentBidder = bidder;
@@ -332,7 +340,6 @@ public class Auction {
 
                 if (currentBidder != null &&
                         currentBidder.getId() == bidder.getId()) {
-
                     throw new InvalidBidException("Bạn_đang_là_người_giữ_giá_cao_nhất");
                 }
 
@@ -343,6 +350,14 @@ public class Auction {
                 if (newPrice - currentPrice < MIN_INCREMENT) {
                     throw new InvalidBidException("Bước_giá_tối_thiểu_là_100");
                 }
+
+                // 👉 GÀI VÀO ĐÂY: LUỒNG TIỀN CHO PHIÊN ĐANG CHẠY
+                // 1. Nhả tiền đóng băng cho người giữ giá cũ (Bidder A)
+                if (currentBidder != null) {
+                    currentBidder.release(currentPrice);
+                }
+                // 2. Đóng băng tiền của người vừa đè giá mới (Bidder B)
+                bidder.reserve(newPrice);
 
                 currentPrice = newPrice;
                 currentBidder = bidder;
@@ -383,6 +398,7 @@ public class Auction {
     public void cancel() {
         lock.lock();
         try {
+
             transitionTo(Status.CANCELED);
             notifyObservers("STATUS_CHANGED " + id + " CANCELED");
             DatabaseManager.saveOrUpdateAuction(this); // Lưu khi phiên đấu giá bị hủy
@@ -416,6 +432,7 @@ public class Auction {
             }
 
             // ===== TRỪ TIỀN =====
+            currentBidder.release(amount);
             currentBidder.setBalance(currentBidder.getBalance() - amount);
 
             // ===== CỘNG TIỀN =====
@@ -455,11 +472,8 @@ public class Auction {
         }
     }
     private void handleAutoBid() {
-
         while (true) {
-
             AutoBid top;
-
             lock.lock();
             try {
                 if (autoBidQueue.isEmpty()) return;
@@ -487,9 +501,18 @@ public class Auction {
                     continue;
                 }
 
+                // 👉 GÀI VÀO ĐÂY: LUỒNG TIỀN KHI HỆ THỐNG TỰ ĐỘNG ĐẶT GIÁ (AUTO BID)
+                // 1. Nhả tiền cho người vừa bị hệ thống AutoBid đè giá
+                if (currentBidder != null) {
+                    currentBidder.release(currentPrice);
+                }
+
                 // ===== AUTO BID =====
                 currentPrice = nextPrice;
                 currentBidder = top.getBidder();
+
+                // 2. Khóa tiền của người vừa được hệ thống AutoBid đấu giá hộ thành công
+                currentBidder.reserve(currentPrice);
 
                 bidHistory.add(new BidTransaction(bidItem, currentBidder, currentPrice));
 
