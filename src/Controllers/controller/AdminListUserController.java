@@ -5,12 +5,8 @@ import Model.Observer.Observer;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.geometry.Insets;
-import javafx.scene.control.Button;
-import javafx.scene.control.Label;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.Priority;
-import javafx.scene.layout.Region;
-import javafx.scene.layout.VBox;
+import javafx.scene.control.*;
+import javafx.scene.layout.*;
 
 public class AdminListUserController implements Observer {
 
@@ -22,7 +18,9 @@ public class AdminListUserController implements Observer {
     @FXML
     public void initialize() {
 
-        Client.getInstance().removeObserver(this);
+        // 'removeIf' để dọn sạch hoàn toàn các instance cũ thuộc kiểu AdminListUserController
+        // -> tránh lỗi trùng lặp/nhân đôi sự kiện
+        Client.getInstance().getObservers().removeIf(obs -> obs instanceof AdminListUserController);
         Client.getInstance().addObserver(this);
 
         loadUsers();
@@ -81,6 +79,11 @@ public class AdminListUserController implements Observer {
                 loadUsers();
             }
         });
+    }
+
+    @FXML
+    private void handleAdminCreateAccount() {
+        HomeAdminController.setPage("/View/resources/fxml/adminCreateAccount.fxml");
     }
 
     private HBox createUserCard(

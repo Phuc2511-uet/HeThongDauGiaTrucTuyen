@@ -79,6 +79,8 @@ public class InformationHandle {
                     return handleAutoBid(part, currentUser);
                 case "GET_MY_ITEMS":
                     return ItemManager.getInstance().getAvailableItemsBySeller(currentUser.getId());
+                case "ADMIN_CREATE_ACCOUNT":
+                    return handleAdminCreateAccount(part,currentUser);
                 case "SELLER_DELETE_ITEM":
                     return handleSellerDeleteItem(part, currentUser);
                 default:
@@ -115,6 +117,44 @@ public class InformationHandle {
 
         } catch (Exception e) {
             return "ERROR " + e.getMessage();
+        }
+    }
+
+    private String handleAdminCreateAccount(String[] parts, User currentUser) {
+        try {
+            // Chỉ Admin mới có quyền gọi case này
+            if (!(currentUser instanceof Admin)) {
+                return "ACCOUNT_FAILED NOT_AUTHORIZED";
+            }
+
+            if (parts.length < 5) {
+                return "ACCOUNT_FAILED INVALID_FORMAT";
+            }
+
+            String username = parts[1];
+            String password = parts[2];
+            String role = parts[3];
+            String fullName = parts[4].replace("_", " ");
+
+            UserManager um = UserManager.getInstance();
+
+            // Kiểm tra trùng lặp tài khoản trên hệ thống
+            for (User u : um.getUsers()) {
+                if (u.getUsername().equals(username)) {
+                    return "ACCOUNT_FAILED USERNAME_EXISTS";
+                }
+            }
+
+            // Tạo tài khoản mới trực tiếp
+            um.createUser(username, password, role, fullName);
+
+            // Trả về từ khóa phản hồi độc lập, tuyệt đối không bị trùng với Client cũ
+            return "ADMIN_CREATE_SUCCESS";
+
+        } catch (IllegalArgumentException e) {
+            return "ACCOUNT_FAILED";
+        } catch (Exception e) {
+            return "ACCOUNT_FAILED";
         }
     }
 
