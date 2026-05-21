@@ -26,7 +26,11 @@ public class Client {
     private List<Observer> observers = new ArrayList<>();
     private String currentUsername;
 
-    public void addObserver(Observer obs) { observers.add(obs); }
+    public void addObserver(Observer obs) {
+        if (!observers.contains(obs)) {
+            observers.add(obs);
+        }
+    }
 
     // Hàm thông báo cho giao diện
     private void notifyObservers(String cmd) {
@@ -118,6 +122,9 @@ public class Client {
                 }
                 notifyObservers(message);
                 break;
+            case "ADMIN_USER_DETAIL":
+                notifyObservers(message);
+                break;
             case "SELLER_AUCTIONS":
 
             case "WON_AUCTIONS_LIST":
@@ -180,7 +187,17 @@ public class Client {
             case "DELETE_ITEM_SUCCESS":
             case "DELETE_ITEM_FAILED":
             case "DELETE_USER_SUCCESS":
-            case "DELETE_USER_FAILED":
+            case "DELETE_USER_FAILED":{
+                notifyObservers(message);
+                javafx.application.Platform.runLater(() -> {
+                    if (message.equals("DELETE_USER_SUCCESS")) {
+                        showAlert("Thành công", "Xóa user thành công!");
+                    } else {
+                        showAlert("Lỗi", "Xóa user thất bại!");
+                    }
+                });
+                break;
+            }
             case "DEPOSIT_SUCCESS":{
                 // Cập nhật số dư cục bộ trong Client từ dữ liệu Server gửi về
                 this.currentBalance = Double.parseDouble(parts[1]);

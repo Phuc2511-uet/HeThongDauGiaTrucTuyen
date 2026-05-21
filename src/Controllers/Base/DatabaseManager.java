@@ -184,6 +184,26 @@ public class DatabaseManager {
         }
     }
 
+    public static boolean deleteUser(int userId) {
+
+        String sql = "DELETE FROM users WHERE id = ?";
+
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+            pstmt.setInt(1, userId);
+
+            int rows = pstmt.executeUpdate();
+
+            return rows > 0;
+
+        } catch (Exception e) {
+            System.err.println("Lỗi khi xóa user: " + e.getMessage());
+            e.printStackTrace();
+            return false;
+        }
+    }
+
     public static void saveItem(Item item) {
         String sql = "INSERT INTO items (name, base_price, seller_username) VALUES (?, ?, ?)";
         try (Connection conn = DBConnection.getConnection();

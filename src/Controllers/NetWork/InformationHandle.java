@@ -272,7 +272,7 @@ public class InformationHandle {
             int userId = Integer.parseInt(parts[1]);
 
             return UserManager.getInstance()
-                    .getUserInfoAsString(userId);
+                    .getAdminUserInfoAsString(userId);
 
         } catch (Exception e) {
             return "ERROR " + e.getMessage();
