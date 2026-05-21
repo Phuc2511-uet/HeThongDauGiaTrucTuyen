@@ -267,6 +267,7 @@ public class Auction {
 
         lock.lock();
         try {
+
             if (currentStatus == Status.RUNNING) {
                 transitionTo(Status.FINISH);
                 DatabaseManager.saveOrUpdateAuction(this);
@@ -309,6 +310,13 @@ public class Auction {
                 if (newPrice - currentPrice < MIN_INCREMENT) {
                     throw new InvalidBidException("Bước_giá_tối_thiểu_là_100");
                 }
+                // nhả tiền người cũ
+                if (currentBidder != null) {
+                    currentBidder.release(currentPrice);
+                }
+
+                // giữ tiền người mới
+                bidder.reserve(newPrice);
 
                 currentPrice = newPrice;
                 currentBidder = bidder;
@@ -383,6 +391,7 @@ public class Auction {
     public void cancel() {
         lock.lock();
         try {
+
             transitionTo(Status.CANCELED);
             notifyObservers("STATUS_CHANGED " + id + " CANCELED");
             DatabaseManager.saveOrUpdateAuction(this); // Lưu khi phiên đấu giá bị hủy
@@ -416,6 +425,7 @@ public class Auction {
             }
 
             // ===== TRỪ TIỀN =====
+            currentBidder.release(amount);
             currentBidder.setBalance(currentBidder.getBalance() - amount);
 
             // ===== CỘNG TIỀN =====
