@@ -58,8 +58,6 @@ public class DatabaseManager {
              ResultSet rs = stmt.executeQuery(sql)) {
 
             while (rs.next()) {
-                // Lấy ID thật từ Database thay vì dùng biến đếm ảo
-                // Nếu cột id của bạn tên khác (VD: user_id), hãy sửa ở đây
                 int id = rs.getInt("id");
                 String username = rs.getString("username");
                 String password = rs.getString("password");
@@ -69,7 +67,11 @@ public class DatabaseManager {
                 User u;
                 if ("BIDDER".equalsIgnoreCase(role)) {
                     double balance = rs.getDouble("balance");
-                    u = new Bidder(id, username, password, fullName, balance);
+                    // Đọc chuẩn cột mới từ DB
+                    double reservedBalance = rs.getDouble("reserved_balance");
+
+                    // Truyền chuẩn 6 tham số vào khuôn Bidder
+                    u = new Bidder(id, username, password, fullName, balance, reservedBalance);
                 } else {
                     u = new Seller(id, username, password, fullName);
                 }
@@ -82,9 +84,9 @@ public class DatabaseManager {
         return list;
     }
 
+    // ===== DÁN ĐÈ HÀM SAVEUSER =====
     public static void saveUser(User user) {
-        String sql = "INSERT INTO users (username, password, fullName, role, balance) VALUES (?, ?, ?, ?, ?)";
-        // Thêm Statement.RETURN_GENERATED_KEYS để lấy lại ID thật do Database cấp
+        String sql = "INSERT INTO users (username, password, fullName, role, balance, reserved_balance) VALUES (?, ?, ?, ?, ?, ?)";
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
 
@@ -93,14 +95,13 @@ public class DatabaseManager {
             pstmt.setString(3, user.getFullName());
             pstmt.setString(4, (user instanceof Bidder) ? "BIDDER" : "SELLER");
             pstmt.setDouble(5, (user instanceof Bidder) ? ((Bidder) user).getBalance() : 0.0);
+            pstmt.setDouble(6, (user instanceof Bidder) ? ((Bidder) user).getReservedBalance() : 0.0); // Lưu reserved_balance
             pstmt.executeUpdate();
 
-            // Cập nhật ID thật cho User trên RAM
             ResultSet rs = pstmt.getGeneratedKeys();
             if (rs.next()) {
                 user.setId(rs.getInt(1));
             }
-
             System.out.println(">>> Đã lưu User: " + user.getUsername() + " với ID: " + user.getId());
         } catch (Exception e) {
             System.err.println("Lỗi khi lưu người dùng: " + e.getMessage());
@@ -108,14 +109,16 @@ public class DatabaseManager {
         }
     }
 
+    // ===== DÁN ĐÈ HÀM UPDATEUSERSTATE =====
     public static void updateUserState(User user) {
-        String sql = "UPDATE users SET password = ?, fullName = ?, balance = ? WHERE username = ?";
+        String sql = "UPDATE users SET password = ?, fullName = ?, balance = ?, reserved_balance = ? WHERE username = ?";
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setString(1, user.getPassword());
             pstmt.setString(2, user.getFullName());
             pstmt.setDouble(3, (user instanceof Bidder) ? ((Bidder) user).getBalance() : 0.0);
-            pstmt.setString(4, user.getUsername());
+            pstmt.setDouble(4, (user instanceof Bidder) ? ((Bidder) user).getReservedBalance() : 0.0); // Cập nhật reserved_balance
+            pstmt.setString(5, user.getUsername());
             pstmt.executeUpdate();
         } catch (Exception e) {
             System.err.println("Lỗi khi cập nhật trạng thái người dùng: " + e.getMessage());
