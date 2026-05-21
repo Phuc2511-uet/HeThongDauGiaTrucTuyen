@@ -226,7 +226,8 @@ public class DatabaseManager {
 
     public static List<Auction> loadAllAuctions(Connection conn, List<Item> allItems, List<User> allUsers) {
         List<Auction> list = new ArrayList<>();
-        String sql = "SELECT auction_id, item_id, current_price, highest_bidder_username, status FROM auctions";
+        // 1. LẤY THÊM: start_time và end_time từ SQL
+        String sql = "SELECT auction_id, item_id, current_price, highest_bidder_username, status, start_time, end_time FROM auctions";
 
         try (Statement stmt = conn.createStatement();
              ResultSet rs = stmt.executeQuery(sql)) {
@@ -237,13 +238,16 @@ public class DatabaseManager {
                 double currentPrice = rs.getDouble("current_price");
                 String bidderName = rs.getString("highest_bidder_username");
                 String statusString = rs.getString("status");
+                // Đọc dữ liệu thời gian kiểu long
+                long startTime = rs.getLong("start_time");
+                long endTime = rs.getLong("end_time");
 
                 Auction.Status status;
                 try {
                     status = Auction.Status.valueOf(statusString.trim().toUpperCase());
                 } catch (IllegalArgumentException ex) {
                     System.err.println("[CẢNH BÁO] Bỏ qua phiên đấu giá " + auctionId + " vì trạng thái lỗi: " + statusString);
-                    continue; // Bỏ qua dòng lỗi này, nạp tiếp các dòng khác
+                    continue;
                 }
 
                 Item item = allItems.stream()
@@ -262,7 +266,15 @@ public class DatabaseManager {
                 }
 
                 if (item != null) {
-                    Auction auction = new Auction(auctionId, item, item.getSeller(), item.getPrice(), currentPrice, validBidder, status);
+                    // 2. GỌI KHUÔN 9 THAM SỐ: Đưa thời gian lịch trình lên RAM
+                    Auction auction = new Auction(auctionId, item, item.getSeller(), item.getPrice(), currentPrice, validBidder, status, startTime, endTime);
+
+                    // 3. KHÔI PHỤC TIMER: Nếu phiên đang chạy (RUNNING), tự động kích hoạt đếm ngược tiếp
+                    if (status == Auction.Status.RUNNING) {
+                        auction.resumeAfterRestart();
+                        System.out.println(">>> Đã khôi phục bộ đếm ngược chạy ngầm cho phiên ID: " + auctionId);
+                    }
+
                     list.add(auction);
                 }
             }
@@ -274,9 +286,10 @@ public class DatabaseManager {
     }
 
     public static void saveOrUpdateAuction(Auction auction) {
+        // Thêm cột start_time, end_time vào cả câu lệnh INSERT và UPDATE
         String sql = (auction.getId() == 0)
-                ? "INSERT INTO auctions (item_id, current_price, highest_bidder_username, status) VALUES (?, ?, ?, ?)"
-                : "UPDATE auctions SET current_price = ?, highest_bidder_username = ?, status = ? WHERE auction_id = ?";
+                ? "INSERT INTO auctions (item_id, current_price, highest_bidder_username, status, start_time, end_time) VALUES (?, ?, ?, ?, ?, ?)"
+                : "UPDATE auctions SET current_price = ?, highest_bidder_username = ?, status = ?, start_time = ?, end_time = ? WHERE auction_id = ?";
 
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
@@ -286,11 +299,15 @@ public class DatabaseManager {
                 pstmt.setDouble(2, auction.getCurrentPrice());
                 pstmt.setString(3, auction.getCurrentBidder() != null ? auction.getCurrentBidder().getUsername() : null);
                 pstmt.setString(4, auction.getStatus().name());
+                pstmt.setLong(5, auction.getStartTime());
+                pstmt.setLong(6, auction.getEndTime());
             } else {
                 pstmt.setDouble(1, auction.getCurrentPrice());
                 pstmt.setString(2, auction.getCurrentBidder() != null ? auction.getCurrentBidder().getUsername() : null);
                 pstmt.setString(3, auction.getStatus().name());
-                pstmt.setInt(4, auction.getId());
+                pstmt.setLong(4, auction.getStartTime());
+                pstmt.setLong(5, auction.getEndTime());
+                pstmt.setInt(6, auction.getId()); // WHERE auction_id = ?
             }
 
             pstmt.executeUpdate();
