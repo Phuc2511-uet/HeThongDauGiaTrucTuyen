@@ -522,8 +522,8 @@ public class Auction {
             lock.unlock();
         }
     }
+    private void processAutoBids() {
 
-    private void handleAutoBid() {
         while (true) {
 
             AutoBid best = autoBids.peek();
@@ -582,6 +582,8 @@ public class Auction {
 
         DatabaseManager.saveOrUpdateAuction(this);
     }
+
+
 
     // ===== HÀM RESET THỜI GIAN KHI ADMIN KHÔI PHỤC AUCTION =====
     public void resetAuctionTime() {
