@@ -3,6 +3,7 @@ package Controllers.NetWork;
 import Controllers.Exceptions.AuctionClosedException;
 import Controllers.Exceptions.InvalidBidException;
 import Model.Auction.Auction;
+import Model.Auction.BidTransaction;
 import Model.AuctionManager.AuctionManager;
 import Model.Item.Item;
 import Model.Item.ItemManager;
@@ -92,6 +93,43 @@ public class InformationHandle {
             }
 
         } catch (Exception e){
+            return "ERROR " + e.getMessage();
+        }
+    }
+    private String handleGetBidHistory(String[] parts) {
+        try {
+            if (parts.length < 2) {
+                return "ERROR Missing auctionId";
+            }
+
+            int auctionId = Integer.parseInt(parts[1]);
+
+            Auction auction = AuctionManager.getInstance().getAuctionById(auctionId);
+
+            if (auction == null) {
+                return "ERROR Auction not found";
+            }
+
+            StringBuilder sb = new StringBuilder("BID_HISTORY ");
+            sb.append(auctionId);
+
+            for (BidTransaction b : auction.getBidHistory()) {
+
+                long timeMillis = b.getBidTime()
+                        .atZone(java.time.ZoneId.systemDefault())
+                        .toInstant()
+                        .toEpochMilli();
+
+                sb.append(" ")
+                        .append(timeMillis)
+                        .append(",")
+                        .append(b.getBidAmount());
+            }
+
+            return sb.toString();
+
+        } catch (Exception e) {
+            e.printStackTrace();
             return "ERROR " + e.getMessage();
         }
     }
@@ -624,6 +662,7 @@ public class InformationHandle {
 
             int auctionId = Integer.parseInt(parts[1]);
             double maxPrice = Double.parseDouble(parts[2]);
+            double increament = Double.parseDouble(parts[3]);
 
             Auction auction = AuctionManager.getInstance().getAuctionById(auctionId);
 
@@ -631,7 +670,7 @@ public class InformationHandle {
                 return " Auction_không_tồn_tại";
             }
 
-            auction.registerAutoBid((Bidder) user, maxPrice);
+            auction.registerAutoBid((Bidder) user, maxPrice,increament);
 
             return "AUTO_BID_SUCCESS";
 

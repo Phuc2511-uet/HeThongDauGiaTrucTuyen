@@ -64,11 +64,16 @@ public class AuctionManager {
                     // ✅ quá hạn → finish ngay
                     a.forceFinish();
                 } else {
-                    // ✅ chưa hết → chạy lại timer
+
                     a.resumeAfterRestart();
                 }
             }
+            System.out.println("Auction " + a.getId() +
+                    " | endTime=" + a.getEndTime() +
+                    " | now=" + now +
+                    " | status=" + a.getStatus());
         }
+
     }
 
 
