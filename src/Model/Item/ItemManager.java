@@ -65,16 +65,17 @@ public class ItemManager implements Serializable {
 
     // ===== XOÁ ITEM =====
     public synchronized void remove(int id) {
-        try {
-            // 1. Thực hiện xóa vĩnh viễn vật phẩm dưới Database MySQL
-            DatabaseManager.deleteItem(id);
-            System.out.println("Server >> Đã xóa thành công vật phẩm ID " + id + " dưới DB.");
-        } catch (Exception e) {
-            System.err.println("Server >> Lỗi khi thực hiện xóa vật phẩm dưới DB: " + e.getMessage());
-        }
+        // 1. Thực hiện xóa dưới DB và hứng kết quả boolean trả về
+        boolean isDeletedInDB = DatabaseManager.deleteItem(id);
 
-        // 2. Xóa vật phẩm khỏi danh sách bộ nhớ đệm (RAM) của Server
-        items.removeIf(i -> i.getId() == id);
+        if (isDeletedInDB) {
+            System.out.println("Server >> Đã xóa THÀNH CÔNG vật phẩm ID " + id + " dưới DB.");
+            // 2. Chỉ khi DB xóa thành công, mới tiến hành xóa trên bộ nhớ RAM
+            items.removeIf(i -> i.getId() == id);
+        } else {
+            System.err.println("Server >> THẤT BẠI! Không tìm thấy vật phẩm ID " + id + " dưới DB để xóa.");
+            // Chặn lại, không cho items.removeIf chạy để tránh hiện tượng mất ảnh ảo trên UI Client
+        }
     }
 
     // ===== LẤY DANH SÁCH =====
@@ -93,28 +94,28 @@ public class ItemManager implements Serializable {
         return true;
     }
     public String getItemInfoAsString(int id) {
-
         Item i = getById(id);
-
         if (i == null) {
             return "ERROR ITEM NOT FOUND";
         }
 
+        // Kiểm tra xem vật phẩm này đã được tạo phiên đấu giá chưa
+        boolean hasAuction = Model.AuctionManager.AuctionManager.getInstance().getAuctionByItemId(i.getId()) != null;
+        String auctionStatus = hasAuction ? "YES" : "NO";
+
+        // Gửi thêm trạng thái đấu giá về cho Admin
         return "ITEM_DETAIL "
                 + i.getId() + " "
                 + i.getName().replace(" ", "_") + " "
-                + i.getPrice();
+                + i.getPrice() + " "
+                + auctionStatus;
     }
     public String getAllItemIdsAsString() {
-
-        StringBuilder sb = new StringBuilder("ITEM_IDS ");
+        StringBuilder sb = new StringBuilder("ITEM_IDS");
 
         for (Item i : items) {
-
-            //  nếu item đã có auction → bỏ qua (ẩn)
-            if (AuctionManager.getInstance().getAuctionByItemId(i.getId()) == null) {
-                sb.append(i.getId()).append(" ");
-            }
+            // Admin lấy tất cả ID không lọc bỏ vật phẩm đang đấu giá
+            sb.append(" ").append(i.getId());
         }
 
         return sb.toString().trim();
@@ -169,12 +170,10 @@ public class ItemManager implements Serializable {
         }
 
         Item item = factory.CreateItem(name.trim(), price, seller);
-
-        // ===== ID =====
-        item.setId(count++);
+        // Đưa xuống DatabaseManager lưu trước để lấy ID thực từ MySQL Auto_Increment
+        DatabaseManager.saveItem(item);
 
         items.add(item);
-        DatabaseManager.saveItem(item);
 
         return item;
     }

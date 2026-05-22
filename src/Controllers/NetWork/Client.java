@@ -105,9 +105,11 @@ public class Client {
                 break;
             }
 
-            case "ITEM_IDS":
-
-            case "USER_IDS":{
+            case "ITEM_IDS": {
+                notifyObservers(message);
+                break;
+            }
+            case "USER_IDS": {
                 notifyObservers(message);
                 break;
             }
@@ -157,6 +159,21 @@ public class Client {
                 });
                 break;
             }
+            case "LOGOUT_SUCCESS": {
+                // Xóa danh sách đăng ký Observer giao diện cũ để tránh rò rỉ dữ liệu
+                if (observers != null) {
+                    observers.clear();
+                }
+
+                javafx.application.Platform.runLater(() -> {
+                    try {
+                        MainFx.showLoginScene();
+                    } catch (Exception e) {
+                        System.err.println("Lỗi khi chuyển về màn hình đăng nhập: " + e.getMessage());
+                    }
+                });
+                break;
+            }
             case "BID_SUCCESS":{
                 javafx.application.Platform.runLater(() -> {
                     showAlert("Thành công", "Đặt giá thành công!");
@@ -186,20 +203,29 @@ public class Client {
                 });
                 break;
             }
-            case "UPDATE_PRICE_SUCCESS":
-            case "UPDATE_PRICE_FAILED":
-            case "DELETE_ITEM_SUCCESS":
-            case "DELETE_ITEM_FAILED":
-            case "DELETE_USER_SUCCESS":
-            case "DELETE_USER_FAILED":{
+            case "DELETE_USER_SUCCESS": {
                 notifyObservers(message);
-                javafx.application.Platform.runLater(() -> {
-                    if (message.equals("DELETE_USER_SUCCESS")) {
-                        showAlert("Thành công", "Xóa user thành công!");
-                    } else {
-                        showAlert("Lỗi", "Xóa user thất bại!");
-                    }
-                });
+                javafx.application.Platform.runLater(() -> showAlert("Thành công", "Xóa user thành công!"));
+                break;
+            }
+            case "DELETE_USER_FAILED": {
+                notifyObservers(message);
+                javafx.application.Platform.runLater(() -> showAlert("Lỗi", "Xóa user thất bại!"));
+                break;
+            }
+            case "DELETE_ITEM_SUCCESS": {
+                notifyObservers(message);
+                javafx.application.Platform.runLater(() -> showAlert("Thành công", "Xóa vật phẩm thành công!"));
+                break;
+            }
+            case "DELETE_ITEM_FAILED": {
+                notifyObservers(message);
+                javafx.application.Platform.runLater(() -> showAlert("Lỗi", "Xóa vật phẩm thất bại!"));
+                break;
+            }
+            case "UPDATE_PRICE_SUCCESS":
+            case "UPDATE_PRICE_FAILED": {
+                notifyObservers(message);
                 break;
             }
             case "DEPOSIT_SUCCESS":{
