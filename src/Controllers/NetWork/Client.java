@@ -3,9 +3,7 @@ package Controllers.NetWork;
 import Model.Observer.Observer;
 import View.App.MainFx;
 
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
+import java.io.*;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
@@ -214,6 +212,7 @@ public class Client {
             case "SELLER_DELETE_ITEM_SUCCESS":
                 notifyObservers(message);
                 break;
+            case "BID_HISTORY"://BID_HISTORY 15 1710000000000,500 1710000100000,700 1710000200000,900
             default:
                 System.out.println("Unknown: " + message);
         }
@@ -225,6 +224,28 @@ public class Client {
     public String getCurrentUsername() { return currentUsername; }
 
     // ===== GỬI DỮ LIỆU =====
+    public void uploadImage(File file) throws IOException {
+
+        // đọc file thành byte[]
+        byte[] bytes = java.nio.file.Files.readAllBytes(file.toPath());
+
+        // lấy stream
+        DataOutputStream dos = new DataOutputStream(socket.getOutputStream());
+        DataInputStream dis = new DataInputStream(socket.getInputStream());
+
+        // 1. gửi command (text)
+        dos.writeBytes("UPLOAD_IMAGE\n"); // QUAN TRỌNG: phải có \n
+
+        // 2. gửi tên file
+        dos.writeUTF(file.getName());
+
+        // 3. gửi dữ liệu ảnh
+        dos.writeInt(bytes.length);
+        dos.write(bytes);
+        dos.flush();
+
+
+    }
     public void send(String message) {
         if (socket != null && socket.isConnected() && !socket.isClosed()) {
 

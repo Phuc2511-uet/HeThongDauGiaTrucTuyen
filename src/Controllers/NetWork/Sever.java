@@ -37,9 +37,16 @@ public class Sever {
         User currentUser = null; // lưu user của client này
 
         try (
-                BufferedReader in = new BufferedReader(
-                        new InputStreamReader(socket.getInputStream()));
-                PrintWriter out = new PrintWriter(socket.getOutputStream(), true)
+                InputStream is = socket.getInputStream();
+                OutputStream os = socket.getOutputStream();
+
+                BufferedReader in = new BufferedReader(new InputStreamReader(is));
+                PrintWriter out = new PrintWriter(os, true);
+
+                DataInputStream dis = new DataInputStream(is);
+                DataOutputStream dos = new DataOutputStream(os);
+
+
         ) {
 
             String message;
@@ -48,6 +55,44 @@ public class Sever {
             while ((message = in.readLine()) != null) {
 
                 System.out.println("Received: " + message);
+                // ===== UPLOAD IMAGE =====
+                if (message.equals("UPLOAD_IMAGE")) {
+                    try {
+                        // 1. đọc tên file
+                        String fileName = dis.readUTF();
+
+                        // 2. đọc dữ liệu ảnh
+                        int length = dis.readInt();
+                        byte[] bytes = new byte[length];
+                        dis.readFully(bytes);
+
+                        // 3. tạo thư mục nếu chưa tồn tại
+                        File folder = new File("images");
+                        if (!folder.exists()) {
+                            folder.mkdirs();
+                        }
+
+                        // 4. tạo tên file unique
+                        String newName = "item_" + System.currentTimeMillis() + ".jpg";
+                        String path = "images/" + newName;
+
+                        // 5. lưu file
+                        FileOutputStream fos = new FileOutputStream(path);
+                        fos.write(bytes);
+                        fos.close();
+
+                        System.out.println("Saved image: " + path);
+
+                        // 6. trả về path cho client
+                        dos.writeUTF("IMAGE_PATH " + path);
+                        dos.flush();
+
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+
+                    continue;
+                }
 
                 String[] parts = message.split(" ");
                 String action = parts[0];
