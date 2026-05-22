@@ -141,6 +141,10 @@ public class ItemManager implements Serializable {
         if (price <= 0) {
             throw new IllegalArgumentException("Giá_phải_lớn_hơn_0");
         }
+        // giá không đc quá 1 tỷ
+        if (price > 1000000000) {
+            throw new IllegalArgumentException("Giá_không_được_vượt_quá_1_tỷ");
+        }
 
         // (tuỳ chọn) tránh giá quá nhỏ gây spam
         if (price < 100) {

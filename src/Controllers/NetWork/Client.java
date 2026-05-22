@@ -92,6 +92,12 @@ public class Client {
 
         // ===== XỬ LÝ =====
         switch (command) {
+            case "CANCEL_AUCTION_SUCCESS":
+            case "RESTORE_AUCTION_SUCCESS":
+            case "STATUS_CHANGED": {
+                notifyObservers(message);
+                break;
+            }
             case "ADMIN_CREATE_SUCCESS": {
                 notifyObservers(message);
                 break;
