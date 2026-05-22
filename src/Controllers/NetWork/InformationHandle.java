@@ -80,10 +80,14 @@ public class InformationHandle {
                     return handleAutoBid(part, currentUser);
                 case "GET_MY_ITEMS":
                     return ItemManager.getInstance().getAvailableItemsBySeller(currentUser.getId());
+                case "ADMIN_CREATE_ACCOUNT":
+                    return handleAdminCreateAccount(part,currentUser);
                 case "SELLER_DELETE_ITEM":
                     return handleSellerDeleteItem(part, currentUser);
-                case "GET_BID_HISTORY":
-                    return handleGetBidHistory(part);
+                case "CANCEL_AUCTION":
+                    return handleCancelAuction(part, currentUser);
+                case "RESTORE_AUCTION":
+                    return handleRestoreAuction(part, currentUser);
                 default:
                     return "ERROR Unknown action";
             }
@@ -130,6 +134,65 @@ public class InformationHandle {
         }
     }
 
+    private String handleCancelAuction(String[] parts, User currentUser) {
+        try {
+            if (parts.length < 2) {
+                return "ACTION_FAILED";
+            }
+
+            // Chỉ tài khoản Admin thực sự mới được phép hủy
+            if (!(currentUser instanceof Admin)) {
+                return "ACTION_FAILED";
+            }
+
+            int auctionId = Integer.parseInt(parts[1]);
+            Auction auction = AuctionManager.getInstance().getAuctionById(auctionId);
+
+            if (auction != null) {
+                // Đổi trạng thái phiên thành CANCELED
+                auction.setStatus(Auction.Status.CANCELED);
+
+                System.out.println("Server >> Admin hủy thành công phiên ID: " + auctionId);
+                return "CANCEL_AUCTION_SUCCESS";
+            }
+
+            return "ACTION_FAILED";
+        } catch (Exception e) {
+            return "ACTION_FAILED " + e.getMessage();
+        }
+    }
+
+    private String handleRestoreAuction(String[] parts, User currentUser) {
+        try {
+            if (parts.length < 2) {
+                return "ACTION_FAILED";
+            }
+
+            // Phân quyền bảo mật: Chỉ Admin mới có quyền khôi phục
+            if (!(currentUser instanceof Model.User.Admin)) {
+                return "ACTION_FAILED";
+            }
+
+            int auctionId = Integer.parseInt(parts[1]);
+            Auction auction = AuctionManager.getInstance().getAuctionById(auctionId);
+
+            if (auction != null) {
+                // reset time
+                auction.resetAuctionTime();
+
+                // Khôi phục lại trạng thái ban đầu, đưa về OPEN
+                auction.setStatus(Auction.Status.OPEN);
+
+                System.out.println("Server >> Admin đã KHÔI PHỤC hoạt động phiên đấu giá ID: " + auctionId);
+                return "RESTORE_AUCTION_SUCCESS";
+            }
+
+            return "ACTION_FAILED";
+        } catch (Exception e) {
+            return "ACTION_FAILED";
+        }
+    }
+
     private String handleGetSellerAuctions(User currentUser) {
 
         try {
@@ -155,6 +218,44 @@ public class InformationHandle {
 
         } catch (Exception e) {
             return "ERROR " + e.getMessage();
+        }
+    }
+
+    private String handleAdminCreateAccount(String[] parts, User currentUser) {
+        try {
+            // Chỉ Admin mới có quyền gọi case này
+            if (!(currentUser instanceof Admin)) {
+                return "ACCOUNT_FAILED NOT_AUTHORIZED";
+            }
+
+            if (parts.length < 5) {
+                return "ACCOUNT_FAILED INVALID_FORMAT";
+            }
+
+            String username = parts[1];
+            String password = parts[2];
+            String role = parts[3];
+            String fullName = parts[4].replace("_", " ");
+
+            UserManager um = UserManager.getInstance();
+
+            // Kiểm tra trùng lặp tài khoản trên hệ thống
+            for (User u : um.getUsers()) {
+                if (u.getUsername().equals(username)) {
+                    return "ACCOUNT_FAILED USERNAME_EXISTS";
+                }
+            }
+
+            // Tạo tài khoản mới trực tiếp
+            um.createUser(username, password, role, fullName);
+
+            // Trả về từ khóa phản hồi độc lập, tuyệt đối không bị trùng với Client cũ
+            return "ADMIN_CREATE_SUCCESS";
+
+        } catch (IllegalArgumentException e) {
+            return "ACCOUNT_FAILED";
+        } catch (Exception e) {
+            return "ACCOUNT_FAILED";
         }
     }
 
@@ -312,7 +413,7 @@ public class InformationHandle {
             int userId = Integer.parseInt(parts[1]);
 
             return UserManager.getInstance()
-                    .getUserInfoAsString(userId);
+                    .getAdminUserInfoAsString(userId);
 
         } catch (Exception e) {
             return "ERROR " + e.getMessage();
@@ -534,34 +635,24 @@ public class InformationHandle {
         }
     }
     private String handleCreateItem(String[] parts, User currentUser) {
-
         try {
-            if (parts.length < 4) {
-                return "ERROR INVALID FORMAT";
-            }
-
+            // format: CREATE_ITEM TYPE NAME PRICE
             String type = parts[1];
-            String name = parts[2].replace("_", " ");
+            String name = parts[2];
             double price = Double.parseDouble(parts[3]);
 
-            if (!(currentUser instanceof Seller)) {
-                return "ERROR ONLY SELLER CAN CREATE ITEM";
-            }
+            // Gọi hàm tạo vật phẩm
+            ItemManager.getInstance().createItem(type, name, price, (Seller) currentUser);
 
-            // Ép kiểu currentUser thành Seller
-            Seller seller = (Seller) currentUser;
-
-            //  tạo qua ItemManager, truyền thêm seller
-            Item item = ItemManager.getInstance()
-                    .createItem(type, name, price, seller); // Truyền seller vào đây
-
-            return "CREATE_ITEM_SUCCESS " ;
+            return "CREATE_ITEM_SUCCESS";
 
         } catch (IllegalArgumentException e) {
             return "CREATE_ITEM_FAILED " + e.getMessage();
+
         } catch (Exception e) {
-            return "CREATE_ITEM_FAILED";
+            return "CREATE_ITEM_FAILED Lỗi_hệ_thống";
         }
+
     }private String handleAutoBid(String[] parts, User user) {
 
         try {

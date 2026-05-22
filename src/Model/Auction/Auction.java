@@ -195,6 +195,8 @@ public class Auction {
                 return next == Status.FINISH || next == Status.CANCELED;
             case FINISH:
                 return next == Status.PAID;
+            case CANCELED:
+                return next == Status.OPEN;
             default:
                 return false;
         }
@@ -502,8 +504,26 @@ public class Auction {
             lock.unlock();
         }
     }
-    private void processAutoBids() {
 
+    public void setStatus(Status nextStatus) {
+        lock.lock();
+        try {
+            // 1. Kiểm tra tính hợp lệ qua State Machine thông qua transitionTo
+            transitionTo(nextStatus);
+
+            // 2. Phát thông báo realtime tới toàn bộ các bên đang Observer (Client)
+            notifyObservers("STATUS_CHANGED " + id + " " + nextStatus.name());
+
+            // 3. Ghi dữ liệu đồng bộ xuống MySQL Database ngay lập tức
+            DatabaseManager.saveOrUpdateAuction(this);
+
+            System.out.println("Auction ID " + id + " chuyển trạng thái thành công sang: " + nextStatus);
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    private void handleAutoBid() {
         while (true) {
 
             AutoBid best = autoBids.peek();
@@ -563,8 +583,23 @@ public class Auction {
         DatabaseManager.saveOrUpdateAuction(this);
     }
 
+    // ===== HÀM RESET THỜI GIAN KHI ADMIN KHÔI PHỤC AUCTION =====
+    public void resetAuctionTime() {
+        lock.lock();
+        try {
+            this.startTime = 0;
+            this.endTime = 0;
 
+            // Nếu có task chạy ngầm tính thời gian cũ đang xếp hàng, hủy nó ngay
+            if (finishTask != null) {
+                finishTask.cancel(false);
+            }
 
+            System.out.println("Auction ID " + id + " đã xóa trắng mốc thời gian (Chờ lượt đặt giá mới để đếm ngược).");
+        } finally {
+            lock.unlock();
+        }
+    }
 
     public long getRemainingTime() {
         return Math.max(0, endTime - System.currentTimeMillis());

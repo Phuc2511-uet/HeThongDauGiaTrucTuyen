@@ -6,10 +6,7 @@ import java.util.List;
 
 import Model.Auction.Auction;
 import Model.Item.Item;
-import Model.User.Bidder;
-import Model.User.Seller;
-import Model.User.User;
-import Model.User.UserManager;
+import Model.User.*;
 import Model.AuctionManager.AuctionManager;
 import Model.Item.ItemManager;
 
@@ -72,9 +69,12 @@ public class DatabaseManager {
 
                     // Truyền chuẩn 6 tham số vào khuôn Bidder
                     u = new Bidder(id, username, password, fullName, balance, reservedBalance);
+                } else if ("ADMIN".equalsIgnoreCase(role)) {
+                    u = new Admin(id, username, password, fullName);
                 } else {
                     u = new Seller(id, username, password, fullName);
                 }
+
                 list.add(u);
             }
         } catch (Exception e) {
@@ -179,6 +179,26 @@ public class DatabaseManager {
 
         } catch (Exception e) {
             System.err.println("Lỗi khi xóa item: " + e.getMessage());
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    public static boolean deleteUser(int userId) {
+
+        String sql = "DELETE FROM users WHERE id = ?";
+
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+            pstmt.setInt(1, userId);
+
+            int rows = pstmt.executeUpdate();
+
+            return rows > 0;
+
+        } catch (Exception e) {
+            System.err.println("Lỗi khi xóa user: " + e.getMessage());
             e.printStackTrace();
             return false;
         }

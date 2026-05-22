@@ -62,9 +62,6 @@ public class MainFx extends Application {
             mainStage.setScene(scene);
             mainStage.setTitle(title);
 
-            mainStage.show();
-            mainStage.setResizable(false);
-
             System.out.println("Đã chuyển sang màn hình: " + role);
 
         } catch (IOException e) {

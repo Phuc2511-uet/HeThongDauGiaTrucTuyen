@@ -41,7 +41,7 @@ public class UserManager implements Serializable {
             }
         }
         users.add(user);
-        DatabaseManager.saveUser(user); // Tự động lưu vào DB
+        DatabaseManager.saveUser(user);
         return true; // Chỉ trả về true khi thêm mới thành công
     }
 
@@ -66,7 +66,14 @@ public class UserManager implements Serializable {
         return null;
     }
     public synchronized boolean removeUser(int id) {
-        // TODO: Cần thêm logic xóa khỏi DB
+        // xóa DB trước
+        boolean dbDeleted = DatabaseManager.deleteUser(id);
+
+        if (!dbDeleted) {
+            return false;
+        }
+
+        // xóa RAM
         return users.removeIf(u -> u.getId() == id);
     }
     public String getAllUserIdsAsString() {
@@ -126,5 +133,26 @@ public class UserManager implements Serializable {
         users.add(user);
         DatabaseManager.saveUser(user); // Tự động lưu vào DB
         return user;
+    }
+
+    public String getAdminUserInfoAsString(int id) {
+
+        User u = getById(id);
+
+        if (u == null) {
+            return "ERROR USER NOT FOUND";
+        }
+
+        String role = "UNKNOWN";
+
+        if (u instanceof Bidder) role = "BIDDER";
+        else if (u instanceof Seller) role = "SELLER";
+        else if (u instanceof Admin) role = "ADMIN";
+
+        return "ADMIN_USER_DETAIL "
+                + u.getId() + " "
+                + u.getUsername() + " "
+                + role + " "
+                + u.getFullName().replace(" ", "_");
     }
 }
