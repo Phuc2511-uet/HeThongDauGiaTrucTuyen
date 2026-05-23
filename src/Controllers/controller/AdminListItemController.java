@@ -15,8 +15,6 @@ import javafx.scene.layout.VBox;
 import java.util.HashSet;
 import java.util.Set;
 
-import static Controllers.Base.DatabaseManager.deleteItem;
-
 public class AdminListItemController implements Observer {
 
     @FXML
@@ -120,7 +118,8 @@ public class AdminListItemController implements Observer {
             // Nếu chưa tạo phiên: Nút xóa hoạt động bình thường màu đỏ sáng
             deleteBtn.setDisable(false);
             deleteBtn.setStyle("-fx-background-color:#DC2626;-fx-text-fill:white;-fx-background-radius:10;-fx-padding: 8 15;");
-            deleteBtn.setOnAction(e -> deleteItem(itemId));
+
+            deleteBtn.setOnAction(e -> Client.getInstance().deleteItem(itemId));
 
             box.getChildren().addAll(nameLabel, spacer, deleteBtn);
         }
