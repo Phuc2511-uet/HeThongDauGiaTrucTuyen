@@ -90,6 +90,8 @@ public class Client {
 
         // ===== XỬ LÝ =====
         switch (command) {
+            case "NOTIFY":
+            case "AUTO_BID":
             case "CANCEL_AUCTION_SUCCESS":
             case "RESTORE_AUCTION_SUCCESS":
             case "STATUS_CHANGED": {
@@ -343,6 +345,9 @@ public class Client {
 
     public void getCurrentUser(){    //USER_DETAIL 1 phuc BIDDER Nguyen_Dinh_Phuc 5000.0
         send("GET_CURRENT_USER");
+    }
+    public String getCurrentRole() {
+        return currentRole;
     }
     public void createItem(String type, String name, double price) {
 

@@ -7,6 +7,7 @@ import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
+import javafx.stage.Stage;
 
 public class AuctionDetailController implements Observer {
     @FXML
@@ -30,9 +31,11 @@ public class AuctionDetailController implements Observer {
 
     @Override
     public void update(String message) {
+        String cleanMessage = message.trim();
+
         // ===== LOAD CHI TIẾT AUCTION =====
-        if (message.startsWith("AUCTION_DETAIL_SUCCESS")) {
-            String[] parts = message.split("\\s+");
+        if (cleanMessage.startsWith("AUCTION_DETAIL_SUCCESS")) {
+            String[] parts = cleanMessage.split("\\s+");
             if (parts.length > 7) {
                 Platform.runLater(() -> {
                     lblAuctionId.setText(parts[1]);
@@ -40,9 +43,7 @@ public class AuctionDetailController implements Observer {
                     lblItemId.setText(parts[3]);
                     try {
                         double price = Double.parseDouble(parts[4]);
-                        lblCurrentPrice.setText(
-                                String.format("%,.0f $", price)
-                        );
+                        lblCurrentPrice.setText(String.format("%,.0f $", price));
                     } catch (Exception e) {
                         lblCurrentPrice.setText(parts[4] + " $");
                     }
@@ -62,8 +63,7 @@ public class AuctionDetailController implements Observer {
                         btnBid.setText("Đấu giá");
                     }
                     // ===== MÀU STATUS =====
-                    if (statusStr.equals("RUNNING")
-                            || statusStr.equals("OPEN")) {
+                    if (statusStr.equals("RUNNING") || statusStr.equals("OPEN")) {
                         lblStatus.setStyle("-fx-text-fill: #4ADE80;");
                     } else if (statusStr.equals("PAID")) {
                         lblStatus.setStyle("-fx-text-fill: #60A5FA;");
@@ -74,59 +74,104 @@ public class AuctionDetailController implements Observer {
             }
         }
 
-        // ===== REFRESH GIÁ KHI BID =====
-        else if (message.startsWith("NOTIFY")) {
-            String[] parts = message.split("\\s+");
+        // ===== REFRESH GIÁ KHI BID (XỬ LÝ TRÁNH ĐÈ THÔNG BÁO) =====
+        else if (cleanMessage.startsWith("NOTIFY")) {
+            String[] parts = cleanMessage.split("\\s+");
             int auctionId = Integer.parseInt(parts[1]);
             double newPrice = Double.parseDouble(parts[2]);
-            // chỉ update đúng auction đang mở
-            if (auctionId == Integer.parseInt(lblAuctionId.getText())) {
+
+            // Lấy username người vừa đặt giá từ gói tin (nếu Server có truyền về ở phần tử số 3)
+            String bidderName = (parts.length > 3) ? parts[3] : "";
+
+            if (!lblAuctionId.getText().isEmpty() && auctionId == Integer.parseInt(lblAuctionId.getText())) {
                 Platform.runLater(() -> {
-                    lblCurrentPrice.setText(
-                            String.format("%,.0f $", newPrice)
-                    );
+                    // 1. Luôn cập nhật lại tiền hiển thị trên UI cho khớp với hệ thống công khai
+                    lblCurrentPrice.setText(String.format("%,.0f $", newPrice));
+
+                    // 2. Kiểm tra xem người vừa bấm đặt giá có phải là chính mình không
+                    boolean isMe = false;
+                    if (Client.getInstance() != null && Client.getInstance().getCurrentUsername() != null) {
+                        isMe = Client.getInstance().getCurrentUsername().equals(bidderName);
+                    }
+
+                    // 3. Nếu ĐỐI THỦ đặt giá (không phải mình), hiển thị Toast thông báo ngay lập tức
+                    if (!isMe) {
+                        Stage currentStage = (Stage) btnBid.getScene().getWindow();
+                        NotificationToast.showSuccess(
+                                currentStage,
+                                "Giá Đấu Mới!",
+                                "Phiên #" + auctionId + " vừa được trả mức giá mới: " + String.format("%,.0f $", newPrice)
+                        );
+                    }
                 });
             }
         }
 
         // ===== REFRESH GIÁ AUTO BID =====
-        else if (message.startsWith("AUTO_BID")) {
-            String[] parts = message.split("\\s+");
+        else if (cleanMessage.startsWith("AUTO_BID")) {
+            String[] parts = cleanMessage.split("\\s+");
             int auctionId = Integer.parseInt(parts[1]);
             double newPrice = Double.parseDouble(parts[2]);
-            if (auctionId == Integer.parseInt(lblAuctionId.getText())) {
+            if (!lblAuctionId.getText().isEmpty() && auctionId == Integer.parseInt(lblAuctionId.getText())) {
                 Platform.runLater(() -> {
-                    lblCurrentPrice.setText(
-                            String.format("%,.0f $", newPrice)
+                    lblCurrentPrice.setText(String.format("%,.0f $", newPrice));
+                    Stage currentStage = (Stage) btnBid.getScene().getWindow();
+                    NotificationToast.showSuccess(
+                            currentStage,
+                            "Hệ thống Tự động Đấu giá",
+                            "Tự động tăng giá phiên #" + auctionId + " lên: " + String.format("%,.0f $", newPrice)
                     );
                 });
             }
         }
-        else if (message.startsWith("STATUS_CHANGED")) {
-            String[] parts = message.split("\\s+");
+
+        // ===== THAY ĐỔI TRẠNG THÁI PHIÊN =====
+        else if (cleanMessage.startsWith("STATUS_CHANGED")) {
+            String[] parts = cleanMessage.split("\\s+");
             int auctionId = Integer.parseInt(parts[1]);
-            String status = parts[2];
-            // chỉ update đúng auction đang xem
-            if (auctionId == Integer.parseInt(lblAuctionId.getText())) {
+            final String status = parts[2].toUpperCase();
+
+            if (!lblAuctionId.getText().isEmpty() && auctionId == Integer.parseInt(lblAuctionId.getText())) {
                 Platform.runLater(() -> {
                     lblStatus.setText(status);
-                    boolean canBid =
-                            status.equals("OPEN")
-                                    || status.equals("RUNNING");
+
+                    boolean canBid = status.equals("OPEN") || status.equals("RUNNING");
                     btnBid.setDisable(!canBid);
+
                     if (!canBid) {
                         btnBid.setText("Không thể bid");
                     } else {
                         btnBid.setText("Đấu giá");
                     }
-                    // màu trạng thái
-                    if (status.equals("RUNNING")
-                            || status.equals("OPEN")) {
+
+                    if (status.equals("RUNNING") || status.equals("OPEN")) {
                         lblStatus.setStyle("-fx-text-fill: #4ADE80;");
                     } else if (status.equals("PAID")) {
                         lblStatus.setStyle("-fx-text-fill: #60A5FA;");
                     } else {
                         lblStatus.setStyle("-fx-text-fill: #FB7185;");
+                    }
+
+                    boolean isAdmin = false;
+                    if (Client.getInstance() != null && Client.getInstance().getCurrentRole() != null) {
+                        isAdmin = Client.getInstance().getCurrentRole().equalsIgnoreCase("ADMIN");
+                    }
+
+                    if (!isAdmin) {
+                        Stage currentStage = (Stage) btnBid.getScene().getWindow();
+                        if (status.equals("CANCELED")) {
+                            NotificationToast.showSuccess(
+                                    currentStage,
+                                    "Phiên đấu giá bị HỦY!",
+                                    "Phiên #" + auctionId + " đã bị Admin hủy bỏ."
+                            );
+                        } else if (status.equals("OPEN")) {
+                            NotificationToast.showSuccess(
+                                    currentStage,
+                                    "Phiên đấu giá KHÔI PHỤC!",
+                                    "Phiên #" + auctionId + " đã được Admin khôi phục."
+                            );
+                        }
                     }
                 });
             }

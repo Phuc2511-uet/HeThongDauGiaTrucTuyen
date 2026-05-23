@@ -139,23 +139,16 @@ public class InformationHandle {
             if (parts.length < 2) {
                 return "ACTION_FAILED";
             }
-
-            // Chỉ tài khoản Admin thực sự mới được phép hủy
             if (!(currentUser instanceof Admin)) {
                 return "ACTION_FAILED";
             }
-
             int auctionId = Integer.parseInt(parts[1]);
             Auction auction = AuctionManager.getInstance().getAuctionById(auctionId);
-
             if (auction != null) {
-                // Đổi trạng thái phiên thành CANCELED
-                auction.setStatus(Auction.Status.CANCELED);
-
+                auction.cancel();
                 System.out.println("Server >> Admin hủy thành công phiên ID: " + auctionId);
                 return "CANCEL_AUCTION_SUCCESS";
             }
-
             return "ACTION_FAILED";
         } catch (Exception e) {
             return "ACTION_FAILED " + e.getMessage();
@@ -167,26 +160,18 @@ public class InformationHandle {
             if (parts.length < 2) {
                 return "ACTION_FAILED";
             }
-
-            // Phân quyền bảo mật: Chỉ Admin mới có quyền khôi phục
             if (!(currentUser instanceof Model.User.Admin)) {
                 return "ACTION_FAILED";
             }
-
             int auctionId = Integer.parseInt(parts[1]);
             Auction auction = AuctionManager.getInstance().getAuctionById(auctionId);
-
             if (auction != null) {
-                // reset time
                 auction.resetAuctionTime();
-
-                // Khôi phục lại trạng thái ban đầu, đưa về OPEN
                 auction.setStatus(Auction.Status.OPEN);
 
                 System.out.println("Server >> Admin đã KHÔI PHỤC hoạt động phiên đấu giá ID: " + auctionId);
                 return "RESTORE_AUCTION_SUCCESS";
             }
-
             return "ACTION_FAILED";
         } catch (Exception e) {
             return "ACTION_FAILED";
