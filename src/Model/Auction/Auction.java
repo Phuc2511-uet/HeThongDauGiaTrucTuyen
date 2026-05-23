@@ -357,7 +357,7 @@ public class Auction {
                 bidHistory.add(new BidTransaction(bidder, newPrice));
 
                 startAuction();
-                processAutoBids();
+                //processAutoBids();
 
                 DatabaseManager.saveOrUpdateAuction(this);
 
@@ -399,7 +399,7 @@ public class Auction {
                 bidHistory.add(new BidTransaction( bidder, newPrice));
 
                 extendAuction();
-                processAutoBids();
+                //processAutoBids();
 
                 message = "NOTIFY " + id + " " + currentPrice;
 
