@@ -11,13 +11,16 @@ import javafx.stage.Stage;
 
 public class AuctionDetailController implements Observer {
     @FXML
-    private Label lblAuctionId, lblItemName, lblCurrentPrice, lblSeller, lblStatus,lblTitle,lblItemId, lblCurrentBidder;
+    private Label lblAuctionId, lblItemName, lblCurrentPrice, lblSeller, lblStatus, lblTitle, lblItemId, lblCurrentBidder;
 
     @FXML
     private TextField txtBidPrice;
 
     @FXML
     private Button btnBid;
+
+    // Cờ hiệu để biết chính mình vừa bấm nút đặt giá (Bid)
+    private boolean isMyOwnBidAction = false;
 
     @FXML
     public void initialize() {
@@ -88,13 +91,13 @@ public class AuctionDetailController implements Observer {
                     // 1. Luôn cập nhật lại tiền hiển thị trên UI cho khớp với hệ thống công khai
                     lblCurrentPrice.setText(String.format("%,.0f $", newPrice));
 
-                    // 2. Kiểm tra xem người vừa bấm đặt giá có phải là chính mình không
-                    boolean isMe = false;
-                    if (Client.getInstance() != null && Client.getInstance().getCurrentUsername() != null) {
+                    // 2. Kiểm tra xem người vừa bấm đặt giá có phải là chính mình không dựa vào Tên hoặc Cờ hiệu
+                    boolean isMe = isMyOwnBidAction;
+                    if (!isMe && Client.getInstance() != null && Client.getInstance().getCurrentUsername() != null) {
                         isMe = Client.getInstance().getCurrentUsername().equals(bidderName);
                     }
 
-                    // 3. Nếu ĐỐI THỦ đặt giá (không phải mình), hiển thị Toast thông báo ngay lập tức
+                    // 3. Nếu là ĐỐI THỦ đặt giá (không phải mình), hiển thị Toast
                     if (!isMe) {
                         Stage currentStage = (Stage) btnBid.getScene().getWindow();
                         NotificationToast.showSuccess(
@@ -103,6 +106,9 @@ public class AuctionDetailController implements Observer {
                                 "Phiên #" + auctionId + " vừa được trả mức giá mới: " + String.format("%,.0f $", newPrice)
                         );
                     }
+
+                    // 4. Reset lại cờ hiệu sau khi đã xử lý xong tin nhắn NOTIFY
+                    isMyOwnBidAction = false;
                 });
             }
         }
@@ -152,6 +158,7 @@ public class AuctionDetailController implements Observer {
                         lblStatus.setStyle("-fx-text-fill: #FB7185;");
                     }
 
+                    // SỬA LỖI BIẾN Ở ĐÂY: Kiểm tra quyền ADMIN để chặn thông báo nếu muốn
                     boolean isAdmin = false;
                     if (Client.getInstance() != null && Client.getInstance().getCurrentRole() != null) {
                         isAdmin = Client.getInstance().getCurrentRole().equalsIgnoreCase("ADMIN");
@@ -188,6 +195,10 @@ public class AuctionDetailController implements Observer {
             }
             double price = Double.parseDouble(text);
             int auctionId = Integer.parseInt(lblAuctionId.getText());
+
+            // ĐÁNH DẤU: Chính tôi là người chủ động thực hiện lệnh Bid này
+            isMyOwnBidAction = true;
+
             Client.getInstance().placeBid(auctionId, price);
 
             // reload dữ liệu auction
@@ -195,8 +206,11 @@ public class AuctionDetailController implements Observer {
 
             txtBidPrice.clear();
         } catch (NumberFormatException e) {
+            // Thất bại thì hạ cờ xuống ngay
+            isMyOwnBidAction = false;
             showAlert("Lỗi", "Giá bid không hợp lệ!");
         } catch (Exception e) {
+            isMyOwnBidAction = false;
             showAlert("Lỗi", e.getMessage());
         }
     }
@@ -212,7 +226,6 @@ public class AuctionDetailController implements Observer {
 
     @FXML
     void backToList() {
-        // Quan trọng: Hủy đăng ký Observer trước khi chuyển trang để giải phóng bộ nhớ
         Client.getInstance().removeObserver(this);
         // Quay lại trang danh sách
         HomeBidderController.setPage("/View/resources/fxml/auctionList.fxml");
