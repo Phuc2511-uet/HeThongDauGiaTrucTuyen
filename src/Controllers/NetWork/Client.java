@@ -92,6 +92,7 @@ public class Client {
         switch (command) {
             case "NOTIFY":
             case "AUTO_BID":
+            case "AUTO_BID_SUCCESS":
             case "CANCEL_AUCTION_SUCCESS":
             case "RESTORE_AUCTION_SUCCESS":
             case "STATUS_CHANGED": {

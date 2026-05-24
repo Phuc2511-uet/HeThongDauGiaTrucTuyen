@@ -638,7 +638,8 @@ public class InformationHandle {
             return "CREATE_ITEM_FAILED Lỗi_hệ_thống";
         }
 
-    }private String handleAutoBid(String[] parts, User user) {
+    }
+    private String handleAutoBid(String[] parts, User user) {
 
         try {
             if (!(user instanceof Bidder)) {
