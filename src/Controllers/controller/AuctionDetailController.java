@@ -19,6 +19,10 @@ public class AuctionDetailController implements Observer {
     @FXML
     private Button btnBid;
 
+    //open scene autobid
+    @FXML
+    private Button btnRegisterAuto;
+
     // Cờ hiệu để biết chính mình vừa bấm nút đặt giá (Bid)
     private boolean isMyOwnBidAction = false;
 
@@ -114,7 +118,7 @@ public class AuctionDetailController implements Observer {
         }
 
         // ===== REFRESH GIÁ AUTO BID =====
-        else if (cleanMessage.startsWith("AUTO_BID")) {
+        else if (cleanMessage.startsWith("AUTO_BID ")) {
             String[] parts = cleanMessage.split("\\s+");
             int auctionId = Integer.parseInt(parts[1]);
             double newPrice = Double.parseDouble(parts[2]);
@@ -229,5 +233,49 @@ public class AuctionDetailController implements Observer {
         Client.getInstance().removeObserver(this);
         // Quay lại trang danh sách
         HomeBidderController.setPage("/View/resources/fxml/auctionList.fxml");
+    }
+
+    @FXML
+    private void handleSetUpAutoBid() {
+        try {
+            javafx.fxml.FXMLLoader loader = new javafx.fxml.FXMLLoader(getClass().getResource("/View/resources/fxml/autoBid.fxml"));
+            javafx.scene.Parent root = loader.load();
+
+            AutoBidController popController = loader.getController();
+
+            // Lấy ID phiên đấu giá từ Label
+            int auctionId = Integer.parseInt(lblAuctionId.getText().trim());
+
+            // LẤY GIÁ HIỆN TẠI: Loại bỏ ký tự '$', dấu phẩy phân tách nếu có để ép sang kiểu double
+            String rawPrice = lblCurrentPrice.getText().trim()
+                    .replace("$", "")
+                    .replace(",", "")
+                    .trim();
+            double currentPrice = Double.parseDouble(rawPrice);
+
+            // SỬA LỖI BÁO ĐỎ: Gọi chính xác hàm setAuctionData đã cập nhật bên AutoBidController
+            popController.setAuctionData(auctionId, currentPrice);
+
+            // 3. Khởi tạo một Stage mới
+            javafx.stage.Stage popupStage = new javafx.stage.Stage();
+            popupStage.setTitle("Cấu hình Tự động Đấu giá - Phiên #" + auctionId);
+
+            // Cấu hình MODALITY: Đóng băng màn hình nền phía sau.
+            popupStage.initModality(javafx.stage.Modality.APPLICATION_MODAL);
+            popupStage.initOwner(lblAuctionId.getScene().getWindow());
+
+            // 4. Thiết lập Scene và hiển thị
+            popupStage.setScene(new javafx.scene.Scene(root));
+            popupStage.setResizable(false);
+            popupStage.show();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            javafx.scene.control.Alert alert = new javafx.scene.control.Alert(javafx.scene.control.Alert.AlertType.ERROR);
+            alert.setTitle("Lỗi ứng dụng");
+            alert.setHeaderText(null);
+            alert.setContentText("Không thể hiển thị hộp cấu hình Auto Bid: " + e.getMessage());
+            alert.showAndWait();
+        }
     }
 }

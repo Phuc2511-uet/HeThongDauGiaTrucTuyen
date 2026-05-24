@@ -91,6 +91,15 @@
                      <font>
                         <Font size="17.0" />
                      </font></Button>
+
+                        <Button fx:id="btnRegisterAuto" onAction="#handleSetUpAutoBid" prefHeight="40.0" prefWidth="210.0" style="-fx-background-color: #3B82F6; -fx-text-fill: white; -fx-background-radius: 17; -fx-font-weight: bold;" text="Auto Bid">
+                            <HBox.margin>
+                                <Insets top="50.0" />
+                            </HBox.margin>
+                            <font>
+                                <Font size="17.0" />
+                            </font>
+                        </Button>
                     </children>
                 </HBox>
             </children>
