@@ -72,7 +72,10 @@ public class DatabaseManager {
                 } else if ("ADMIN".equalsIgnoreCase(role)) {
                     u = new Admin(id, username, password, fullName);
                 } else {
-                    u = new Seller(id, username, password, fullName);
+                    double balance = rs.getDouble("balance");
+                    Seller seller = new Seller(id, username, password, fullName);
+                    seller.setBalanceLoaded(balance);
+                    u = seller;
                 }
 
                 list.add(u);
@@ -93,8 +96,12 @@ public class DatabaseManager {
             pstmt.setString(1, user.getUsername());
             pstmt.setString(2, user.getPassword());
             pstmt.setString(3, user.getFullName());
-            pstmt.setString(4, (user instanceof Bidder) ? "BIDDER" : "SELLER");
-            pstmt.setDouble(5, (user instanceof Bidder) ? ((Bidder) user).getBalance() : 0.0);
+            String roleStr = "SELLER";
+            if (user instanceof Bidder) roleStr = "BIDDER";
+            else if (user instanceof Admin) roleStr = "ADMIN";
+
+            pstmt.setString(4, roleStr);
+            pstmt.setDouble(5, (user instanceof Bidder) ? ((Bidder) user).getBalance() : (user instanceof Seller) ? ((Seller) user).getBalance() : 0.0);
             pstmt.setDouble(6, (user instanceof Bidder) ? ((Bidder) user).getReservedBalance() : 0.0); // Lưu reserved_balance
             pstmt.executeUpdate();
 
@@ -116,7 +123,7 @@ public class DatabaseManager {
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setString(1, user.getPassword());
             pstmt.setString(2, user.getFullName());
-            pstmt.setDouble(3, (user instanceof Bidder) ? ((Bidder) user).getBalance() : 0.0);
+            pstmt.setDouble(3, (user instanceof Bidder) ? ((Bidder) user).getBalance() : (user instanceof Seller) ? ((Seller) user).getBalance() : 0.0);
             pstmt.setDouble(4, (user instanceof Bidder) ? ((Bidder) user).getReservedBalance() : 0.0); // Cập nhật reserved_balance
             pstmt.setString(5, user.getUsername());
             pstmt.executeUpdate();
@@ -296,6 +303,8 @@ public class DatabaseManager {
                     }
 
                     list.add(auction);
+                } else {
+                    System.err.println("[CẢNH BÁO] Bỏ qua phiên đấu giá ID: " + auctionId + " do không tìm thấy vật phẩm tương ứng (Item ID: " + itemId + ").");
                 }
             }
         } catch (Exception e) {

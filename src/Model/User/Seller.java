@@ -22,6 +22,10 @@ public class Seller extends User {
         DatabaseManager.updateUserState(this); // Tự động cập nhật vào DB
     }
 
+    public void setBalanceLoaded(double balance) {
+        this.balance = balance;
+    }
+
     public double getBalance() {
         return balance;
     }

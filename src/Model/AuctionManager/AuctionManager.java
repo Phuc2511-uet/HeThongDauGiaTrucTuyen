@@ -204,6 +204,4 @@ public class AuctionManager {
 
         return null;
     }
-
-
 }
