@@ -562,15 +562,19 @@ public class Auction {
 
         if (autoBids.isEmpty()) return;
 
+        // ===== lấy top 1 =====
         AutoBid first = autoBids.poll();
 
-        // ❌ nếu bidder bị xóa (rare bug)
+        // nếu autoBid không còn hợp lệ
         if (!autoBidMap.containsKey(first.getBidder().getId())) {
             return;
         }
 
-        // ===== chỉ 1 người =====
-        if (autoBids.isEmpty()) {
+        // ===== lấy top 2 (nếu có) =====
+        AutoBid second = autoBids.peek();
+
+        // ===== CASE 1: chỉ có 1 người =====
+        if (second == null) {
 
             double inc = Math.max(first.getIncrement(), MIN_INCREMENT);
             double nextPrice = Math.min(first.getMaxBid(), currentPrice + inc);
@@ -596,16 +600,7 @@ public class Auction {
             return;
         }
 
-        // ===== có 2 người =====
-        AutoBid second = autoBids.peek();
-
-        // tránh tự đấu
-        if (currentBidder != null &&
-                first.getBidder().getId() == currentBidder.getId()) {
-
-            autoBids.add(first);
-            return;
-        }
+        // ===== CASE 2: có >= 2 người =====
 
         double inc = Math.max(first.getIncrement(), MIN_INCREMENT);
 
@@ -614,6 +609,7 @@ public class Auction {
                 second.getMaxBid() + inc
         );
 
+        // nếu không tăng được nữa → dừng
         if (nextPrice <= currentPrice) {
             autoBids.add(first);
             return;
@@ -626,6 +622,7 @@ public class Auction {
 
         first.getBidder().reserve(nextPrice);
 
+        // ===== UPDATE =====
         currentPrice = nextPrice;
         currentBidder = first.getBidder();
 
