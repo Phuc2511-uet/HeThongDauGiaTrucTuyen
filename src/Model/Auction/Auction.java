@@ -7,10 +7,9 @@ import Model.User.Bidder;
 import Model.User.Seller;
 import Model.Observer.Observer;
 import Controllers.Base.DatabaseManager; // Import DatabaseManager
+import Model.User.UserManager;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.PriorityQueue;
+import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -26,16 +25,17 @@ public class Auction {
 
     private Status currentStatus;
     // ===== AUTO BID =====
-    private final java.util.Map<Integer, AutoBid> autoBidMap = new java.util.HashMap<>();
+    // ===== AUTO BID =====
+    private final Map<Integer, AutoBid> autoBidMap = new HashMap<>();
+
     private final PriorityQueue<AutoBid> autoBids =
             new PriorityQueue<>((a, b) -> {
-
                 if (a.getMaxBid() != b.getMaxBid()) {
                     return Double.compare(b.getMaxBid(), a.getMaxBid());
                 }
-
                 return Long.compare(a.getTimestamp(), b.getTimestamp());
             });
+
 
 
 
@@ -131,7 +131,7 @@ public class Auction {
         return endTime;
     }
 
-    // 👉 helper cho server (rất nên có)
+    // helper cho server (rất nên có)
     public String toNetworkString() {
         return id + " "
                 + bidItem.getName().replace(" ", "_") + " "
@@ -486,24 +486,7 @@ public class Auction {
             // AuctionManager sẽ gọi saveOrUpdateAuction sau khi pay
         }
     }
-    public void registerAutoBid(Bidder bidder, double maxBid, double increment) {
-        lock.lock();
-        try {
-            AutoBid old = autoBidMap.get(bidder.getId());
 
-            if (old != null) {
-                autoBids.remove(old);
-            }
-
-            AutoBid newBid = new AutoBid(bidder, maxBid, increment);
-
-            autoBidMap.put(bidder.getId(), newBid);
-            autoBids.add(newBid);
-
-        } finally {
-            lock.unlock();
-        }
-    }
 
     public void setStatus(Status nextStatus) {
         lock.lock();
@@ -522,66 +505,7 @@ public class Auction {
             lock.unlock();
         }
     }
-    private void processAutoBids() {
 
-        while (true) {
-
-            AutoBid best = autoBids.peek();
-
-            if (best == null) break;
-
-            // ❌ hết khả năng bid → remove
-            if (best.getMaxBid() <= currentPrice) {
-                autoBids.poll();
-                autoBidMap.remove(best.getBidder().getId());
-                continue;
-            }
-
-            // ❌ đang giữ giá → đẩy xuống dưới
-            if (currentBidder != null &&
-                    best.getBidder().getId() == currentBidder.getId()) {
-
-                AutoBid temp = autoBids.poll();
-                autoBids.add(temp);
-                continue;
-            }
-
-            double inc = Math.max(best.getIncrement(), MIN_INCREMENT);
-            double nextPrice = currentPrice + inc;
-
-            if (nextPrice > best.getMaxBid()) {
-                nextPrice = best.getMaxBid();
-            }
-
-            if (nextPrice <= currentPrice) break;
-
-            // ===== CHECK BALANCE =====
-            try {
-                best.getBidder().checkBalance(nextPrice);
-            } catch (Exception e) {
-                autoBids.poll();
-                autoBidMap.remove(best.getBidder().getId());
-                continue;
-            }
-
-            // ===== MONEY =====
-            if (currentBidder != null) {
-                currentBidder.release(currentPrice);
-            }
-
-            best.getBidder().reserve(nextPrice);
-
-            // ===== UPDATE =====
-            currentPrice = nextPrice;
-            currentBidder = best.getBidder();
-
-            bidHistory.add(new BidTransaction(currentBidder, currentPrice));
-
-            notifyObservers("NOTIFY " + id + " " + currentPrice);
-        }
-
-        DatabaseManager.saveOrUpdateAuction(this);
-    }
 
 
 
@@ -602,6 +526,125 @@ public class Auction {
             lock.unlock();
         }
     }
+    public void registerAutoBid(Bidder bidder, double maxBid, double increment) {
+        lock.lock();
+        try {
+
+            int bidderId = bidder.getId();
+
+            // ❌ nếu đã có → không cho đăng ký lại
+            if (autoBidMap.containsKey(bidderId)) {
+                throw new IllegalStateException("Đã_đăng_ký_auto_bid");
+            }
+
+            if (maxBid <= currentPrice) {
+                throw new IllegalArgumentException("MaxBid phải > currentPrice");
+            }
+
+            if (increment < MIN_INCREMENT) {
+                increment = MIN_INCREMENT;
+            }
+
+            AutoBid ab = new AutoBid(bidder, maxBid, increment);
+
+            //  add vào cả 2
+            autoBidMap.put(bidderId, ab);
+            autoBids.add(ab);
+
+            //  kích hoạt ngay
+            processAutoBids();
+
+        } finally {
+            lock.unlock();
+        }
+    }
+    private void processAutoBids() {
+
+        if (autoBids.isEmpty()) return;
+
+        AutoBid first = autoBids.poll();
+
+        // ❌ nếu bidder bị xóa (rare bug)
+        if (!autoBidMap.containsKey(first.getBidder().getId())) {
+            return;
+        }
+
+        // ===== chỉ 1 người =====
+        if (autoBids.isEmpty()) {
+
+            double inc = Math.max(first.getIncrement(), MIN_INCREMENT);
+            double nextPrice = Math.min(first.getMaxBid(), currentPrice + inc);
+
+            if (nextPrice > currentPrice) {
+
+                if (currentBidder != null) {
+                    currentBidder.release(currentPrice);
+                }
+
+                first.getBidder().reserve(nextPrice);
+
+                currentPrice = nextPrice;
+                currentBidder = first.getBidder();
+
+                bidHistory.add(new BidTransaction(currentBidder, currentPrice));
+
+                extendAuction();
+                notifyObservers("NOTIFY " + id + " " + currentPrice);
+            }
+
+            autoBids.add(first);
+            return;
+        }
+
+        // ===== có 2 người =====
+        AutoBid second = autoBids.peek();
+
+        // tránh tự đấu
+        if (currentBidder != null &&
+                first.getBidder().getId() == currentBidder.getId()) {
+
+            autoBids.add(first);
+            return;
+        }
+
+        double inc = Math.max(first.getIncrement(), MIN_INCREMENT);
+
+        double nextPrice = Math.min(
+                first.getMaxBid(),
+                second.getMaxBid() + inc
+        );
+
+        if (nextPrice <= currentPrice) {
+            autoBids.add(first);
+            return;
+        }
+
+        // ===== MONEY =====
+        if (currentBidder != null) {
+            currentBidder.release(currentPrice);
+        }
+
+        first.getBidder().reserve(nextPrice);
+
+        currentPrice = nextPrice;
+        currentBidder = first.getBidder();
+
+        bidHistory.add(new BidTransaction(currentBidder, currentPrice));
+
+        autoBids.add(first);
+
+        extendAuction();
+        notifyObservers("NOTIFY " + id + " " + currentPrice);
+    }
+
+
+
+
+
+
+
+
+
 
     public long getRemainingTime() {
         return Math.max(0, endTime - System.currentTimeMillis());

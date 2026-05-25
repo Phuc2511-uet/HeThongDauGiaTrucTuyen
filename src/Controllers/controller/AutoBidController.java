@@ -80,7 +80,7 @@ public class AutoBidController {
             }
 
             //  "REGISTER_AUTOBID <auction_id> <max_bid> <increment>"
-            String message = "REGISTER_AUTOBID " + auctionId + " " + maxBid + " " + increment;
+            String message = "AUTO_BID " + auctionId + " " + maxBid + " " + increment;
             Client.getInstance().send(message);
 
             closeWindow();

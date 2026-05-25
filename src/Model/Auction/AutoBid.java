@@ -2,11 +2,13 @@ package Model.Auction;
 
 import Model.User.Bidder;
 
-public class AutoBid {
-    private final Bidder bidder;
-    private final double maxBid;
-    private final double increment;
-    private final long timestamp; // để ưu tiên
+
+
+class AutoBid {
+    private Bidder bidder;
+    private double maxBid;
+    private double increment;
+    private long timestamp;
 
     public AutoBid(Bidder bidder, double maxBid, double increment) {
         this.bidder = bidder;

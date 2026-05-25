@@ -155,4 +155,9 @@ public class UserManager implements Serializable {
                 + role + " "
                 + u.getFullName().replace(" ", "_");
     }
+    public Bidder getBidderById(int id) {
+        User u = getById(id);
+        if (u instanceof Bidder) return (Bidder) u;
+        return null;
+    }
 }
