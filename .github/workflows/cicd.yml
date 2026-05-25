@@ -23,7 +23,7 @@ jobs:
           cache: maven
 
       - name: 3. Tự động Biên dịch và Đóng gói (Fat JAR)
-        run: mvn clean package -DskipTests
+        run: mvn clean package
 
       - name: 4. Tự động tạo bản Release trên GitHub
         id: create_release
