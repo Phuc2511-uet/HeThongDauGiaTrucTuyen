@@ -205,13 +205,5 @@ public class AuctionManager {
         return null;
     }
 
-    public boolean registerAutoBid(String username, int auctionId, double maxBid, double increment) {
-        // 1. Tìm phiên đấu giá (Auction) dựa trên auctionId từ danh sách đang quản lý
-        // 2. Lưu thông tin (username, maxBid, increment) vào một danh sách cấu hình AutoBid của phiên đó
-        // 3. Mỗi khi có ai đó gọi lệnh "PLACE_BID" (Đặt giá thông thường), bạn duyệt qua danh sách AutoBid của phiên này:
-        //    - Nếu giá hiện tại của phiên nhỏ hơn maxBid của user cài đặt tự động.
-        //    - Tự động thực hiện lệnh nâng giá lên (= giá hiện tại + increment) thay cho user đó.
-        //    - Bắn chuỗi lệnh "AUTO_BID <auctionId> <mức_giá_mới>" về cho toàn bộ các Client để cập nhật giao diện đồ họa.
-        return true;
-    }
+
 }

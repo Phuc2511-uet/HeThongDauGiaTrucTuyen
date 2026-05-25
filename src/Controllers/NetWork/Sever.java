@@ -158,41 +158,6 @@ public class Sever {
                     continue;
                 }
 
-                if (action.equals("REGISTER_AUTOBID")) {
-                    if (currentUser == null) {
-                        out.println("ERROR Not logged in");
-                        continue;
-                    }
-
-                    try {
-                        // Phân tách chuỗi cấu trúc: REGISTER_AUTOBID <auction_id> <max_bid> <increment>
-                        int auctionId = Integer.parseInt(parts[1]);
-                        double maxBid = Double.parseDouble(parts[2]);
-                        double increment = Double.parseDouble(parts[3]);
-
-                        // Gọi tầng quản lý logic AuctionManager để lưu thông số Auto Bid cho User này
-                        // (Bạn hãy điều chỉnh tên hàm bên dưới cho khớp với thiết kế trong AuctionManager của bạn)
-                        boolean success = AuctionManager.getInstance().registerAutoBid(
-                                currentUser.getUsername(),
-                                auctionId,
-                                maxBid,
-                                increment
-                        );
-
-                        if (success) {
-                            // Phản hồi về cho riêng client này biết cấu hình thành công
-                            out.println("AUTO_BID_SUCCESS " + auctionId);
-                            System.out.println("User " + currentUser.getUsername() + " đã cài đặt AutoBid cho phiên #" + auctionId);
-                        } else {
-                            out.println("ERROR Cài đặt Auto Bid thất bại!");
-                        }
-
-                    } catch (Exception e) {
-                        out.println("ERROR Du lieu Auto Bid khong hop le: " + e.getMessage());
-                    }
-                    continue; // Bỏ qua đoạn xử lý của InformationHandle phía dưới
-                }
-
                 // 3. CHẶN CÁC LỆNH KHÁC NẾU CHƯA LOGIN
                 if (currentUser == null) {
                     out.println("ERROR Not logged in");
