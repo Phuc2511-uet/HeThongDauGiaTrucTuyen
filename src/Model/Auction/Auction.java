@@ -399,9 +399,15 @@ public class Auction {
                 bidHistory.add(new BidTransaction( bidder, newPrice));
 
                 extendAuction();
-                processAutoBids();
+                boolean changed = processAutoBids();
 
-                message = "NOTIFY " + id + " " + currentPrice;
+                if (changed) {
+                    message = "NOTIFY " + id + " " + currentPrice;
+                } else {
+                    message = "NOTIFY " + id + " " + currentPrice;
+                }
+
+
 
                 if (!observers.contains(bidder)) {
                     shouldAddObserver = true;
@@ -551,78 +557,45 @@ public class Auction {
             autoBidMap.put(bidderId, ab);
             autoBids.add(ab);
 
-            //  kích hoạt ngay
-            processAutoBids();
+
 
         } finally {
             lock.unlock();
         }
     }
-    private void processAutoBids() {
+    private boolean processAutoBids() {
 
-        if (autoBids.isEmpty()) return;
+        if (autoBids.isEmpty()) return false;
 
-        // ===== lấy top 1 =====
         AutoBid first = autoBids.poll();
 
-        // nếu autoBid không còn hợp lệ
         if (!autoBidMap.containsKey(first.getBidder().getId())) {
-            return;
+            return false;
         }
 
-        // ===== lấy top 2 (nếu có) =====
         AutoBid second = autoBids.peek();
 
-        // ===== CASE 1: chỉ có 1 người =====
+        double nextPrice;
+
         if (second == null) {
-
             double inc = Math.max(first.getIncrement(), MIN_INCREMENT);
-            double nextPrice = Math.min(first.getMaxBid(), currentPrice + inc);
-
-            if (nextPrice > currentPrice) {
-
-                if (currentBidder != null) {
-                    currentBidder.release(currentPrice);
-                }
-
-                first.getBidder().reserve(nextPrice);
-
-                currentPrice = nextPrice;
-                currentBidder = first.getBidder();
-
-                bidHistory.add(new BidTransaction(currentBidder, currentPrice));
-
-                extendAuction();
-                notifyObservers("NOTIFY " + id + " " + currentPrice);
-            }
-
-            autoBids.add(first);
-            return;
+            nextPrice = Math.min(first.getMaxBid(), currentPrice + inc);
+        } else {
+            double inc = Math.max(first.getIncrement(), MIN_INCREMENT);
+            nextPrice = Math.min(first.getMaxBid(), second.getMaxBid() + inc);
         }
 
-        // ===== CASE 2: có >= 2 người =====
-
-        double inc = Math.max(first.getIncrement(), MIN_INCREMENT);
-
-        double nextPrice = Math.min(
-                first.getMaxBid(),
-                second.getMaxBid() + inc
-        );
-
-        // nếu không tăng được nữa → dừng
         if (nextPrice <= currentPrice) {
             autoBids.add(first);
-            return;
+            return false;
         }
 
-        // ===== MONEY =====
         if (currentBidder != null) {
             currentBidder.release(currentPrice);
         }
 
         first.getBidder().reserve(nextPrice);
 
-        // ===== UPDATE =====
         currentPrice = nextPrice;
         currentBidder = first.getBidder();
 
@@ -631,8 +604,10 @@ public class Auction {
         autoBids.add(first);
 
         extendAuction();
-        notifyObservers("NOTIFY " + id + " " + currentPrice);
+
+        return true;
     }
+
 
 
 
