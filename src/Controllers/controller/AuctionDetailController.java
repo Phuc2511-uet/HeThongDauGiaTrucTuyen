@@ -4,6 +4,7 @@ import Controllers.NetWork.Client;
 import Model.Observer.Observer;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
+import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
@@ -69,6 +70,11 @@ public class AuctionDetailController implements Observer {
                     } else {
                         btnBid.setText("Đấu giá");
                     }
+
+                    int currentAuctionId = Integer.parseInt(parts[1]);
+                    boolean hasAutoBid = Client.getInstance().isAutoBidActivatedForAuction(currentAuctionId);
+                    btnRegisterAuto.setDisable(!canBid || hasAutoBid);
+
                     // ===== MÀU STATUS =====
                     if (statusStr.equals("RUNNING") || statusStr.equals("OPEN")) {
                         lblStatus.setStyle("-fx-text-fill: #4ADE80;");
@@ -118,20 +124,53 @@ public class AuctionDetailController implements Observer {
         }
 
         // ===== REFRESH GIÁ AUTO BID =====
-        else if (cleanMessage.startsWith("AUTO_BID ")) {
-            String[] parts = cleanMessage.split("\\s+");
-            int auctionId = Integer.parseInt(parts[1]);
-            double newPrice = Double.parseDouble(parts[2]);
-            if (!lblAuctionId.getText().isEmpty() && auctionId == Integer.parseInt(lblAuctionId.getText())) {
+        else if (cleanMessage.startsWith("AUTO_BID")) {
+            // TRƯỜNG HỢP 1: Server báo đăng ký cấu hình thành công
+            if (cleanMessage.contains("SUCCESS")) {
                 Platform.runLater(() -> {
-                    lblCurrentPrice.setText(String.format("%,.0f $", newPrice));
-                    Stage currentStage = (Stage) btnBid.getScene().getWindow();
-                    NotificationToast.showSuccess(
-                            currentStage,
-                            "Hệ thống Tự động Đấu giá",
-                            "Tự động tăng giá phiên #" + auctionId + " lên: " + String.format("%,.0f $", newPrice)
-                    );
+                    int currentId = Integer.parseInt(lblAuctionId.getText().trim());
+                    Client.getInstance().addActivatedAutoBidAuction(currentId);
+
+                    btnRegisterAuto.setDisable(true);
+                    Alert alert = new Alert(Alert.AlertType.INFORMATION);
+                    alert.setTitle("Thành công");
+                    alert.setHeaderText(null);
+                    alert.setContentText("Hệ thống đã kích hoạt chế độ Tự động Đấu giá thành công! Bạn không thể hoàn tác.");
+                    alert.showAndWait();
+
+                    // Đồng bộ lại dữ liệu chi tiết của phiên sau khi kích hoạt thành công
+                    int id = Client.selectedAuctionId;
+                    Client.getInstance().getAuctionById(id);
                 });
+            }
+            // TRƯỜNG HỢP 2: Server báo lỗi khi đăng ký (Ví dụ: số dư hoặc phiên lỗi)
+            else if (cleanMessage.contains("FAILED")) {
+                Platform.runLater(() -> {
+                    Alert alert = new Alert(Alert.AlertType.ERROR);
+                    alert.setTitle("Lỗi hệ thống");
+                    alert.setHeaderText(null);
+                    alert.setContentText("Kích hoạt chế độ Tự động Đấu giá thất bại! Vui lòng kiểm tra lại cấu hình hoặc số dư ví.");
+                    alert.showAndWait();
+                });
+            }
+            // TRƯỜNG HỢP 3: Gói tin notify nhảy giá tự động (AUTO_BID <auctionId> <newPrice>)
+            else {
+                String[] parts = cleanMessage.split("\\s+");
+                if (parts.length > 2) {
+                    int auctionId = Integer.parseInt(parts[1]);
+                    double newPrice = Double.parseDouble(parts[2]);
+                    if (!lblAuctionId.getText().isEmpty() && auctionId == Integer.parseInt(lblAuctionId.getText())) {
+                        Platform.runLater(() -> {
+                            lblCurrentPrice.setText(String.format("%,.0f $", newPrice));
+                            Stage currentStage = (Stage) btnBid.getScene().getWindow();
+                            NotificationToast.showSuccess(
+                                    currentStage,
+                                    "Hệ thống Tự động Đấu giá",
+                                    "Tự động tăng giá phiên #" + auctionId + " lên: " + String.format("%,.0f $", newPrice)
+                            );
+                        });
+                    }
+                }
             }
         }
 
@@ -153,6 +192,9 @@ public class AuctionDetailController implements Observer {
                     } else {
                         btnBid.setText("Đấu giá");
                     }
+
+                    boolean hasAutoBid = Client.getInstance().isAutoBidActivatedForAuction(auctionId);
+                    btnRegisterAuto.setDisable(!canBid || hasAutoBid);
 
                     if (status.equals("RUNNING") || status.equals("OPEN")) {
                         lblStatus.setStyle("-fx-text-fill: #4ADE80;");

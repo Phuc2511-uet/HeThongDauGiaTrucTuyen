@@ -93,6 +93,7 @@ public class Client {
             case "NOTIFY":
             case "AUTO_BID":
             case "AUTO_BID_SUCCESS":
+            case "AUTO_BID_FAILED":
             case "CANCEL_AUCTION_SUCCESS":
             case "RESTORE_AUCTION_SUCCESS":
             case "STATUS_CHANGED": {
@@ -458,4 +459,18 @@ public class Client {
         return observers;
     }
 
+    //================
+    //lưu danh sách các bidder đã đặt autobid
+    private List<Integer> activatedAutoBidAuctions = new ArrayList<>();
+
+    public boolean isAutoBidActivatedForAuction(int auctionId) {
+        return activatedAutoBidAuctions.contains(auctionId);
+    }
+
+    public void addActivatedAutoBidAuction(int auctionId) {
+        if (!activatedAutoBidAuctions.contains(auctionId)) {
+            activatedAutoBidAuctions.add(auctionId);
+        }
+    }
+    //=================
 }
