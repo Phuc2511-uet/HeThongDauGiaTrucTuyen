@@ -12,7 +12,7 @@ import javafx.stage.Stage;
 
 public class AuctionDetailController implements Observer {
     @FXML
-    private Label lblAuctionId, lblItemName, lblCurrentPrice, lblSeller, lblStatus, lblTitle, lblItemId, lblCurrentBidder;
+    private Label lblAuctionId, lblItemName, lblCurrentPrice, lblSeller, lblStatus, lblTitle, lblItemId;
 
     @FXML
     private TextField txtBidPrice;
@@ -320,4 +320,31 @@ public class AuctionDetailController implements Observer {
             alert.showAndWait();
         }
     }
+
+    @FXML
+    private void handleShowBidHistory() {
+        try {
+            javafx.fxml.FXMLLoader loader = new javafx.fxml.FXMLLoader(getClass().getResource("/View/resources/fxml/bidHistoryPopup.fxml"));
+            javafx.scene.Parent root = loader.load();
+
+            BidHistoryPopupController popupController = loader.getController();
+            int auctionId = Integer.parseInt(lblAuctionId.getText().trim());
+            popupController.setAuctionId(auctionId);
+
+            Stage popupStage = new Stage();
+            popupStage.setTitle("Lịch sử đấu giá - Phiên #" + auctionId);
+            popupStage.initModality(javafx.stage.Modality.APPLICATION_MODAL);
+            popupStage.initOwner(lblAuctionId.getScene().getWindow());
+            popupStage.setScene(new javafx.scene.Scene(root));
+            popupStage.setResizable(false);
+
+            popupStage.setOnCloseRequest(event -> popupController.closePopup());
+
+            popupStage.show();
+        } catch (Exception e) {
+            e.printStackTrace();
+            showAlert("Lỗi ứng dụng", "Không thể hiển thị lịch sử đấu giá: " + e.getMessage());
+        }
+    }
+
 }
