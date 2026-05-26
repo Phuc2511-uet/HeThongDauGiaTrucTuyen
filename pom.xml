@@ -52,7 +52,13 @@
 
         <resources>
             <resource>
-                <directory>src/resources</directory>
+                <directory>src</directory>
+                <includes>
+                    <include>View/resources/**/*.fxml</include>
+                    <include>View/resources/**/*.png</include>
+                    <include>View/resources/**/*.jpg</include>
+                    <include>View/resources/**/*.css</include>
+                </includes>
             </resource>
         </resources>
 

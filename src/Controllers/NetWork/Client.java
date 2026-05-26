@@ -173,6 +173,10 @@ public class Client {
                     observers.clear();
                 }
 
+                if (activatedAutoBidAuctions != null) {
+                    activatedAutoBidAuctions.clear();
+                }
+
                 javafx.application.Platform.runLater(() -> {
                     try {
                         MainFx.showLoginScene();
@@ -269,7 +273,9 @@ public class Client {
             case "SELLER_DELETE_ITEM_SUCCESS":
                 notifyObservers(message);
                 break;
-            case "BID_HISTORY"://BID_HISTORY 15 1710000000000,500 1710000100000,700 1710000200000,900
+            case "BID_HISTORY":
+                notifyObservers(message);
+                break;                       //BID_HISTORY 15 1710000000000,500 1710000100000,700 1710000200000,900
             default:
                 System.out.println("Unknown: " + message);
         }
@@ -391,6 +397,8 @@ public class Client {
         this.currentUsername = "";
         // Xóa các observer cũ để tránh rò rỉ bộ nhớ
         observers.clear();
+
+        activatedAutoBidAuctions.clear();
 
         javafx.application.Platform.runLater(() -> {
             MainFx.showLoginScene();

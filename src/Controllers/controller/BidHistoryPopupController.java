@@ -47,49 +47,91 @@ public class BidHistoryPopupController implements Observer {
 
     @Override
     public void update(String message) {
+
         String cleanMessage = message.trim();
 
+        // ===== LOAD HISTORY =====
         if (cleanMessage.startsWith("BID_HISTORY")) {
-            String[] parts = cleanMessage.split("\\s+");
-            int resId = Integer.parseInt(parts[1]);
-            if (resId == currentAuctionId) {
-                Platform.runLater(() -> {
-                    historyData.clear();
-                    for (int i = 2; i < parts.length; i++) {
-                        String[] subParts = parts[i].split(",");
-                        if (subParts.length >= 2) {
-                            String timeStr = formatTime(Long.parseLong(subParts[0]));
-                            String priceStr = String.format("%,.0f", Double.parseDouble(subParts[1]));
-                            String bidderStr = subParts.length > 2 ? subParts[2] : "Ẩn danh";
 
-                            // ========= code đúng: CHÈN VÀO ĐẦU (INDEX 0) =========
-                            // Bid đầu tiên nhận được từ vòng lặp (cũ nhất) sẽ nằm dưới cùng,
-                            // các bid chạy sau (mới hơn) sẽ chèn lên đầu liên tục.
-                            historyData.add(0, new String[]{timeStr, bidderStr, priceStr});
-                            // =====================================================
-                        }
+            String[] parts = cleanMessage.split("\\s+");
+
+            int resId = Integer.parseInt(parts[1]);
+
+            if (resId == currentAuctionId) {
+
+                Platform.runLater(() -> {
+
+                    historyData.clear();
+
+                    // FORMAT:
+                    // BID_HISTORY auctionId time price username
+
+                    for (int i = 2; i + 2 < parts.length; i += 3) {
+
+                        String timeStr =
+                                formatTime(Long.parseLong(parts[i]));
+
+                        String priceStr =
+                                String.format("%,.0f",
+                                                Double.parseDouble(parts[i + 1]))
+                                        .replace(",", " ");
+
+                        String bidderStr =
+                                parts[i + 2];
+
+                        historyData.add(0,
+                                new String[]{
+                                        timeStr,
+                                        bidderStr,
+                                        priceStr
+                                });
                     }
                 });
             }
         }
-        else if (cleanMessage.startsWith("NOTIFY") || cleanMessage.startsWith("AUTO_BID")) {
-            String[] parts = cleanMessage.split("\\s+");
-            if (parts.length >= 3) {
-                try {
-                    int actId = Integer.parseInt(parts[1]);
-                    if (actId == currentAuctionId && !cleanMessage.contains("SUCCESS") && !cleanMessage.contains("FAILED")) {
-                        Platform.runLater(() -> {
-                            String timeStr = formatTime(System.currentTimeMillis());
-                            String priceStr = String.format("%,.0f", Double.parseDouble(parts[2]));
-                            String bidderStr = parts.length > 3 ? parts[3] : "Hệ thống";
 
-                            // ========= code đúng: CHÈN THỜI GIAN THỰC LÊN TOP =========
-                            // Khi có bất kì ai đặt giá mới hoặc auto bid nổ, chèn ngay lên đầu bảng
-                            historyData.add(0, new String[]{timeStr, bidderStr, priceStr});
-                            // =========================================================
+        // ===== REALTIME UPDATE =====
+        else if (cleanMessage.startsWith("NOTIFY")
+                || cleanMessage.startsWith("AUTO_BID")) {
+
+            String[] parts = cleanMessage.split("\\s+");
+
+            if (parts.length >= 3) {
+
+                try {
+
+                    int actId = Integer.parseInt(parts[1]);
+
+                    if (actId == currentAuctionId
+                            && !cleanMessage.contains("SUCCESS")
+                            && !cleanMessage.contains("FAILED")) {
+
+                        Platform.runLater(() -> {
+
+                            String timeStr =
+                                    formatTime(System.currentTimeMillis());
+
+                            String priceStr =
+                                    String.format("%,.0f",
+                                                    Double.parseDouble(parts[2]))
+                                            .replace(",", " ");
+
+                            String bidderStr =
+                                    parts.length > 3
+                                            ? parts[3]
+                                            : "Hệ thống";
+
+                            historyData.add(0,
+                                    new String[]{
+                                            timeStr,
+                                            bidderStr,
+                                            priceStr
+                                    });
                         });
                     }
-                } catch (Exception ignored) {}
+
+                } catch (Exception ignored) {
+                }
             }
         }
     }
