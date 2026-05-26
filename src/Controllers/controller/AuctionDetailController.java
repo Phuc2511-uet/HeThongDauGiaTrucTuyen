@@ -35,6 +35,10 @@ public class AuctionDetailController implements Observer {
         int id = Client.selectedAuctionId;
         lblTitle.setText("Thông tin chi tiết của phiên đấu giá #" + id);
         Client.getInstance().getAuctionById(id);
+
+        if (Client.getInstance().isAutoBidActivatedForAuction(id)) {
+            btnRegisterAuto.setDisable(true);
+        }
     }
 
     @Override
@@ -109,12 +113,15 @@ public class AuctionDetailController implements Observer {
 
                     // 3. Nếu là ĐỐI THỦ đặt giá (không phải mình), hiển thị Toast
                     if (!isMe) {
-                        Stage currentStage = (Stage) btnBid.getScene().getWindow();
-                        NotificationToast.showSuccess(
-                                currentStage,
-                                "Giá Đấu Mới!",
-                                "Phiên #" + auctionId + " vừa được trả mức giá mới: " + String.format("%,.0f $", newPrice)
-                        );
+                        // SỬA TẠI ĐÂY: Kiểm tra xem component giao diện còn tồn tại trên màn hình hay không
+                        if (btnBid != null && btnBid.getScene() != null) {
+                            Stage currentStage = (Stage) btnBid.getScene().getWindow();
+                            NotificationToast.showSuccess(
+                                    currentStage,
+                                    "Giá Đấu Mới!",
+                                    "Phiên #" + auctionId + " vừa được trả mức giá mới: " + String.format("%,.0f $", newPrice)
+                            );
+                        }
                     }
 
                     // 4. Reset lại cờ hiệu sau khi đã xử lý xong tin nhắn NOTIFY
@@ -123,53 +130,67 @@ public class AuctionDetailController implements Observer {
             }
         }
 
-        // ===== REFRESH GIÁ AUTO BID =====
+        // ===== AUTO BID KÍCH HOẠT THÀNH CÔNG =====
+        else if (cleanMessage.startsWith("AUTO_BID_SUCCESS")) {
+            String[] parts = cleanMessage.split("\\s+");
+
+            // ĐỊNH DẠNG: parts[0]="AUTO_BID_SUCCESS", parts[1]=auctionId, parts[2]=username
+            if (parts.length >= 3) {
+                int responseAuctionId = Integer.parseInt(parts[1]);
+                String targetUser = parts[2];
+                String myUsername = Client.getInstance().getCurrentUsername();
+
+                // LẤY mã ID phiên hiện tại đang hiển thị trên màn hình của Client này
+                int currentId = Integer.parseInt(lblAuctionId.getText().trim());
+
+                // ĐIỀU KIỆN QUYẾT ĐỊNH: Phải đúng phiên đấu giá này VÀ phải đúng là TÊN CỦA TÔI
+                if (responseAuctionId == currentId && myUsername != null && myUsername.equals(targetUser)) {
+                    Platform.runLater(() -> {
+                        Client.getInstance().addActivatedAutoBidAuction(currentId);
+
+                        // CHỈ khóa nút Auto Bid của người thực sự kích hoạt thành công
+                        btnRegisterAuto.setDisable(true);
+
+                        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+                        alert.setTitle("Thành công");
+                        alert.setHeaderText(null);
+                        alert.setContentText("Hệ thống đã kích hoạt chế độ Tự động Đấu giá thành công! Bạn không thể hoàn tác.");
+                        alert.showAndWait();
+
+                        // Đồng bộ lại dữ liệu chi tiết của phiên
+                        Client.getInstance().getAuctionById(currentId);
+                    });
+                }
+            }
+        }
+
+        // ===== AUTO BID KÍCH HOẠT THẤT BẠI =====
+        else if (cleanMessage.startsWith("AUTO_BID_FAILED")) {
+            Platform.runLater(() -> {
+                Alert alert = new Alert(Alert.AlertType.ERROR);
+                alert.setTitle("Lỗi hệ thống");
+                alert.setHeaderText(null);
+                alert.setContentText("Kích hoạt chế độ Tự động Đấu giá thất bại! Vui lòng kiểm tra lại cấu hình hoặc số dư ví.");
+                alert.showAndWait();
+            });
+        }
+
+        // ===== THÔNG BÁO TỰ ĐỘNG TĂNG GIÁ (Cho cả phòng xem) =====
         else if (cleanMessage.startsWith("AUTO_BID")) {
-            // TRƯỜNG HỢP 1: Server báo đăng ký cấu hình thành công
-            if (cleanMessage.contains("SUCCESS")) {
-                Platform.runLater(() -> {
-                    int currentId = Integer.parseInt(lblAuctionId.getText().trim());
-                    Client.getInstance().addActivatedAutoBidAuction(currentId);
-
-                    btnRegisterAuto.setDisable(true);
-                    Alert alert = new Alert(Alert.AlertType.INFORMATION);
-                    alert.setTitle("Thành công");
-                    alert.setHeaderText(null);
-                    alert.setContentText("Hệ thống đã kích hoạt chế độ Tự động Đấu giá thành công! Bạn không thể hoàn tác.");
-                    alert.showAndWait();
-
-                    // Đồng bộ lại dữ liệu chi tiết của phiên sau khi kích hoạt thành công
-                    int id = Client.selectedAuctionId;
-                    Client.getInstance().getAuctionById(id);
-                });
-            }
-            // TRƯỜNG HỢP 2: Server báo lỗi khi đăng ký (Ví dụ: số dư hoặc phiên lỗi)
-            else if (cleanMessage.contains("FAILED")) {
-                Platform.runLater(() -> {
-                    Alert alert = new Alert(Alert.AlertType.ERROR);
-                    alert.setTitle("Lỗi hệ thống");
-                    alert.setHeaderText(null);
-                    alert.setContentText("Kích hoạt chế độ Tự động Đấu giá thất bại! Vui lòng kiểm tra lại cấu hình hoặc số dư ví.");
-                    alert.showAndWait();
-                });
-            }
-            // TRƯỜNG HỢP 3: Gói tin notify nhảy giá tự động (AUTO_BID <auctionId> <newPrice>)
-            else {
-                String[] parts = cleanMessage.split("\\s+");
-                if (parts.length > 2) {
-                    int auctionId = Integer.parseInt(parts[1]);
-                    double newPrice = Double.parseDouble(parts[2]);
-                    if (!lblAuctionId.getText().isEmpty() && auctionId == Integer.parseInt(lblAuctionId.getText())) {
-                        Platform.runLater(() -> {
-                            lblCurrentPrice.setText(String.format("%,.0f $", newPrice));
-                            Stage currentStage = (Stage) btnBid.getScene().getWindow();
-                            NotificationToast.showSuccess(
-                                    currentStage,
-                                    "Hệ thống Tự động Đấu giá",
-                                    "Tự động tăng giá phiên #" + auctionId + " lên: " + String.format("%,.0f $", newPrice)
-                            );
-                        });
-                    }
+            String[] parts = cleanMessage.split("\\s+");
+            if (parts.length > 2) {
+                int auctionId = Integer.parseInt(parts[1]);
+                double newPrice = Double.parseDouble(parts[2]);
+                if (!lblAuctionId.getText().isEmpty() && auctionId == Integer.parseInt(lblAuctionId.getText())) {
+                    Platform.runLater(() -> {
+                        lblCurrentPrice.setText(String.format("%,.0f $", newPrice));
+                        Stage currentStage = (Stage) btnBid.getScene().getWindow();
+                        NotificationToast.showSuccess(
+                                currentStage,
+                                "Hệ thống Tự động Đấu giá",
+                                "Tự động tăng giá phiên #" + auctionId + " lên: " + String.format("%,.0f $", newPrice)
+                        );
+                    });
                 }
             }
         }
@@ -204,7 +225,6 @@ public class AuctionDetailController implements Observer {
                         lblStatus.setStyle("-fx-text-fill: #FB7185;");
                     }
 
-                    // SỬA LỖI BIẾN Ở ĐÂY: Kiểm tra quyền ADMIN để chặn thông báo nếu muốn
                     boolean isAdmin = false;
                     if (Client.getInstance() != null && Client.getInstance().getCurrentRole() != null) {
                         isAdmin = Client.getInstance().getCurrentRole().equalsIgnoreCase("ADMIN");
@@ -346,5 +366,4 @@ public class AuctionDetailController implements Observer {
             showAlert("Lỗi ứng dụng", "Không thể hiển thị lịch sử đấu giá: " + e.getMessage());
         }
     }
-
 }

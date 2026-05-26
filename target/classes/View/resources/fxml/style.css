@@ -1,0 +1,33 @@
+/* 1. Thanh Tiêu đề (Header) */
+.table-view .column-header, .table-view .filler {
+    -fx-background-color: #1E293B;
+    -fx-border-color: #334155;
+    -fx-size: 45;
+}
+
+.table-view .column-header .label {
+    -fx-text-fill: #3B82F6;
+    -fx-font-weight: bold;
+    -fx-font-size: 18px;
+    /* CĂN GIỮ TIÊU ĐỀ */
+    -fx-alignment: CENTER;
+}
+
+/* 2. Các hàng và ô dữ liệu (Row & Cell) */
+.table-row-cell {
+    -fx-background-color: #1E293B;
+    -fx-cell-size: 50px; /* Tăng thêm độ cao hàng để chữ to nhìn thoáng hơn */
+    -fx-border-color: transparent transparent #334155 transparent;
+}
+
+.table-row-cell:hover {
+    -fx-background-color: #334155;
+}
+
+/* 3. CĂN GIỮ NỘI DUNG TRONG CỘT */
+.table-cell {
+    -fx-text-fill: white !important;
+    -fx-font-size: 16px;
+    /* CĂN GIỮ CHỮ TRONG HÀNG */
+    -fx-alignment: CENTER;
+}
