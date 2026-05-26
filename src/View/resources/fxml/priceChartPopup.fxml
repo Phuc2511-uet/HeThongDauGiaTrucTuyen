@@ -8,7 +8,7 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
-<VBox prefHeight="520.0" prefWidth="850.0" spacing="15.0" style="-fx-background-color: #1E293B; -fx-background-radius: 0;" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="Controllers.controller.PriceChartPopupController">
+<VBox prefHeight="520.0" prefWidth="850.0" spacing="15.0" style="-fx-background-color: #1E293B; -fx-background-radius: 0;" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="Controllers.Controller.PriceChartPopupController">
     <children>
         <Label text="BIỂU ĐỒ BIẾN ĐỘNG GIÁ THEO THỜI GIAN THỰC" textFill="#38BDF8">
             <font>

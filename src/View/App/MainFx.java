@@ -1,5 +1,5 @@
 package View.App;
-import Controllers.NetWork.Client;
+import View.Client.Client;
 
 
 import javafx.application.Application;

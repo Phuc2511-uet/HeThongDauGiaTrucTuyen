@@ -4,7 +4,7 @@
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.ScrollPane?>
 
-<VBox xmlns:fx="http://javafx.com/fxml" fx:controller="Controllers.controller.ManageAuctionController" spacing="20" style="-fx-background-color:#0F172A;-fx-padding:25;">
+<VBox xmlns:fx="http://javafx.com/fxml" fx:controller="Controllers.Controller.ManageAuctionController" spacing="20" style="-fx-background-color:#0F172A;-fx-padding:25;">
     <Label text="Quản lý phiên đấu giá" style="-fx-text-fill:white;-fx-font-size:25;-fx-font-weight:bold;"/>
     <VBox VBox.vgrow="ALWAYS" spacing="20">
         <ScrollPane fitToWidth="true" VBox.vgrow="ALWAYS" style="-fx-background:#0F172A;-fx-background-color:transparent;">
