@@ -23,8 +23,8 @@ public class UserManager implements Serializable {
         return instance;
     }
 
-    public void setUsers(List<User> users) {
-        this.users = users;
+    public synchronized void setUsers(List<User> users) {
+        this.users = new ArrayList<>(users);
         // Cập nhật count để tránh trùng ID khi tải từ DB
         if (!users.isEmpty()) {
             this.count = users.stream().mapToInt(User::getId).max().orElse(0) + 1;
@@ -46,7 +46,7 @@ public class UserManager implements Serializable {
     }
 
     // ===== LOGIN =====
-    public User authenticate(String username, String password) throws AuthenticationException {
+    public synchronized User authenticate(String username, String password) throws AuthenticationException {
         for (User u : users) {
             if (u.getUsername().equals(username)) {
                 u.login(password);
@@ -57,7 +57,7 @@ public class UserManager implements Serializable {
     }
 
     // ===== LẤY THEO ID (int) =====
-    public User getById(int id) {
+    public synchronized User getById(int id) {
         for (User u : users) {
             if (u.getId() == id) {
                 return u;
@@ -76,14 +76,14 @@ public class UserManager implements Serializable {
         // xóa RAM
         return users.removeIf(u -> u.getId() == id);
     }
-    public String getAllUserIdsAsString() {
+    public synchronized String getAllUserIdsAsString() {
         return "USER_IDS " +
                 users.stream()
                         .map(u -> String.valueOf(u.getId()))
                         .reduce((a, b) -> a + " " + b)
                         .orElse("");
     }
-    public String getUserInfoAsString(int id) {
+    public synchronized String getUserInfoAsString(int id) {
 
         User u = getById(id);
 
@@ -104,8 +104,8 @@ public class UserManager implements Serializable {
                 + u.getFullName().replace(" ", "_");
     }
 
-    public List<User> getUsers() {
-        return users;
+    public synchronized List<User> getUsers() {
+        return new ArrayList<>(users);
     }
 
     public static void setInstance(UserManager loadedInstance) {
@@ -135,7 +135,7 @@ public class UserManager implements Serializable {
         return user;
     }
 
-    public String getAdminUserInfoAsString(int id) {
+    public synchronized String getAdminUserInfoAsString(int id) {
 
         User u = getById(id);
 
@@ -155,7 +155,7 @@ public class UserManager implements Serializable {
                 + role + " "
                 + u.getFullName().replace(" ", "_");
     }
-    public Bidder getBidderById(int id) {
+    public synchronized Bidder getBidderById(int id) {
         User u = getById(id);
         if (u instanceof Bidder) return (Bidder) u;
         return null;
