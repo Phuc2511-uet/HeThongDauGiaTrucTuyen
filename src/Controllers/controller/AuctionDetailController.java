@@ -366,4 +366,38 @@ public class AuctionDetailController implements Observer {
             showAlert("Lỗi ứng dụng", "Không thể hiển thị lịch sử đấu giá: " + e.getMessage());
         }
     }
+
+    @FXML
+    private void handleShowPriceChart(javafx.scene.input.MouseEvent event) {
+        try {
+            javafx.fxml.FXMLLoader loader = new javafx.fxml.FXMLLoader(
+                    getClass().getResource("/View/resources/fxml/priceChartPopup.fxml")
+            );
+            javafx.scene.Parent root = loader.load();
+
+            // 1. Lấy chính xác controller ra
+            PriceChartPopupController controller = loader.getController();
+            int auctionId = Integer.parseInt(lblAuctionId.getText().trim());
+
+            // 2. KÍCH HOẠT TRUYỀN MÃ PHIÊN SANG VÀ PHÁT LỆNH GỌI SERVER
+            controller.setAuctionId(auctionId);
+
+            // 3. Khởi tạo cửa sổ popup độc lập
+            javafx.stage.Stage popupStage = new javafx.stage.Stage();
+            popupStage.setTitle("Biểu đồ biến động giá - Phiên #" + auctionId);
+            popupStage.initModality(javafx.stage.Modality.APPLICATION_MODAL);
+            popupStage.initOwner(lblAuctionId.getScene().getWindow());
+            popupStage.setScene(new javafx.scene.Scene(root));
+            popupStage.setResizable(false);
+
+            // 4. Đảm bảo khi bấm nút X tắt cửa sổ, hàm hủy Observer được thực thi sạch sẽ
+            popupStage.setOnCloseRequest(e -> controller.closePopup());
+
+            popupStage.show();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            showAlert("Lỗi ứng dụng", "Không thể hiển thị biểu đồ giá: " + e.getMessage());
+        }
+    }
 }
