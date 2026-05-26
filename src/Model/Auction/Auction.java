@@ -538,7 +538,7 @@ public class Auction {
 
             int bidderId = bidder.getId();
 
-            // ❌ nếu đã có → không cho đăng ký lại
+            // nếu đã có → không cho đăng ký lại
             if (autoBidMap.containsKey(bidderId)) {
                 throw new IllegalStateException("Đã_đăng_ký_auto_bid");
             }
@@ -553,7 +553,7 @@ public class Auction {
 
             AutoBid ab = new AutoBid(bidder, maxBid, increment);
 
-            //  add vào cả 2
+            // add vào cả 2
             autoBidMap.put(bidderId, ab);
             autoBids.add(ab);
 

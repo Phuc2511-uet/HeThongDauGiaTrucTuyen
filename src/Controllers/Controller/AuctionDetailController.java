@@ -4,6 +4,7 @@ import View.Client.Client;
 import Model.Observer.Observer;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
+import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
@@ -11,7 +12,7 @@ import javafx.stage.Stage;
 
 public class AuctionDetailController implements Observer {
     @FXML
-    private Label lblAuctionId, lblItemName, lblCurrentPrice, lblSeller, lblStatus, lblTitle, lblItemId, lblCurrentBidder;
+    private Label lblAuctionId, lblItemName, lblCurrentPrice, lblSeller, lblStatus, lblTitle, lblItemId;
 
     @FXML
     private TextField txtBidPrice;
@@ -34,6 +35,10 @@ public class AuctionDetailController implements Observer {
         int id = Client.selectedAuctionId;
         lblTitle.setText("Thông tin chi tiết của phiên đấu giá #" + id);
         Client.getInstance().getAuctionById(id);
+
+        if (Client.getInstance().isAutoBidActivatedForAuction(id)) {
+            btnRegisterAuto.setDisable(true);
+        }
     }
 
     @Override
@@ -69,6 +74,11 @@ public class AuctionDetailController implements Observer {
                     } else {
                         btnBid.setText("Đấu giá");
                     }
+
+                    int currentAuctionId = Integer.parseInt(parts[1]);
+                    boolean hasAutoBid = Client.getInstance().isAutoBidActivatedForAuction(currentAuctionId);
+                    btnRegisterAuto.setDisable(!canBid || hasAutoBid);
+
                     // ===== MÀU STATUS =====
                     if (statusStr.equals("RUNNING") || statusStr.equals("OPEN")) {
                         lblStatus.setStyle("-fx-text-fill: #4ADE80;");
@@ -103,12 +113,15 @@ public class AuctionDetailController implements Observer {
 
                     // 3. Nếu là ĐỐI THỦ đặt giá (không phải mình), hiển thị Toast
                     if (!isMe) {
-                        Stage currentStage = (Stage) btnBid.getScene().getWindow();
-                        NotificationToast.showSuccess(
-                                currentStage,
-                                "Giá Đấu Mới!",
-                                "Phiên #" + auctionId + " vừa được trả mức giá mới: " + String.format("%,.0f $", newPrice)
-                        );
+                        // SỬA TẠI ĐÂY: Kiểm tra xem component giao diện còn tồn tại trên màn hình hay không
+                        if (btnBid != null && btnBid.getScene() != null) {
+                            Stage currentStage = (Stage) btnBid.getScene().getWindow();
+                            NotificationToast.showSuccess(
+                                    currentStage,
+                                    "Giá Đấu Mới!",
+                                    "Phiên #" + auctionId + " vừa được trả mức giá mới: " + String.format("%,.0f $", newPrice)
+                            );
+                        }
                     }
 
                     // 4. Reset lại cờ hiệu sau khi đã xử lý xong tin nhắn NOTIFY
@@ -117,21 +130,68 @@ public class AuctionDetailController implements Observer {
             }
         }
 
-        // ===== REFRESH GIÁ AUTO BID =====
-        else if (cleanMessage.startsWith("AUTO_BID ")) {
+        // ===== AUTO BID KÍCH HOẠT THÀNH CÔNG =====
+        else if (cleanMessage.startsWith("AUTO_BID_SUCCESS")) {
             String[] parts = cleanMessage.split("\\s+");
-            int auctionId = Integer.parseInt(parts[1]);
-            double newPrice = Double.parseDouble(parts[2]);
-            if (!lblAuctionId.getText().isEmpty() && auctionId == Integer.parseInt(lblAuctionId.getText())) {
-                Platform.runLater(() -> {
-                    lblCurrentPrice.setText(String.format("%,.0f $", newPrice));
-                    Stage currentStage = (Stage) btnBid.getScene().getWindow();
-                    NotificationToast.showSuccess(
-                            currentStage,
-                            "Hệ thống Tự động Đấu giá",
-                            "Tự động tăng giá phiên #" + auctionId + " lên: " + String.format("%,.0f $", newPrice)
-                    );
-                });
+
+            // ĐỊNH DẠNG: parts[0]="AUTO_BID_SUCCESS", parts[1]=auctionId, parts[2]=username
+            if (parts.length >= 3) {
+                int responseAuctionId = Integer.parseInt(parts[1]);
+                String targetUser = parts[2];
+                String myUsername = Client.getInstance().getCurrentUsername();
+
+                // LẤY mã ID phiên hiện tại đang hiển thị trên màn hình của Client này
+                int currentId = Integer.parseInt(lblAuctionId.getText().trim());
+
+                // ĐIỀU KIỆN QUYẾT ĐỊNH: Phải đúng phiên đấu giá này VÀ phải đúng là TÊN CỦA TÔI
+                if (responseAuctionId == currentId && myUsername != null && myUsername.equals(targetUser)) {
+                    Platform.runLater(() -> {
+                        Client.getInstance().addActivatedAutoBidAuction(currentId);
+
+                        // CHỈ khóa nút Auto Bid của người thực sự kích hoạt thành công
+                        btnRegisterAuto.setDisable(true);
+
+                        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+                        alert.setTitle("Thành công");
+                        alert.setHeaderText(null);
+                        alert.setContentText("Hệ thống đã kích hoạt chế độ Tự động Đấu giá thành công! Bạn không thể hoàn tác.");
+                        alert.showAndWait();
+
+                        // Đồng bộ lại dữ liệu chi tiết của phiên
+                        Client.getInstance().getAuctionById(currentId);
+                    });
+                }
+            }
+        }
+
+        // ===== AUTO BID KÍCH HOẠT THẤT BẠI =====
+        else if (cleanMessage.startsWith("AUTO_BID_FAILED")) {
+            Platform.runLater(() -> {
+                Alert alert = new Alert(Alert.AlertType.ERROR);
+                alert.setTitle("Lỗi hệ thống");
+                alert.setHeaderText(null);
+                alert.setContentText("Kích hoạt chế độ Tự động Đấu giá thất bại! Vui lòng kiểm tra lại cấu hình hoặc số dư ví.");
+                alert.showAndWait();
+            });
+        }
+
+        // ===== THÔNG BÁO TỰ ĐỘNG TĂNG GIÁ (Cho cả phòng xem) =====
+        else if (cleanMessage.startsWith("AUTO_BID")) {
+            String[] parts = cleanMessage.split("\\s+");
+            if (parts.length > 2) {
+                int auctionId = Integer.parseInt(parts[1]);
+                double newPrice = Double.parseDouble(parts[2]);
+                if (!lblAuctionId.getText().isEmpty() && auctionId == Integer.parseInt(lblAuctionId.getText())) {
+                    Platform.runLater(() -> {
+                        lblCurrentPrice.setText(String.format("%,.0f $", newPrice));
+                        Stage currentStage = (Stage) btnBid.getScene().getWindow();
+                        NotificationToast.showSuccess(
+                                currentStage,
+                                "Hệ thống Tự động Đấu giá",
+                                "Tự động tăng giá phiên #" + auctionId + " lên: " + String.format("%,.0f $", newPrice)
+                        );
+                    });
+                }
             }
         }
 
@@ -154,6 +214,9 @@ public class AuctionDetailController implements Observer {
                         btnBid.setText("Đấu giá");
                     }
 
+                    boolean hasAutoBid = Client.getInstance().isAutoBidActivatedForAuction(auctionId);
+                    btnRegisterAuto.setDisable(!canBid || hasAutoBid);
+
                     if (status.equals("RUNNING") || status.equals("OPEN")) {
                         lblStatus.setStyle("-fx-text-fill: #4ADE80;");
                     } else if (status.equals("PAID")) {
@@ -162,7 +225,6 @@ public class AuctionDetailController implements Observer {
                         lblStatus.setStyle("-fx-text-fill: #FB7185;");
                     }
 
-                    // SỬA LỖI BIẾN Ở ĐÂY: Kiểm tra quyền ADMIN để chặn thông báo nếu muốn
                     boolean isAdmin = false;
                     if (Client.getInstance() != null && Client.getInstance().getCurrentRole() != null) {
                         isAdmin = Client.getInstance().getCurrentRole().equalsIgnoreCase("ADMIN");
@@ -276,6 +338,66 @@ public class AuctionDetailController implements Observer {
             alert.setHeaderText(null);
             alert.setContentText("Không thể hiển thị hộp cấu hình Auto Bid: " + e.getMessage());
             alert.showAndWait();
+        }
+    }
+
+    @FXML
+    private void handleShowBidHistory() {
+        try {
+            javafx.fxml.FXMLLoader loader = new javafx.fxml.FXMLLoader(getClass().getResource("/View/resources/fxml/bidHistoryPopup.fxml"));
+            javafx.scene.Parent root = loader.load();
+
+            BidHistoryPopupController popupController = loader.getController();
+            int auctionId = Integer.parseInt(lblAuctionId.getText().trim());
+            popupController.setAuctionId(auctionId);
+
+            Stage popupStage = new Stage();
+            popupStage.setTitle("Lịch sử đấu giá - Phiên #" + auctionId);
+            popupStage.initModality(javafx.stage.Modality.APPLICATION_MODAL);
+            popupStage.initOwner(lblAuctionId.getScene().getWindow());
+            popupStage.setScene(new javafx.scene.Scene(root));
+            popupStage.setResizable(false);
+
+            popupStage.setOnCloseRequest(event -> popupController.closePopup());
+
+            popupStage.show();
+        } catch (Exception e) {
+            e.printStackTrace();
+            showAlert("Lỗi ứng dụng", "Không thể hiển thị lịch sử đấu giá: " + e.getMessage());
+        }
+    }
+
+    @FXML
+    private void handleShowPriceChart(javafx.scene.input.MouseEvent event) {
+        try {
+            javafx.fxml.FXMLLoader loader = new javafx.fxml.FXMLLoader(
+                    getClass().getResource("/View/resources/fxml/priceChartPopup.fxml")
+            );
+            javafx.scene.Parent root = loader.load();
+
+            // 1. Lấy chính xác controller ra
+            PriceChartPopupController controller = loader.getController();
+            int auctionId = Integer.parseInt(lblAuctionId.getText().trim());
+
+            // 2. KÍCH HOẠT TRUYỀN MÃ PHIÊN SANG VÀ PHÁT LỆNH GỌI SERVER
+            controller.setAuctionId(auctionId);
+
+            // 3. Khởi tạo cửa sổ popup độc lập
+            javafx.stage.Stage popupStage = new javafx.stage.Stage();
+            popupStage.setTitle("Biểu đồ biến động giá - Phiên #" + auctionId);
+            popupStage.initModality(javafx.stage.Modality.APPLICATION_MODAL);
+            popupStage.initOwner(lblAuctionId.getScene().getWindow());
+            popupStage.setScene(new javafx.scene.Scene(root));
+            popupStage.setResizable(false);
+
+            // 4. Đảm bảo khi bấm nút X tắt cửa sổ, hàm hủy Observer được thực thi sạch sẽ
+            popupStage.setOnCloseRequest(e -> controller.closePopup());
+
+            popupStage.show();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            showAlert("Lỗi ứng dụng", "Không thể hiển thị biểu đồ giá: " + e.getMessage());
         }
     }
 }

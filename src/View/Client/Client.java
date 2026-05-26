@@ -93,6 +93,7 @@ public class Client {
             case "NOTIFY":
             case "AUTO_BID":
             case "AUTO_BID_SUCCESS":
+            case "AUTO_BID_FAILED":
             case "CANCEL_AUCTION_SUCCESS":
             case "RESTORE_AUCTION_SUCCESS":
             case "STATUS_CHANGED": {
@@ -170,6 +171,10 @@ public class Client {
                 // Xóa danh sách đăng ký Observer giao diện cũ để tránh rò rỉ dữ liệu
                 if (observers != null) {
                     observers.clear();
+                }
+
+                if (activatedAutoBidAuctions != null) {
+                    activatedAutoBidAuctions.clear();
                 }
 
                 javafx.application.Platform.runLater(() -> {
@@ -268,7 +273,9 @@ public class Client {
             case "SELLER_DELETE_ITEM_SUCCESS":
                 notifyObservers(message);
                 break;
-            case "BID_HISTORY"://BID_HISTORY 15 1710000000000,500 1710000100000,700 1710000200000,900
+            case "BID_HISTORY":
+                notifyObservers(message);
+                break;                       //BID_HISTORY 15 1710000000000,500 1710000100000,700 1710000200000,900
             default:
                 System.out.println("Unknown: " + message);
         }
@@ -391,6 +398,8 @@ public class Client {
         // Xóa các observer cũ để tránh rò rỉ bộ nhớ
         observers.clear();
 
+        activatedAutoBidAuctions.clear();
+
         javafx.application.Platform.runLater(() -> {
             MainFx.showLoginScene();
         });
@@ -458,4 +467,18 @@ public class Client {
         return observers;
     }
 
+    //================
+    //lưu danh sách các bidder đã đặt autobid
+    private List<Integer> activatedAutoBidAuctions = new ArrayList<>();
+
+    public boolean isAutoBidActivatedForAuction(int auctionId) {
+        return activatedAutoBidAuctions.contains(auctionId);
+    }
+
+    public void addActivatedAutoBidAuction(int auctionId) {
+        if (!activatedAutoBidAuctions.contains(auctionId)) {
+            activatedAutoBidAuctions.add(auctionId);
+        }
+    }
+    //=================
 }

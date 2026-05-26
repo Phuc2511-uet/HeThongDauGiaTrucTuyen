@@ -147,7 +147,7 @@ public class ItemManager implements Serializable {
         }
 
         // (tuỳ chọn) tránh giá quá nhỏ gây spam
-        if (price < 100) {
+        if (price < 1) {
             throw new IllegalArgumentException("Giá_tối_thiểu_là_100");
         }
 

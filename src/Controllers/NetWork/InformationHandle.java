@@ -88,6 +88,8 @@ public class InformationHandle {
                     return handleCancelAuction(part, currentUser);
                 case "RESTORE_AUCTION":
                     return handleRestoreAuction(part, currentUser);
+                case "GET_BID_HISTORY":
+                    return handleGetBidHistory(part);
                 default:
                     return "ERROR Unknown action";
             }
@@ -122,8 +124,10 @@ public class InformationHandle {
 
                 sb.append(" ")
                         .append(timeMillis)
-                        .append(",")
-                        .append(b.getBidAmount());
+                        .append(" ")
+                        .append(b.getBidAmount())
+                        .append(" ")
+                        .append(b.getBidder().getUsername());;
             }
 
             return sb.toString();
@@ -658,7 +662,8 @@ public class InformationHandle {
 
             auction.registerAutoBid((Bidder) user, maxPrice,increament);
 
-            return "AUTO_BID_SUCCESS";
+            //  AUTO_BID_SUCCESS <auctionId> <username>
+            return "AUTO_BID_SUCCESS " + auctionId + " " + user.getUsername();
 
         } catch (Exception e) {
             return "AUTO_BID_FAILED " + e.getMessage();

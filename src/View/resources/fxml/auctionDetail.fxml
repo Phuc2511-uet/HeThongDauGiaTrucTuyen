@@ -9,98 +9,73 @@
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.RowConstraints?>
 <?import javafx.scene.layout.VBox?>
-<?import javafx.scene.text.Font?>
 
-<VBox spacing="20.0" style="-fx-background-color: transparent;" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="Controllers.Controller.AuctionDetailController">
+<VBox spacing="20.0" style="-fx-background-color: #0F172A;" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="Controllers.controller.AuctionDetailController">
     <children>
-        <Button onAction="#backToList" prefHeight="40.0" prefWidth="161.0" style="-fx-background-color: #334155; -fx-text-fill: white;" text="⬅ Quay lại danh sách" />
+        <Button onAction="#backToList" prefHeight="40.0" prefWidth="161.0" style="-fx-background-color: #334155; -fx-text-fill: white; -fx-font-size: 14px; -fx-font-family: 'System';" text="⬅ Quay lại danh sách" />
 
         <VBox spacing="15.0" style="-fx-background-color: #1E293B; -fx-background-radius: 20; -fx-padding: 25;">
             <children>
-                <Label fx:id="lblTitle" text="Thông tin chi tiết của phiên đấu giá" textFill="WHITE">
-                    <font> <Font name="System Bold" size="24.0" /> </font>
-                </Label>
+                <Label fx:id="lblTitle" text="Thông tin chi tiết của phiên đấu giá" textFill="WHITE" style="-fx-font-size: 24px; -fx-font-weight: bold; -fx-font-family: 'System';" />
+
                 <GridPane vgap="15.0">
                     <columnConstraints>
                         <ColumnConstraints prefWidth="150.0" />
                         <ColumnConstraints prefWidth="300.0" />
                     </columnConstraints>
                     <children>
-                        <Label text="Mã phiên:" textFill="#94A3B8" GridPane.rowIndex="0">
-                            <font><Font size="16.0" /></font>
-                        </Label>
-                        <Label fx:id="lblAuctionId" text="..." textFill="WHITE" GridPane.columnIndex="1" GridPane.rowIndex="0">
-                            <font><Font name="System Bold" size="16.0" /></font>
-                        </Label>
+                        <Label text="Mã phiên:" textFill="#94A3B8" GridPane.rowIndex="0" style="-fx-font-size: 16px; -fx-font-family: 'System';" />
+                        <Label fx:id="lblAuctionId" text="..." textFill="WHITE" GridPane.columnIndex="1" GridPane.rowIndex="0" style="-fx-font-size: 16px; -fx-font-weight: bold; -fx-font-family: 'System';" />
 
-                        <Label text="Tên vật phẩm:" textFill="#94A3B8" GridPane.rowIndex="1">
-                            <font><Font size="16.0" /></font>
-                        </Label>
-                        <Label fx:id="lblItemName" text="..." textFill="WHITE" GridPane.columnIndex="1" GridPane.rowIndex="1">
-                            <font><Font name="System Bold" size="16.0" /></font>
-                        </Label>
+                        <Label text="Tên vật phẩm:" textFill="#94A3B8" GridPane.rowIndex="1" style="-fx-font-size: 16px; -fx-font-family: 'System';" />
+                        <Label fx:id="lblItemName" text="..." textFill="WHITE" GridPane.columnIndex="1" GridPane.rowIndex="1" style="-fx-font-size: 16px; -fx-font-weight: bold; -fx-font-family: 'System';" />
 
-                        <Label text="Mã vật phẩm:" textFill="#94A3B8" GridPane.rowIndex="2">
-                            <font><Font size="16.0" /></font>
-                        </Label>
-                        <Label fx:id="lblItemId" text="..." textFill="WHITE" GridPane.columnIndex="1" GridPane.rowIndex="2">
-                            <font><Font name="System Bold" size="16.0" /></font>
-                        </Label>
+                        <Label text="Mã vật phẩm:" textFill="#94A3B8" GridPane.rowIndex="2" style="-fx-font-size: 16px; -fx-font-family: 'System';" />
+                        <Label fx:id="lblItemId" text="..." textFill="WHITE" GridPane.columnIndex="1" GridPane.rowIndex="2" style="-fx-font-size: 16px; -fx-font-weight: bold; -fx-font-family: 'System';" />
 
-                        <Label text="Giá hiện tại:" textFill="#94A3B8" GridPane.rowIndex="3">
-                            <font><Font size="16.0" /></font>
-                        </Label>
-                        <Label fx:id="lblCurrentPrice" text="..." textFill="WHITE" GridPane.columnIndex="1" GridPane.rowIndex="3">
-                            <font><Font name="System Bold" size="16.0" /></font>
-                        </Label>
+                        <Label text="Giá hiện tại:" textFill="#94A3B8" GridPane.rowIndex="3" style="-fx-font-size: 16px; -fx-font-family: 'System';" />
+                        <Label fx:id="lblCurrentPrice" text="..." textFill="WHITE" GridPane.columnIndex="1" GridPane.rowIndex="3" style="-fx-font-size: 16px; -fx-font-weight: bold; -fx-font-family: 'System';" />
 
-                        <Label text="Người bán:" textFill="#94A3B8" GridPane.rowIndex="4">
-                            <font><Font size="16.0" /></font>
-                        </Label>
-                        <Label fx:id="lblSeller" text="..." textFill="WHITE" GridPane.columnIndex="1" GridPane.rowIndex="4">
-                            <font><Font size="16.0" /></font>
-                        </Label>
+                        <Label text="Người bán:" textFill="#94A3B8" GridPane.rowIndex="4" style="-fx-font-size: 16px; -fx-font-family: 'System';" />
+                        <Label fx:id="lblSeller" text="..." textFill="WHITE" GridPane.columnIndex="1" GridPane.rowIndex="4" style="-fx-font-size: 16px; -fx-font-weight: bold; -fx-font-family: 'System';" />
 
-                        <Label text="Trạng thái:" textFill="#94A3B8" GridPane.rowIndex="5">
-                            <font><Font size="16.0" /></font>
-                        </Label>
-                        <Label fx:id="lblStatus" text="..." textFill="#e6e6e6" GridPane.columnIndex="1" GridPane.rowIndex="5">
-                            <font><Font size="16.0" /></font>
-                        </Label>
+                        <Label text="Trạng thái:" textFill="#94A3B8" GridPane.rowIndex="5" style="-fx-font-size: 16px; -fx-font-family: 'System';" />
+                        <Label fx:id="lblStatus" text="..." textFill="#e6e6e6" GridPane.columnIndex="1" GridPane.rowIndex="5" style="-fx-font-size: 16px; -fx-font-weight: bold; -fx-font-family: 'System';" />
                     </children>
                     <rowConstraints>
-                        <RowConstraints /><RowConstraints /><RowConstraints />
-                        <RowConstraints /><RowConstraints /><RowConstraints />
+                        <RowConstraints /> <RowConstraints /> <RowConstraints /> <RowConstraints /> <RowConstraints /> <RowConstraints />
                     </rowConstraints>
                 </GridPane>
-                <HBox alignment="CENTER_LEFT" spacing="15.0">
+
+                <HBox alignment="CENTER_LEFT" prefHeight="35.0" minHeight="35.0" prefWidth="601.0">
                     <children>
+                        <Label fx:id="lblBidHistoryLink"
+                               onMouseClicked="#handleShowBidHistory"
+                               style="-fx-text-fill: #38BDF8; -fx-font-style: italic; -fx-underline: true; -fx-cursor: hand; -fx-font-size: 16px; -fx-font-family: 'System'; -fx-min-width: 130px; -fx-max-width: 130px;"
+                               text="Lịch sử đấu giá" />
 
-                        <TextField fx:id="txtBidPrice" maxWidth="1.7976931348623157E308" prefHeight="40.0" prefWidth="820.0" promptText="Nhập giá" style="-fx-background-radius: 10;">
-                     <font>
-                        <Font size="17.0" />
-                     </font>
-                     <HBox.margin>
-                        <Insets top="50.0" />
-                     </HBox.margin></TextField>
-
-                        <Button fx:id="btnBid" onAction="#handleBid" prefHeight="40.0" prefWidth="250.0" style="-fx-background-color: #22C55E; -fx-text-fill: white; -fx-background-radius: 17; -fx-font-weight: bold;" text="Đấu giá">
-                     <HBox.margin>
-                        <Insets top="50.0" />
-                     </HBox.margin>
-                     <font>
-                        <Font size="17.0" />
-                     </font></Button>
-
-                        <Button fx:id="btnRegisterAuto" onAction="#handleSetUpAutoBid" prefHeight="40.0" prefWidth="210.0" style="-fx-background-color: #3B82F6; -fx-text-fill: white; -fx-background-radius: 17; -fx-font-weight: bold;" text="Auto Bid">
+                        <Label fx:id="lblPriceChart"
+                               onMouseClicked="#handleShowPriceChart"
+                               style="-fx-text-fill: #38BDF8; -fx-font-style: italic; -fx-underline: true; -fx-cursor: hand; -fx-font-size: 16px; -fx-font-family: 'System'; -fx-min-width: 110px; -fx-max-width: 110px;"
+                               text="Biểu đồ giá">
                             <HBox.margin>
-                                <Insets top="50.0" />
+                                <Insets left="40.0" />
                             </HBox.margin>
-                            <font>
-                                <Font size="17.0" />
-                            </font>
-                        </Button>
+                        </Label>
                     </children>
+                </HBox>
+
+                <HBox alignment="CENTER_LEFT" maxWidth="1.7976931348623157E308" spacing="15.0">
+                    <children>
+                        <TextField fx:id="txtBidPrice" maxWidth="1.7976931348623157E308" prefHeight="40.0" promptText="Nhập giá" style="-fx-background-radius: 10; -fx-font-size: 16px; -fx-font-family: 'System';" HBox.hgrow="ALWAYS" />
+
+                        <Button fx:id="btnBid" onAction="#handleBid" prefHeight="40.0" prefWidth="180.0" style="-fx-background-color: #22C55E; -fx-text-fill: white; -fx-background-radius: 17; -fx-font-weight: bold; -fx-font-size: 16px; -fx-font-family: 'System';" text="Đấu giá" />
+
+                        <Button fx:id="btnRegisterAuto" onAction="#handleSetUpAutoBid" prefHeight="40.0" prefWidth="180.0" style="-fx-background-color: #3B82F6; -fx-text-fill: white; -fx-background-radius: 17; -fx-font-weight: bold; -fx-font-size: 16px; -fx-font-family: 'System';" text="Auto Bid" />
+                    </children>
+                    <padding>
+                        <Insets top="5.0" />
+                    </padding>
                 </HBox>
             </children>
         </VBox>
