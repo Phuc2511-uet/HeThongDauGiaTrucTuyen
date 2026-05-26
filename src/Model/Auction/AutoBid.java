@@ -4,7 +4,7 @@ import Model.User.Bidder;
 
 
 
-class AutoBid {
+public class AutoBid {
     private Bidder bidder;
     private double maxBid;
     private double increment;
@@ -15,6 +15,13 @@ class AutoBid {
         this.maxBid = maxBid;
         this.increment = increment;
         this.timestamp = System.currentTimeMillis();
+    }
+
+    public AutoBid(Bidder bidder, double maxBid, double increment, long timestamp) {
+        this.bidder = bidder;
+        this.maxBid = maxBid;
+        this.increment = increment;
+        this.timestamp = timestamp;
     }
 
     public Bidder getBidder() { return bidder; }
