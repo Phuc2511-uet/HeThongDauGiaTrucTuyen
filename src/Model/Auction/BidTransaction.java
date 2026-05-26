@@ -25,6 +25,17 @@ public class BidTransaction {
         this.bidAmount = bidAmount;
         this.bidTime = LocalDateTime.now();
     }
+
+    public BidTransaction(Bidder bidder, double bidAmount, LocalDateTime bidTime) {
+
+        if (bidAmount <= 0) {
+            throw new IllegalArgumentException("Bid amount must be > 0");
+        }
+
+        this.bidder = bidder;
+        this.bidAmount = bidAmount;
+        this.bidTime = bidTime;
+    }
     public long getTimeMillis() {
         return bidTime.atZone(java.time.ZoneId.systemDefault())
                 .toInstant()

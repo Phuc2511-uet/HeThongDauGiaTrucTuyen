@@ -49,6 +49,25 @@ public class Auction {
     public List<BidTransaction> getBidHistory() {
         return new ArrayList<>(bidHistory);
     }
+    public void setBidHistory(List<BidTransaction> history) {
+        bidHistory.clear();
+        if (history != null) {
+            bidHistory.addAll(history);
+        }
+    }
+    public List<AutoBid> getAutoBidList() {
+        return new ArrayList<>(autoBidMap.values());
+    }
+    public void setAutoBids(List<AutoBid> autoBidList) {
+        autoBidMap.clear();
+        autoBids.clear();
+        if (autoBidList != null) {
+            for (AutoBid autoBid : autoBidList) {
+                autoBidMap.put(autoBid.getBidder().getId(), autoBid);
+                autoBids.add(autoBid);
+            }
+        }
+    }
     private double currentPrice;
     private Bidder currentBidder;
 
