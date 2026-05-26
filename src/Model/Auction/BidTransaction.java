@@ -8,31 +8,43 @@ import java.time.LocalDateTime;
 public class BidTransaction {
 
 
-    private final Item item;
+
     private final Bidder bidder;
     private final double bidAmount;
     private final LocalDateTime bidTime;
 
-    public BidTransaction(Item item, Bidder bidder, double bidAmount) {
-        if (item == null || bidder == null) {
-            throw new IllegalArgumentException("Item and Bidder must not be null");
-        }
+    public BidTransaction(Bidder bidder, double bidAmount) {
+
         if (bidAmount <= 0) {
             throw new IllegalArgumentException("Bid amount must be > 0");
         }
 
 
-        this.item = item;
+
         this.bidder = bidder;
         this.bidAmount = bidAmount;
         this.bidTime = LocalDateTime.now();
     }
 
+    public BidTransaction(Bidder bidder, double bidAmount, LocalDateTime bidTime) {
 
+        if (bidAmount <= 0) {
+            throw new IllegalArgumentException("Bid amount must be > 0");
+        }
 
-    public Item getItem() {
-        return item;
+        this.bidder = bidder;
+        this.bidAmount = bidAmount;
+        this.bidTime = bidTime;
     }
+    public long getTimeMillis() {
+        return bidTime.atZone(java.time.ZoneId.systemDefault())
+                .toInstant()
+                .toEpochMilli();
+    }
+
+
+
+
 
     public Bidder getBidder() {
         return bidder;
@@ -50,7 +62,7 @@ public class BidTransaction {
     public String toString() {
         return "BidTransaction{" +
 
-                ", item=" + item +
+
                 ", bidder=" + bidder +
                 ", amount=" + bidAmount +
                 ", time=" + bidTime +

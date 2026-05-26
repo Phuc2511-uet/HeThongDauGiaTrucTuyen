@@ -2,31 +2,30 @@ package Model.Auction;
 
 import Model.User.Bidder;
 
+
+
 public class AutoBid {
-    private final Bidder bidder;
-    private double maxPrice;
+    private Bidder bidder;
+    private double maxBid;
+    private double increment;
     private long timestamp;
 
-    public AutoBid(Bidder bidder, double maxPrice) {
+    public AutoBid(Bidder bidder, double maxBid, double increment) {
         this.bidder = bidder;
-        this.maxPrice = maxPrice;
+        this.maxBid = maxBid;
+        this.increment = increment;
         this.timestamp = System.currentTimeMillis();
     }
 
-    public Bidder getBidder() {
-        return bidder;
+    public AutoBid(Bidder bidder, double maxBid, double increment, long timestamp) {
+        this.bidder = bidder;
+        this.maxBid = maxBid;
+        this.increment = increment;
+        this.timestamp = timestamp;
     }
 
-    public double getMaxPrice() {
-        return maxPrice;
-    }
-
-    public void setMaxPrice(double maxPrice) {
-        this.maxPrice = maxPrice;
-        this.timestamp = System.currentTimeMillis();
-    }
-
-    public long getTimestamp() {
-        return timestamp;
-    }
+    public Bidder getBidder() { return bidder; }
+    public double getMaxBid() { return maxBid; }
+    public double getIncrement() { return increment; }
+    public long getTimestamp() { return timestamp; }
 }

@@ -31,50 +31,56 @@ public class Bidder extends User implements Observer {
     }
 
     // Đóng băng tiền + Tự động cập nhật xuống DB
-    public void reserve(double amount) {
+    public synchronized void reserve(double amount) {
         reservedBalance += amount;
         DatabaseManager.updateUserState(this);
-    }
-
-    // Giải phóng tiền + Tự động cập nhật xuống DB
-    public void release(double amount) {
-        reservedBalance -= amount;
-        if (reservedBalance < 0) reservedBalance = 0;
-        DatabaseManager.updateUserState(this);
-    }
-
-    public void checkBalance(double amount) throws InsufficientBalanceException {
-        if (this.getAvailableBalance() < amount) {
-            throw new InsufficientBalanceException("Không_đủ_số_dư_khả_dụng");
-        }
-    }
-
-    public boolean deposit(double amount) {
-        if (amount <= 0) return false;
-        this.balance += amount;
-        DatabaseManager.updateUserState(this);
-        return true;
-    }
-
-    // Getter và Setter cho DatabaseManager truy cập
-    public double getBalance() { return balance; }
-    public void setBalance(double balance) {
-        this.balance = balance;
-        DatabaseManager.updateUserState(this);
-    }
-
-    public double getReservedBalance() { return reservedBalance; }
-    public void setReservedBalance(double reservedBalance) {
-        this.reservedBalance = reservedBalance;
-        DatabaseManager.updateUserState(this);
-    }
-
-    public void setConnection(PrintWriter out) { this.out = out; }
-
-    @Override
-    public void update(String message) {
-        if (out != null) out.println(message);
-    }
+     }
+ 
+     // Giải phóng tiền + Tự động cập nhật xuống DB
+     public synchronized void release(double amount) {
+         reservedBalance -= amount;
+         if (reservedBalance < 0) reservedBalance = 0;
+         DatabaseManager.updateUserState(this);
+     }
+ 
+     public void checkBalance(double amount) throws InsufficientBalanceException {
+         if (this.getAvailableBalance() < amount) {
+             throw new InsufficientBalanceException("Không_đủ_số_dư_khả_dụng");
+         }
+     }
+ 
+     public synchronized boolean deposit(double amount) {
+         if (amount <= 0) return false;
+         this.balance += amount;
+         DatabaseManager.updateUserState(this);
+         return true;
+     }
+ 
+     // Getter và Setter cho DatabaseManager truy cập
+     public double getBalance() { return balance; }
+     public synchronized void setBalance(double balance) {
+         this.balance = balance;
+         DatabaseManager.updateUserState(this);
+     }
+ 
+     public double getReservedBalance() { return reservedBalance; }
+     public synchronized void setReservedBalance(double reservedBalance) {
+         this.reservedBalance = reservedBalance;
+         DatabaseManager.updateUserState(this);
+     }
+ 
+     public synchronized void setConnection(PrintWriter out) { this.out = out; }
+ 
+     public synchronized void clearConnection(PrintWriter oldOut) {
+         if (this.out == oldOut) {
+             this.out = null;
+         }
+     }
+ 
+     @Override
+     public synchronized void update(String message) {
+         if (out != null) out.println(message);
+     }
 
     @Override
     public void displayInfo() {

@@ -73,25 +73,39 @@
                         <RowConstraints /><RowConstraints /><RowConstraints />
                     </rowConstraints>
                 </GridPane>
+
+                <Label fx:id="lblBidHistoryLink" onMouseClicked="#handleShowBidHistory" style="-fx-text-fill: #38BDF8; -fx-font-style: italic; -fx-underline: true; -fx-cursor: hand;" text="Lịch sử đấu giá">
+                    <font>
+                        <Font size="16.0" />
+                    </font>
+                    <VBox.margin>
+                        <Insets top="15.0" />
+                    </VBox.margin>
+                </Label>
+
                 <HBox alignment="CENTER_LEFT" spacing="15.0">
                     <children>
+                        <TextField fx:id="txtBidPrice" maxWidth="1.7976931348623157E308" prefHeight="40.0" prefWidth="500.0" promptText="Nhập giá" style="-fx-background-radius: 10;">
+                            <font>
+                                <Font size="17.0" />
+                            </font>
+                        </TextField>
 
-                        <TextField fx:id="txtBidPrice" maxWidth="1.7976931348623157E308" prefHeight="40.0" prefWidth="820.0" promptText="Nhập giá" style="-fx-background-radius: 10;">
-                     <font>
-                        <Font size="17.0" />
-                     </font>
-                     <HBox.margin>
-                        <Insets top="50.0" />
-                     </HBox.margin></TextField>
+                        <Button fx:id="btnBid" onAction="#handleBid" prefHeight="40.0" prefWidth="180.0" style="-fx-background-color: #22C55E; -fx-text-fill: white; -fx-background-radius: 17; -fx-font-weight: bold;" text="Đấu giá">
+                            <font>
+                                <Font size="17.0" />
+                            </font>
+                        </Button>
 
-                        <Button fx:id="btnBid" onAction="#handleBid" prefHeight="40.0" prefWidth="250.0" style="-fx-background-color: #22C55E; -fx-text-fill: white; -fx-background-radius: 17; -fx-font-weight: bold;" text="Đấu giá">
-                     <HBox.margin>
-                        <Insets top="50.0" />
-                     </HBox.margin>
-                     <font>
-                        <Font size="17.0" />
-                     </font></Button>
+                        <Button fx:id="btnRegisterAuto" onAction="#handleSetUpAutoBid" prefHeight="40.0" prefWidth="180.0" style="-fx-background-color: #3B82F6; -fx-text-fill: white; -fx-background-radius: 17; -fx-font-weight: bold;" text="Auto Bid">
+                            <font>
+                                <Font size="17.0" />
+                            </font>
+                        </Button>
                     </children>
+                    <padding>
+                        <Insets top="5.0" />
+                    </padding>
                 </HBox>
             </children>
         </VBox>

@@ -23,18 +23,30 @@ public class CreateItemController {
     @FXML
     private void createItem() {
         try {
-            String name = txtName.getText();
-            double price = Double.parseDouble(txtPrice.getText());
+            String name = txtName.getText().trim();
+            String priceStr = txtPrice.getText().trim();
             String type = cbType.getValue();
-            if (name.isEmpty() || type == null) {
-                showAlert("Vui lòng nhập đủ thông tin");
+
+            if (name.isEmpty() || priceStr.isEmpty() || type == null) {
+                showAlert("Cảnh báo", "Vui lòng nhập đủ thông tin");
                 return;
             }
-            Client.getInstance().createItem(type,name,price);
-            showAlert("Tạo item thành công");
+
+            double price = Double.parseDouble(priceStr);
+
+            // Bẫy nhanh hạn mức tại Client để đỡ mất công gửi lên Server
+            if (price <= 0) {
+                showAlert( "Tạo thất bại", "Giá phải lớn hơn 0");
+                return;
+            }
+            if (price > 1000000000) {
+                showAlert("Tạo thất bại", "Giá không được vượt quá 1 tỷ");
+                return;
+            }
+            Client.getInstance().createItem(type, name, price);
             HomeSellerController.setPage("/View/resources/fxml/manageItem.fxml");
         } catch (Exception e) {
-            showAlert("Giá không hợp lệ");
+            showAlert("Lỗi","Giá không hợp lệ");
         }
     }
 
@@ -43,10 +55,11 @@ public class CreateItemController {
         HomeSellerController.setPage("/View/resources/fxml/manageItem.fxml");
     }
 
-    private void showAlert(String text) {
+    private void showAlert(String title, String content) {
         Alert alert = new Alert(Alert.AlertType.INFORMATION);
+        alert.setTitle(title);
         alert.setHeaderText(null);
-        alert.setContentText(text);
+        alert.setContentText(content);
         alert.showAndWait();
     }
 }

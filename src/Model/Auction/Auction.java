@@ -7,9 +7,9 @@ import Model.User.Bidder;
 import Model.User.Seller;
 import Model.Observer.Observer;
 import Controllers.Base.DatabaseManager; // Import DatabaseManager
+import Model.User.UserManager;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -25,14 +25,19 @@ public class Auction {
 
     private Status currentStatus;
     // ===== AUTO BID =====
-    private final java.util.Map<Integer, AutoBid> autoBidMap = new java.util.HashMap<>();
+    // ===== AUTO BID =====
+    private final Map<Integer, AutoBid> autoBidMap = new HashMap<>();
 
-    private final java.util.PriorityQueue<AutoBid> autoBidQueue =
-            new java.util.PriorityQueue<>((a, b) -> {
-                int cmp = Double.compare(b.getMaxPrice(), a.getMaxPrice());
-                if (cmp != 0) return cmp;
+    private final PriorityQueue<AutoBid> autoBids =
+            new PriorityQueue<>((a, b) -> {
+                if (a.getMaxBid() != b.getMaxBid()) {
+                    return Double.compare(b.getMaxBid(), a.getMaxBid());
+                }
                 return Long.compare(a.getTimestamp(), b.getTimestamp());
             });
+
+
+
 
     private static final double MIN_INCREMENT = 100;
 
@@ -41,6 +46,9 @@ public class Auction {
     private Item bidItem;
     private Seller seller;
     private final List<BidTransaction> bidHistory = new ArrayList<>();
+    public List<BidTransaction> getBidHistory() {
+        return new ArrayList<>(bidHistory);
+    }
     private double currentPrice;
     private Bidder currentBidder;
 
@@ -90,6 +98,39 @@ public class Auction {
         this.currentBidder = bidder;
     }
 
+    public void setBidHistory(List<BidTransaction> history) {
+        lock.lock();
+        try {
+            this.bidHistory.clear();
+            this.bidHistory.addAll(history);
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    public void setAutoBids(List<AutoBid> autoBidList) {
+        lock.lock();
+        try {
+            this.autoBidMap.clear();
+            this.autoBids.clear();
+            for (AutoBid ab : autoBidList) {
+                this.autoBidMap.put(ab.getBidder().getId(), ab);
+                this.autoBids.add(ab);
+            }
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    public List<AutoBid> getAutoBidList() {
+        lock.lock();
+        try {
+            return new ArrayList<>(autoBidMap.values());
+        } finally {
+            lock.unlock();
+        }
+    }
+
     // ===== GETTER CẦN THIẾT (QUAN TRỌNG) =====
     public int getId() {
         return id;
@@ -123,7 +164,7 @@ public class Auction {
         return endTime;
     }
 
-    // 👉 helper cho server (rất nên có)
+    // helper cho server (rất nên có)
     public String toNetworkString() {
         return id + " "
                 + bidItem.getName().replace(" ", "_") + " "
@@ -133,10 +174,17 @@ public class Auction {
     }
 
     // ===== OBSERVER =====
+    /**
+     * Đăng ký một người quan sát (Observer) để nhận thông báo khi phiên đấu giá thay đổi.
+     * Tối ưu: Kiểm tra trùng lặp để tránh việc một Bidder đặt nhiều lượt giá bị add trùng nhiều lần,
+     * dẫn đến việc nhận thông báo lặp lại.
+     */
     public void addObserver(Observer observer) {
         lock.lock();
         try {
-            observers.add(observer);
+            if (!observers.contains(observer)) {
+                observers.add(observer);
+            }
         } finally {
             lock.unlock();
         }
@@ -187,6 +235,8 @@ public class Auction {
                 return next == Status.FINISH || next == Status.CANCELED;
             case FINISH:
                 return next == Status.PAID;
+            case CANCELED:
+                return next == Status.OPEN;
             default:
                 return false;
         }
@@ -259,7 +309,30 @@ public class Auction {
         DatabaseManager.saveOrUpdateAuction(this);
     }
     public void resumeAfterRestart() {
-        scheduleFinish();
+
+        long now = System.currentTimeMillis();
+
+        // ✅ Nếu đã hết hạn
+        if (endTime <= now && currentStatus == Status.RUNNING) {
+
+            lock.lock();
+            try {
+                transitionTo(Status.FINISH);
+                DatabaseManager.saveOrUpdateAuction(this);
+            } finally {
+                lock.unlock();
+            }
+
+            notifyObservers("STATUS_CHANGED " + id + " FINISH");
+            notifyObservers("AUCTION_FINISHED " + id);
+
+            return;
+        }
+
+        // ✅ Nếu chưa hết hạn → schedule lại
+        if (currentStatus == Status.RUNNING) {
+            scheduleFinish();
+        }
     }
     public void forceFinish() {
 
@@ -321,10 +394,10 @@ public class Auction {
                 currentPrice = newPrice;
                 currentBidder = bidder;
 
-                bidHistory.add(new BidTransaction(bidItem, bidder, newPrice));
+                bidHistory.add(new BidTransaction(bidder, newPrice));
 
                 startAuction();
-                handleAutoBid();
+                processAutoBids();
 
                 DatabaseManager.saveOrUpdateAuction(this);
 
@@ -350,24 +423,31 @@ public class Auction {
                 if (newPrice - currentPrice < MIN_INCREMENT) {
                     throw new InvalidBidException("Bước_giá_tối_thiểu_là_100");
                 }
-
-                // 👉 GÀI VÀO ĐÂY: LUỒNG TIỀN CHO PHIÊN ĐANG CHẠY
-                // 1. Nhả tiền đóng băng cho người giữ giá cũ (Bidder A)
+                // nhả tiền người cũ
                 if (currentBidder != null) {
                     currentBidder.release(currentPrice);
                 }
-                // 2. Đóng băng tiền của người vừa đè giá mới (Bidder B)
+
+                // giữ tiền người mới
                 bidder.reserve(newPrice);
+
+
 
                 currentPrice = newPrice;
                 currentBidder = bidder;
 
-                bidHistory.add(new BidTransaction(bidItem, bidder, newPrice));
+                bidHistory.add(new BidTransaction( bidder, newPrice));
 
                 extendAuction();
-                handleAutoBid();
+                boolean changed = processAutoBids();
 
-                message = "NOTIFY " + id + " " + currentPrice;
+                if (changed) {
+                    message = "NOTIFY " + id + " " + currentPrice;
+                } else {
+                    message = "NOTIFY " + id + " " + currentPrice;
+                }
+
+
 
                 if (!observers.contains(bidder)) {
                     shouldAddObserver = true;
@@ -452,79 +532,131 @@ public class Auction {
             // AuctionManager sẽ gọi saveOrUpdateAuction sau khi pay
         }
     }
-    public void registerAutoBid(Bidder bidder, double maxPrice) {
+
+
+    public void setStatus(Status nextStatus) {
         lock.lock();
         try {
-            AutoBid existing = autoBidMap.get(bidder.getId());
+            // 1. Kiểm tra tính hợp lệ qua State Machine thông qua transitionTo
+            transitionTo(nextStatus);
 
-            if (existing != null) {
-                autoBidQueue.remove(existing);
-                existing.setMaxPrice(maxPrice);
-                autoBidQueue.add(existing);
-            } else {
-                AutoBid autoBid = new AutoBid(bidder, maxPrice);
-                autoBidMap.put(bidder.getId(), autoBid);
-                autoBidQueue.add(autoBid);
+            // 2. Phát thông báo realtime tới toàn bộ các bên đang Observer (Client)
+            notifyObservers("STATUS_CHANGED " + id + " " + nextStatus.name());
+
+            // 3. Ghi dữ liệu đồng bộ xuống MySQL Database ngay lập tức
+            DatabaseManager.saveOrUpdateAuction(this);
+
+            System.out.println("Auction ID " + id + " chuyển trạng thái thành công sang: " + nextStatus);
+        } finally {
+            lock.unlock();
+        }
+    }
+
+
+
+
+    // ===== HÀM RESET THỜI GIAN KHI ADMIN KHÔI PHỤC AUCTION =====
+    public void resetAuctionTime() {
+        lock.lock();
+        try {
+            this.startTime = 0;
+            this.endTime = 0;
+
+            // Nếu có task chạy ngầm tính thời gian cũ đang xếp hàng, hủy nó ngay
+            if (finishTask != null) {
+                finishTask.cancel(false);
             }
+
+            System.out.println("Auction ID " + id + " đã xóa trắng mốc thời gian (Chờ lượt đặt giá mới để đếm ngược).");
+        } finally {
+            lock.unlock();
+        }
+    }
+    public void registerAutoBid(Bidder bidder, double maxBid, double increment) {
+        lock.lock();
+        try {
+
+            int bidderId = bidder.getId();
+
+            // ❌ nếu đã có → không cho đăng ký lại
+            if (autoBidMap.containsKey(bidderId)) {
+                throw new IllegalStateException("Đã_đăng_ký_auto_bid");
+            }
+
+            if (maxBid <= currentPrice) {
+                throw new IllegalArgumentException("MaxBid phải > currentPrice");
+            }
+
+            if (increment < MIN_INCREMENT) {
+                increment = MIN_INCREMENT;
+            }
+
+            AutoBid ab = new AutoBid(bidder, maxBid, increment);
+
+            //  add vào cả 2
+            autoBidMap.put(bidderId, ab);
+            autoBids.add(ab);
+
+
 
         } finally {
             lock.unlock();
         }
     }
-    private void handleAutoBid() {
-        while (true) {
-            AutoBid top;
-            lock.lock();
-            try {
-                if (autoBidQueue.isEmpty()) return;
+    private boolean processAutoBids() {
 
-                top = autoBidQueue.peek();
+        if (autoBids.isEmpty()) return false;
 
-                // nếu đã là người dẫn đầu → dừng
-                if (top.getBidder().equals(currentBidder)) return;
+        AutoBid first = autoBids.poll();
 
-                double nextPrice = currentPrice + MIN_INCREMENT;
-
-                // vượt max → loại
-                if (nextPrice > top.getMaxPrice()) {
-                    autoBidQueue.poll();
-                    autoBidMap.remove(top.getBidder().getId());
-                    continue;
-                }
-
-                // không đủ tiền → loại
-                try {
-                    top.getBidder().checkBalance(nextPrice);
-                } catch (Exception e) {
-                    autoBidQueue.poll();
-                    autoBidMap.remove(top.getBidder().getId());
-                    continue;
-                }
-
-                // 👉 GÀI VÀO ĐÂY: LUỒNG TIỀN KHI HỆ THỐNG TỰ ĐỘNG ĐẶT GIÁ (AUTO BID)
-                // 1. Nhả tiền cho người vừa bị hệ thống AutoBid đè giá
-                if (currentBidder != null) {
-                    currentBidder.release(currentPrice);
-                }
-
-                // ===== AUTO BID =====
-                currentPrice = nextPrice;
-                currentBidder = top.getBidder();
-
-                // 2. Khóa tiền của người vừa được hệ thống AutoBid đấu giá hộ thành công
-                currentBidder.reserve(currentPrice);
-
-                bidHistory.add(new BidTransaction(bidItem, currentBidder, currentPrice));
-
-                // auto bid cũng gia hạn
-                extendAuction();
-            } finally {
-                lock.unlock();
-            }
-
-            notifyObservers("NOTIFY " + id + " " + currentPrice);
+        if (!autoBidMap.containsKey(first.getBidder().getId())) {
+            return false;
         }
+
+        AutoBid second = autoBids.peek();
+
+        double nextPrice;
+
+        if (second == null) {
+            double inc = Math.max(first.getIncrement(), MIN_INCREMENT);
+            nextPrice = Math.min(first.getMaxBid(), currentPrice + inc);
+        } else {
+            double inc = Math.max(first.getIncrement(), MIN_INCREMENT);
+            nextPrice = Math.min(first.getMaxBid(), second.getMaxBid() + inc);
+        }
+
+        if (nextPrice <= currentPrice) {
+            autoBids.add(first);
+            return false;
+        }
+
+        if (currentBidder != null) {
+            currentBidder.release(currentPrice);
+        }
+
+        first.getBidder().reserve(nextPrice);
+
+        currentPrice = nextPrice;
+        currentBidder = first.getBidder();
+
+        bidHistory.add(new BidTransaction(currentBidder, currentPrice));
+
+        autoBids.add(first);
+
+        extendAuction();
+
+        return true;
     }
+
+
+
+
+
+
+
+
+
+
 
     public long getRemainingTime() {
         return Math.max(0, endTime - System.currentTimeMillis());
