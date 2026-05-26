@@ -1,6 +1,6 @@
-package Controllers.controller;
+package Controllers.Controller;
 
-import Controllers.NetWork.Client;
+import View.Client.Client;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;

@@ -1,6 +1,6 @@
-package Controllers.controller;
+package Controllers.Controller;
 
-import Controllers.NetWork.Client;
+import View.Client.Client;
 import javafx.fxml.FXML;
 import javafx.scene.control.Alert;
 import javafx.scene.control.ComboBox;

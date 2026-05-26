@@ -1,6 +1,6 @@
-package Controllers.controller;
+package Controllers.Controller;
 
-import Controllers.NetWork.Client;
+import View.Client.Client;
 import Model.Observer.Observer;
 import javafx.application.Platform;
 import javafx.fxml.FXML;

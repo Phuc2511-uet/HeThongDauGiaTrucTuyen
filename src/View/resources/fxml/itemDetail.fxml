@@ -4,7 +4,7 @@
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.layout.VBox?>
 
-<VBox xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="Controllers.controller.ItemDetailController" spacing="20" style="-fx-padding: 30;-fx-background-color: #0F172A;">
+<VBox xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="Controllers.Controller.ItemDetailController" spacing="20" style="-fx-padding: 30;-fx-background-color: #0F172A;">
     <Button text="← Quay lại" onAction="#back"/>
     <Label fx:id="nameLabel"/>
     <Label fx:id="idLabel"/>

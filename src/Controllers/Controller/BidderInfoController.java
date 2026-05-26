@@ -1,6 +1,6 @@
-package Controllers.controller;
+package Controllers.Controller;
 
-import Controllers.NetWork.Client;
+import View.Client.Client;
 import Model.Observer.Observer;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;

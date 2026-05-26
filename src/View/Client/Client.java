@@ -1,4 +1,4 @@
-package Controllers.NetWork;
+package View.Client;
 
 import Model.Observer.Observer;
 import View.App.MainFx;

@@ -1,6 +1,6 @@
-package Controllers.controller;
+package Controllers.Controller;
 
-import Controllers.NetWork.Client;
+import View.Client.Client;
 import View.App.MainFx;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
