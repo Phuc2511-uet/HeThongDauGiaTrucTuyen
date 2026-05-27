@@ -1,13 +1,13 @@
 package test;
 
-import Controllers.Exceptions.AuthenticationException;
-import Controllers.Exceptions.InsufficientBalanceException;
-import Model.Auction.Auction;
-import Model.Auction.BidTransaction;
-import Model.Item.Art;
-import Model.Item.Item;
-import Model.User.Bidder;
-import Model.User.Seller;
+import shared.exception.AuthenticationException;
+import shared.exception.InsufficientBalanceException;
+import shared.model.auction.Auction;
+import shared.model.auction.BidTransaction;
+import shared.model.item.Art;
+import shared.model.item.Item;
+import shared.model.user.Bidder;
+import shared.model.user.Seller;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
