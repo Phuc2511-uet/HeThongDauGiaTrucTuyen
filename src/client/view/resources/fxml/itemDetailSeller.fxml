@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.RowConstraints?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.text.Font?>
+
+<VBox spacing="20.0" style="-fx-background-color: transparent;" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="client.controller.ItemDetailSellerController">
+    <children>
+        <Button onAction="#backPage" prefHeight="40.0" prefWidth="120.0" style="-fx-background-color: #334155; -fx-text-fill: white; -fx-background-radius: 10; -fx-font-size: 14;" text="⬅ Quay lại" />
+        <VBox spacing="20.0" style="-fx-background-color: #1E293B; -fx-background-radius: 20; -fx-padding: 30;">
+            <children>
+                <Label text="Thông tin chi tiết vật phẩm" textFill="WHITE">
+                    <font>
+                        <Font name="System Bold" size="24.0" />
+                    </font>
+                </Label>
+                <GridPane vgap="15.0">
+                    <columnConstraints>
+                        <ColumnConstraints prefWidth="150.0" />
+                        <ColumnConstraints prefWidth="350.0" />
+                    </columnConstraints>
+                    <children>
+                        <Label text="Mã vật phẩm (ID):" textFill="#94A3B8" GridPane.rowIndex="0">
+                            <font><Font size="16.0" /></font>
+                        </Label>
+                        <Label fx:id="lblId" text="..." textFill="WHITE" GridPane.columnIndex="1" GridPane.rowIndex="0">
+                            <font><Font name="System Bold" size="16.0" /></font>
+                        </Label>
+                        <Label text="Tên vật phẩm:" textFill="#94A3B8" GridPane.rowIndex="1">
+                            <font><Font size="16.0" /></font>
+                        </Label>
+                        <Label fx:id="lblName" text="..." textFill="WHITE" GridPane.columnIndex="1" GridPane.rowIndex="1">
+                            <font><Font name="System Bold" size="16.0" /></font>
+                        </Label>
+                        <Label text="Giá gốc vật phẩm:" textFill="#94A3B8" GridPane.rowIndex="2">
+                            <font><Font size="16.0" /></font>
+                        </Label>
+                        <Label fx:id="lblPrice" text="..." textFill="WHITE" GridPane.columnIndex="1" GridPane.rowIndex="2">
+                            <font><Font name="System Bold" size="16.0" /></font>
+                        </Label>
+                    </children>
+                    <rowConstraints>
+                        <RowConstraints />
+                        <RowConstraints />
+                        <RowConstraints />
+                    </rowConstraints>
+                </GridPane>
+            </children>
+        </VBox>
+    </children>
+    <padding>
+        <Insets bottom="25.0" left="25.0" right="25.0" top="25.0" />
+    </padding>
+</VBox>

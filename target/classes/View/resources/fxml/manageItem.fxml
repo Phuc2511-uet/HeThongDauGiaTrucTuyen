@@ -4,7 +4,7 @@
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.control.Button?>
 <VBox xmlns:fx="http://javafx.com/fxml"
-      fx:controller="Controllers.controller.ManageItemController"
+      fx:controller="Controllers.Controller.ManageItemController"
       spacing="20"
       style="-fx-background-color:#0F172A;-fx-padding:25;">
     <Label text="Quản lý vật phẩm"
