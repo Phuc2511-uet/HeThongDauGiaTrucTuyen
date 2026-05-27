@@ -24,20 +24,18 @@ public class AuctionService {
     public String getAuctionById(String[] parts) {
         try {
             int id = Integer.parseInt(parts[1]);
-            Auction auction = AuctionManager.getInstance().getAuctionById(id);
+
+            // Gọi thẳng hàm lấy trực tiếp từ RAM đã được tối ưu Lock của AuctionManager
+            server.repository.AuctionManager manager = server.repository.AuctionManager.getInstance();
+            shared.model.auction.Auction auction = manager.getAuctionById(id);
 
             if (auction == null) {
-                return "ERROR Auction not found";
+                return "ERROR Phiên_đấu_giá_không_tồn_tại";
             }
 
-            return "AUCTION_DETAIL_SUCCESS "
-                    + auction.getId() + " "
-                    + auction.getItem().getName().replace(" ", "_") + " "
-                    + auction.getItem().getId() + " "
-                    + auction.getCurrentPrice() + " "
-                    + auction.getSeller().getUsername() + " "
-                    + auction.getStatus().name() + " "
-                    + (auction.getCurrentBidder() != null ? auction.getCurrentBidder().getUsername() : "NONE");
+            // Gọi hàm cấu trúc chuỗi mạng chuẩn 9 tham số
+            return "AUCTION_DETAIL_SUCCESS " + auction.toNetworkString();
+
         } catch (Exception e) {
             return "ERROR " + e.getMessage();
         }

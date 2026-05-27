@@ -2,6 +2,9 @@ package client.controller;
 
 import client.network.ClientConnection;
 import client.state.Observer;
+import javafx.animation.Animation;
+import javafx.animation.KeyFrame;
+import javafx.animation.Timeline;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.control.Alert;
@@ -9,10 +12,14 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.stage.Stage;
+import javafx.util.Duration;
 
 public class AuctionDetailController implements Observer {
     @FXML
     private Label lblAuctionId, lblItemName, lblCurrentPrice, lblSeller, lblStatus, lblTitle, lblItemId;
+
+    @FXML
+    private Label lblCountdown;
 
     @FXML
     private TextField txtBidPrice;
@@ -26,6 +33,9 @@ public class AuctionDetailController implements Observer {
 
     // Cờ hiệu để biết chính mình vừa bấm nút đặt giá (Bid)
     private boolean isMyOwnBidAction = false;
+
+    private Timeline countdownTimeline;
+    private long remainingSeconds = 0;
 
     @FXML
     public void initialize() {
@@ -63,6 +73,29 @@ public class AuctionDetailController implements Observer {
                     else if (statusStr.equals("3")) statusStr = "PAID";
                     else if (statusStr.equals("4")) statusStr = "CANCELED";
                     lblStatus.setText(statusStr);
+
+                    if (statusStr.equals("RUNNING")) {
+                        if (parts.length > 7) {
+                            try {
+                                long endTimeMillis = Long.parseLong(parts[7]);
+                                long currentTimestamp = System.currentTimeMillis();
+                                long diffMillis = endTimeMillis - currentTimestamp;
+
+                                if (diffMillis > 0) {
+                                    this.remainingSeconds = diffMillis / 1000;
+                                    lblCountdown.setVisible(true);
+                                    startCountdown();
+                                } else {
+                                    stopCountdown();
+                                    lblCountdown.setVisible(false);
+                                }
+                            } catch (Exception ignored) {}
+                        }
+                    } else {
+                        stopCountdown();
+                        lblCountdown.setVisible(false);
+                    }
+
                     boolean canBid = statusStr.equals("OPEN") || statusStr.equals("RUNNING");
                     btnBid.setDisable(!canBid);
                     if (!canBid) {
@@ -184,6 +217,30 @@ public class AuctionDetailController implements Observer {
                 Platform.runLater(() -> {
                     lblStatus.setText(status);
 
+                    if ("OPEN".equalsIgnoreCase(status)) {
+                        stopCountdown();
+                        lblCountdown.setVisible(false);
+                    }
+                    else if ("RUNNING".equalsIgnoreCase(status)) {
+                        if (parts.length > 3) {
+                            try {
+                                long endTimeMillis = Long.parseLong(parts[3]);
+                                long currentTimestamp = System.currentTimeMillis();
+                                long diffMillis = endTimeMillis - currentTimestamp;
+
+                                if (diffMillis > 0) {
+                                    this.remainingSeconds = diffMillis / 1000;
+                                    lblCountdown.setVisible(true);
+                                    startCountdown();
+                                }
+                            } catch (Exception ignored) {}
+                        }
+                    }
+                    else {
+                        stopCountdown();
+                        lblCountdown.setVisible(false);
+                    }
+
                     boolean canBid = status.equals("OPEN") || status.equals("RUNNING");
                     btnBid.setDisable(!canBid);
 
@@ -272,6 +329,9 @@ public class AuctionDetailController implements Observer {
 
     @FXML
     void backToList() {
+        // nếu ko gọi hàm stop thì sẽ làm rò rỉ bộ đếm chạy ngầm vô hạn
+        stopCountdown();
+
         ClientConnection.getInstance().removeObserver(this);
         // Quay lại trang danh sách
         HomeBidderController.setPage("/client/view/resources/fxml/auctionList.fxml");
@@ -373,4 +433,41 @@ public class AuctionDetailController implements Observer {
         }
     }
 
+    // =========  HÀM BỔ TRỢ TIMELINE =========
+    private void startCountdown() {
+        if (countdownTimeline != null) {
+            countdownTimeline.stop();
+        }
+
+        // 1. Tạo một hàm Runnable nội bộ để định dạng và hiển thị thời gian
+        Runnable renderTime = () -> {
+            long hours = remainingSeconds / 3600;
+            long minutes = (remainingSeconds % 3600) / 60;
+            long seconds = remainingSeconds % 60;
+            lblCountdown.setText(String.format("%02d:%02d:%02d", hours, minutes, seconds));
+        };
+
+        // Gán luôn thời gian lên UI(để ko bị khựng)
+        renderTime.run();
+
+        // 2. Thiết lập Timeline chạy lặp lại sau mỗi giây
+        countdownTimeline = new Timeline(new KeyFrame(Duration.seconds(1), event -> {
+            if (remainingSeconds > 0) {
+                remainingSeconds--;
+                renderTime.run(); // Cập nhật lại UI sau khi trừ giây
+            } else {
+                lblCountdown.setText("00:00:00");
+                countdownTimeline.stop();
+                lblCountdown.setVisible(false);
+            }
+        }));
+        countdownTimeline.setCycleCount(Animation.INDEFINITE);
+        countdownTimeline.play();
+    }
+
+    private void stopCountdown() {
+        if (countdownTimeline != null) {
+            countdownTimeline.stop();
+        }
+    }
 }
