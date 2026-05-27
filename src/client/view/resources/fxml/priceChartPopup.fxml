@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.chart.CategoryAxis?>
+<?import javafx.scene.chart.LineChart?>
+<?import javafx.scene.chart.NumberAxis?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.text.Font?>
+
+<VBox prefHeight="520.0" prefWidth="850.0" spacing="15.0" style="-fx-background-color: #1E293B; -fx-background-radius: 0;" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="client.controller.PriceChartPopupController">
+    <children>
+        <Label text="BIỂU ĐỒ BIẾN ĐỘNG GIÁ THEO THỜI GIAN THỰC" textFill="#38BDF8">
+            <font>
+                <Font name="System Bold" size="18.0" />
+            </font>
+            <VBox.margin>
+                <Insets left="15.0" top="15.0" />
+            </VBox.margin>
+        </Label>
+
+        <LineChart fx:id="priceLineChart" alternativeRowFillVisible="false" horizontalGridLinesVisible="true" legendVisible="false" verticalGridLinesVisible="false" style="-fx-padding: 10 35 10 10; -fx-background-color: transparent;" stylesheets="@../css/chartStyle.css" VBox.vgrow="ALWAYS">
+            <xAxis>
+                <CategoryAxis fx:id="xAxisTime" animated="false" side="BOTTOM" tickLabelFill="WHITE" gapStartAndEnd="false" label="Thời gian">
+                    <tickLabelFont>
+                        <Font name="System Bold" size="11.0" />
+                    </tickLabelFont>
+                </CategoryAxis>
+            </xAxis>
+            <yAxis>
+                <NumberAxis fx:id="yAxisPrice" side="LEFT" tickLabelFill="WHITE" label="Mức giá ($)" />
+            </yAxis>
+        </LineChart>
+    </children>
+    <padding>
+        <Insets bottom="15.0" left="15.0" right="15.0" top="15.0" />
+    </padding>
+</VBox>

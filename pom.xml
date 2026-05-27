@@ -56,7 +56,7 @@
             <resource>
                 <directory>src</directory>
                 <includes>
-                    <include>View/resources/**</include>
+                    <include>client/view/resources/**</include>
                 </includes>
             </resource>
         </resources>
@@ -93,7 +93,7 @@
                     </descriptorRefs>
                     <archive>
                         <manifest>
-                            <mainClass>View.App.MainFx</mainClass>
+                            <mainClass>client.MainFx</mainClass>
                         </manifest>
                     </archive>
                 </configuration>
