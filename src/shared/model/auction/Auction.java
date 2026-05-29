@@ -25,7 +25,6 @@ public class Auction {
 
     private Status currentStatus;
     // ===== AUTO BID =====
-    // ===== AUTO BID =====
     private final Map<Integer, AutoBid> autoBidMap = new HashMap<>();
 
     private final PriorityQueue<AutoBid> autoBids =
@@ -150,13 +149,15 @@ public class Auction {
         return endTime;
     }
 
-    // helper cho server (rất nên có)
     public String toNetworkString() {
         return id + " "
                 + bidItem.getName().replace(" ", "_") + " "
+                + bidItem.getId() + " "
                 + currentPrice + " "
                 + seller.getUsername() + " "
-                + currentStatus;
+                + currentStatus + " "
+                + endTime + " "
+                + (currentBidder != null ? currentBidder.getUsername() : "null");
     }
 
     // ===== OBSERVER =====
@@ -249,7 +250,7 @@ public class Auction {
             finishTask.cancel(false);
         }
 
-        long delay = Math.max(0, endTime - System.currentTimeMillis());
+        long delay = getRemainingTime();
         finishTask = scheduler.schedule(() -> {
             boolean shouldNotify = false;
             lock.lock();
@@ -386,7 +387,7 @@ public class Auction {
 
                 DatabaseManager.saveOrUpdateAuction(this);
 
-                message = "NOTIFY " + id + " " + currentPrice;
+                notifyObservers("AUCTION_DETAIL_SUCCESS " + this.toNetworkString());
 
                 if (!observers.contains(bidder)) {
                     shouldAddObserver = true;
@@ -424,16 +425,10 @@ public class Auction {
                 bidHistory.add(new BidTransaction( bidder, newPrice));
 
                 extendAuction();
-                boolean changed = processAutoBids();
+                while (processAutoBids());
+                DatabaseManager.saveOrUpdateAuction(this);
 
-                if (changed) {
-                    message = "NOTIFY " + id + " " + currentPrice;
-                } else {
-                    message = "NOTIFY " + id + " " + currentPrice;
-                }
-
-
-
+                notifyObservers("AUCTION_DETAIL_SUCCESS " + this.toNetworkString());
                 if (!observers.contains(bidder)) {
                     shouldAddObserver = true;
                 }
@@ -450,10 +445,6 @@ public class Auction {
         // ===== NGOÀI LOCK =====
         if (shouldAddObserver) {
             addObserver(bidder);
-        }
-
-        if (message != null) {
-            notifyObservers(message);
         }
     }
 
@@ -526,7 +517,11 @@ public class Auction {
             transitionTo(nextStatus);
 
             // 2. Phát thông báo realtime tới toàn bộ các bên đang Observer (ClientConnection)
-            notifyObservers("STATUS_CHANGED " + id + " " + nextStatus.name());
+            if (nextStatus == Status.RUNNING) {
+                notifyObservers("STATUS_CHANGED " + id + " " + nextStatus.name() + " " + endTime);
+            } else {
+                notifyObservers("STATUS_CHANGED " + id + " " + nextStatus.name());
+            }
 
             // 3. Ghi dữ liệu đồng bộ xuống MySQL Database ngay lập tức
             DatabaseManager.saveOrUpdateAuction(this);
@@ -633,15 +628,16 @@ public class Auction {
         return true;
     }
 
+    public void setStatusLoaded(Status status) {
+        this.currentStatus = status;
+    }
 
-
-
-
-
-
-
-
-
+    public void setStartTime(long startTime) {
+        this.startTime = startTime;
+    }
+    public void setEndTime(long endTime) {
+        this.endTime = endTime;
+    }
 
     public long getRemainingTime() {
         return Math.max(0, endTime - System.currentTimeMillis());
