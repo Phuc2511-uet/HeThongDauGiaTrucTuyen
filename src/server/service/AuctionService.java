@@ -86,7 +86,8 @@ public class AuctionService {
                 return "ERROR NOT WINNER";
             }
 
-            boolean ok = auction.pay();
+            boolean ok = AuctionManager.getInstance().payAuction(auctionId);
+
             if (!ok) {
                 return "PAY_FAILED";
             }

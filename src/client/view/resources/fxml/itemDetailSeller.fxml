@@ -9,6 +9,9 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.HBox?>
 <VBox spacing="20.0" style="-fx-background-color: transparent;" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="client.controller.ItemDetailSellerController">
     <children>
         <Button onAction="#backPage" prefHeight="40.0" prefWidth="120.0" style="-fx-background-color: #334155; -fx-text-fill: white; -fx-background-radius: 10; -fx-font-size: 14;" text="⬅ Quay lại" />
@@ -19,37 +22,93 @@
                         <Font name="System Bold" size="24.0" />
                     </font>
                 </Label>
-                <GridPane vgap="15.0">
-                    <columnConstraints>
-                        <ColumnConstraints prefWidth="150.0" />
-                        <ColumnConstraints prefWidth="350.0" />
-                    </columnConstraints>
+                <HBox spacing="80">
+
                     <children>
-                        <Label text="Mã vật phẩm (ID):" textFill="#94A3B8" GridPane.rowIndex="0">
-                            <font><Font size="16.0" /></font>
-                        </Label>
-                        <Label fx:id="lblId" text="..." textFill="WHITE" GridPane.columnIndex="1" GridPane.rowIndex="0">
-                            <font><Font name="System Bold" size="16.0" /></font>
-                        </Label>
-                        <Label text="Tên vật phẩm:" textFill="#94A3B8" GridPane.rowIndex="1">
-                            <font><Font size="16.0" /></font>
-                        </Label>
-                        <Label fx:id="lblName" text="..." textFill="WHITE" GridPane.columnIndex="1" GridPane.rowIndex="1">
-                            <font><Font name="System Bold" size="16.0" /></font>
-                        </Label>
-                        <Label text="Giá gốc vật phẩm:" textFill="#94A3B8" GridPane.rowIndex="2">
-                            <font><Font size="16.0" /></font>
-                        </Label>
-                        <Label fx:id="lblPrice" text="..." textFill="WHITE" GridPane.columnIndex="1" GridPane.rowIndex="2">
-                            <font><Font name="System Bold" size="16.0" /></font>
-                        </Label>
+
+                        <!-- GRIDPANE CŨ GIỮ NGUYÊN -->
+                        <GridPane vgap="15.0">
+
+                            <columnConstraints>
+                                <ColumnConstraints prefWidth="150.0" />
+                                <ColumnConstraints prefWidth="350.0" />
+                            </columnConstraints>
+
+                            <children>
+
+                                <Label text="Mã vật phẩm (ID):" textFill="#94A3B8" GridPane.rowIndex="0">
+                                    <font><Font size="16.0" /></font>
+                                </Label>
+
+                                <Label fx:id="lblId" text="..." textFill="WHITE"
+                                       GridPane.columnIndex="1" GridPane.rowIndex="0">
+                                    <font><Font name="System Bold" size="16.0" /></font>
+                                </Label>
+
+                                <Label text="Tên vật phẩm:" textFill="#94A3B8" GridPane.rowIndex="1">
+                                    <font><Font size="16.0" /></font>
+                                </Label>
+
+                                <Label fx:id="lblName" text="..." textFill="WHITE"
+                                       GridPane.columnIndex="1" GridPane.rowIndex="1">
+                                    <font><Font name="System Bold" size="16.0" /></font>
+                                </Label>
+
+                                <Label text="Giá gốc vật phẩm:" textFill="#94A3B8" GridPane.rowIndex="2">
+                                    <font><Font size="16.0" /></font>
+                                </Label>
+
+                                <Label fx:id="lblPrice" text="..." textFill="WHITE"
+                                       GridPane.columnIndex="1" GridPane.rowIndex="2">
+                                    <font><Font name="System Bold" size="16.0" /></font>
+                                </Label>
+
+                            </children>
+
+                            <rowConstraints>
+                                <RowConstraints />
+                                <RowConstraints />
+                                <RowConstraints />
+                            </rowConstraints>
+
+                        </GridPane>
+
+                        <!-- BOX ẢNH MỚI -->
+                        <VBox alignment="TOP_CENTER">
+
+                            <children>
+
+                                <StackPane prefWidth="220"
+                                           prefHeight="220"
+                                           minWidth="220"
+                                           minHeight="220"
+                                           maxWidth="220"
+                                           maxHeight="220"
+                                           style="
+                                -fx-border-color: #334155;
+                                -fx-border-width: 2;
+                                -fx-border-radius: 12;
+                                -fx-background-radius: 12;
+                           ">
+
+                                    <children>
+
+                                        <ImageView fx:id="imgItem"
+                                                   fitWidth="200"
+                                                   fitHeight="200"
+                                                   preserveRatio="true"/>
+
+                                    </children>
+
+                                </StackPane>
+
+                            </children>
+
+                        </VBox>
+
                     </children>
-                    <rowConstraints>
-                        <RowConstraints />
-                        <RowConstraints />
-                        <RowConstraints />
-                    </rowConstraints>
-                </GridPane>
+
+                </HBox>
             </children>
         </VBox>
     </children>

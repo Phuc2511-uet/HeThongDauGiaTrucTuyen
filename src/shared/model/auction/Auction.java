@@ -150,6 +150,12 @@ public class Auction {
     }
 
     public String toNetworkString() {
+
+        String imageBase64 =
+                bidItem.getImageBase64() == null
+                        ? "null"
+                        : bidItem.getImageBase64();
+
         return id + " "
                 + bidItem.getName().replace(" ", "_") + " "
                 + bidItem.getId() + " "
@@ -157,7 +163,9 @@ public class Auction {
                 + seller.getUsername() + " "
                 + currentStatus + " "
                 + endTime + " "
-                + (currentBidder != null ? currentBidder.getUsername() : "null");
+                + (currentBidder != null ? currentBidder.getUsername() : "null")
+                + " "
+                + imageBase64;
     }
 
     // ===== OBSERVER =====
