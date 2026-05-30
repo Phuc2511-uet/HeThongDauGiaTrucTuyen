@@ -169,16 +169,16 @@ java -cp target/HeThongDauGia-1.0-SNAPSHOT-jar-with-dependencies.jar client.Main
 
 ## 7. Cấu hình kết nối Client-Server
 
-Mặc định, client kết nối tới địa chỉ IP được cấu hình trong `MainFx.java`:
+Trong file `src/client/MainFx.java`, chỉnh địa chỉ kết nối:
 
 ```java
-ClientConnection.getInstance().connect("100.97.45.37", 3636);
+ClientConnection.getInstance().connect("HOST", 3636);
 ```
 
-Nếu chạy server và client trên cùng một máy, đổi địa chỉ IP thành `127.0.0.1` hoặc `localhost`:
+Nếu chạy server và client trên cùng một máy:
 
 ```java
-ClientConnection.getInstance().connect("127.0.0.1", 3636);
+ClientConnection.getInstance().connect("localhost", 3636);
 ```
 
 Sau khi thay đổi cấu hình, build lại project:
