@@ -34,10 +34,10 @@ public class AuctionDetailSellerController implements Observer {
                     lblPrice.setText(p[4] + " $");
                 }
                 lblStatus.setText(p[6]);
-                if (p[7].equals("NONE")) {
+                if (p.length < 8 || p[8] == null || p[8].equalsIgnoreCase("null") || p[8].equalsIgnoreCase("NONE")) {
                     lblBidder.setText("Chưa có");
                 } else {
-                    lblBidder.setText(p[7]);
+                    lblBidder.setText(p[8]);
                 }
             });
         }
