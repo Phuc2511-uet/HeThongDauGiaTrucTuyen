@@ -167,6 +167,14 @@ java -cp target/HeThongDauGia-1.0-SNAPSHOT-jar-with-dependencies.jar client.Main
 > java -jar target/HeThongDauGia-1.0-SNAPSHOT-jar-with-dependencies.jar
 > ```
 
+### Chạy bằng IntelliJ IDEA
+
+1. Mở project bằng IntelliJ IDEA.
+2. Chờ Maven tải toàn bộ dependencies.
+3. Chạy `server.MainServer`.
+4. Sau khi server khởi động thành công, chạy `client.MainFx`.
+5. Nếu chạy nhiều máy, chỉnh địa chỉ kết nối trong `MainFx.java` thành IP của máy chạy Server hoặc IP Tailscale tương ứng.
+
 ## 7. Cấu hình kết nối Client-Server
 
 Trong file `src/client/MainFx.java`, chỉnh địa chỉ kết nối:
