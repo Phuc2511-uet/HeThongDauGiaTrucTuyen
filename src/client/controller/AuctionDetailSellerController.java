@@ -5,6 +5,11 @@ import client.state.Observer;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
+
+import java.io.ByteArrayInputStream;
+import java.util.Base64;
 
 public class AuctionDetailSellerController implements Observer {
 
@@ -12,6 +17,9 @@ public class AuctionDetailSellerController implements Observer {
     private Label lblId,lblItemId,lblBidder,lblItemName,lblPrice,lblStatus;
 
     private int auctionId;
+
+    @FXML
+    private ImageView imgItem;
 
     public void setAuctionId(int id) {
         this.auctionId = id;
@@ -39,7 +47,28 @@ public class AuctionDetailSellerController implements Observer {
                 } else {
                     lblBidder.setText(p[8]);
                 }
+                String imageBase64 = p[9];
+
+                if (!imageBase64.equals("null")
+                        && !imageBase64.equals("NONE")) {
+                    showImage(imageBase64);
+                }
             });
+        }
+    }
+
+    private void showImage(String imageBase64) {
+        try {
+            byte[] imageBytes = Base64.getDecoder().decode(imageBase64);
+
+            Image image = new Image(
+                    new ByteArrayInputStream(imageBytes)
+            );
+
+            imgItem.setImage(image);
+
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 

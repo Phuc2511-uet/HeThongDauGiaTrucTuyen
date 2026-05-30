@@ -287,28 +287,6 @@ public class ClientConnection {
     public String getCurrentUsername() { return currentUsername; }
 
     // ===== GỬI DỮ LIỆU =====
-    public void uploadImage(File file) throws IOException {
-
-        // đọc file thành byte[]
-        byte[] bytes = java.nio.file.Files.readAllBytes(file.toPath());
-
-        // lấy stream
-        DataOutputStream dos = new DataOutputStream(socket.getOutputStream());
-        DataInputStream dis = new DataInputStream(socket.getInputStream());
-
-        // 1. gửi command (text)
-        dos.writeBytes("UPLOAD_IMAGE\n"); // QUAN TRỌNG: phải có \n
-
-        // 2. gửi tên file
-        dos.writeUTF(file.getName());
-
-        // 3. gửi dữ liệu ảnh
-        dos.writeInt(bytes.length);
-        dos.write(bytes);
-        dos.flush();
-
-
-    }
     public void send(String message) {
         if (socket != null && socket.isConnected() && !socket.isClosed()) {
 
@@ -357,9 +335,8 @@ public class ClientConnection {
     public String getCurrentRole() {
         return currentRole;
     }
-    public void createItem(String type, String name, double price) {
-
-        send("CREATE_ITEM " + type + " " + name.replace(" ", "_") + " " + price);
+    public void createItem(String type, String name, double price, String imageBase64) {
+        send("CREATE_ITEM " + type + " " + name.replace(" ", "_") + " " + price+ " " + imageBase64);
     }
 
     public void login(String username, String password) {

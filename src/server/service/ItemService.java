@@ -39,7 +39,15 @@ public class ItemService {
             String name = parts[2];
             double price = Double.parseDouble(parts[3]);
 
-            ItemManager.getInstance().createItem(type, name, price, (Seller) currentUser);
+            StringBuilder imageBuilder = new StringBuilder();
+
+            for (int i = 4; i < parts.length; i++) {
+                imageBuilder.append(parts[i]);
+            }
+
+            String imageBase64 = imageBuilder.toString();
+
+            ItemManager.getInstance().createItem(type, name, price, imageBase64, (Seller) currentUser);
             return "CREATE_ITEM_SUCCESS";
         } catch (IllegalArgumentException e) {
             return "CREATE_ITEM_FAILED " + e.getMessage();

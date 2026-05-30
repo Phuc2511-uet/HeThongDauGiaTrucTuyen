@@ -11,8 +11,13 @@ import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.stage.Stage;
 import javafx.util.Duration;
+
+import java.io.ByteArrayInputStream;
+import java.util.Base64;
 
 public class AuctionDetailController implements Observer {
     @FXML
@@ -26,6 +31,9 @@ public class AuctionDetailController implements Observer {
 
     @FXML
     private Button btnBid;
+
+    @FXML
+    private ImageView imgItem;
 
     //open scene autobid
     @FXML
@@ -107,6 +115,17 @@ public class AuctionDetailController implements Observer {
                     int currentAuctionId = Integer.parseInt(parts[1]);
                     boolean hasAutoBid = ClientConnection.getInstance().isAutoBidActivatedForAuction(currentAuctionId);
                     btnRegisterAuto.setDisable(!canBid || hasAutoBid);
+
+                    if (parts.length > 9) {
+
+                        String imageBase64 = parts[9];
+
+                        if (!imageBase64.equalsIgnoreCase("NONE")
+                                && !imageBase64.equalsIgnoreCase("null")) {
+
+                            showImage(imageBase64);
+                        }
+                    }
 
                     // ===== MÀU STATUS =====
                     if (statusStr.equals("RUNNING") || statusStr.equals("OPEN")) {
@@ -430,6 +449,21 @@ public class AuctionDetailController implements Observer {
         } catch (Exception e) {
             e.printStackTrace();
             showAlert("Loi ung dung", "Khong the hien thi bieu do gia: " + e.getMessage());
+        }
+    }
+
+    private void showImage(String imageBase64) {
+        try {
+            byte[] imageBytes =
+                    Base64.getDecoder().decode(imageBase64);
+
+            Image image =
+                    new Image(new ByteArrayInputStream(imageBytes));
+
+            imgItem.setImage(image);
+
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 

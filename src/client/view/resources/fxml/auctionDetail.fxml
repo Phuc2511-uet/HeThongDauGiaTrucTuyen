@@ -10,6 +10,8 @@
 <?import javafx.scene.layout.RowConstraints?>
 <?import javafx.scene.layout.VBox?>
 
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.image.ImageView?>
 <VBox spacing="20.0" style="-fx-background-color: #0F172A;" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="client.controller.AuctionDetailController">
     <children>
         <Button onAction="#backToList" prefHeight="40.0" prefWidth="161.0" style="-fx-background-color: #334155; -fx-text-fill: white; -fx-font-size: 14px; -fx-font-family: 'System';" text="⬅ Quay lại danh sách" />
@@ -28,43 +30,128 @@
                         <Insets right="50.0" />
                     </padding>
                 </HBox>
-                <GridPane vgap="15.0">
-                    <columnConstraints>
-                        <ColumnConstraints prefWidth="150.0" />
-                        <ColumnConstraints prefWidth="300.0" />
-                    </columnConstraints>
-                    <children>
-                        <Label style="-fx-font-size: 16px; -fx-font-family: 'System';" text="Mã phiên:" textFill="#94A3B8" GridPane.rowIndex="0" />
-                        <Label fx:id="lblAuctionId" style="-fx-font-size: 16px; -fx-font-weight: bold; -fx-font-family: 'System';" text="..." textFill="WHITE" GridPane.columnIndex="1" GridPane.rowIndex="0" />
+                <HBox spacing="80.0">
 
-                        <Label style="-fx-font-size: 16px; -fx-font-family: 'System';" text="Tên vật phẩm:" textFill="#94A3B8" GridPane.rowIndex="1" />
-                        <Label fx:id="lblItemName" style="-fx-font-size: 16px; -fx-font-weight: bold; -fx-font-family: 'System';" text="..." textFill="WHITE" GridPane.columnIndex="1" GridPane.rowIndex="1" />
+                    <!-- GRID CŨ GIỮ NGUYÊN 100% -->
+                    <GridPane vgap="15.0">
+                        <columnConstraints>
+                            <ColumnConstraints prefWidth="150.0" />
+                            <ColumnConstraints prefWidth="300.0" />
+                        </columnConstraints>
 
-                        <Label style="-fx-font-size: 16px; -fx-font-family: 'System';" text="Mã vật phẩm:" textFill="#94A3B8" GridPane.rowIndex="2" />
-                        <Label fx:id="lblItemId" style="-fx-font-size: 16px; -fx-font-weight: bold; -fx-font-family: 'System';" text="..." textFill="WHITE" GridPane.columnIndex="1" GridPane.rowIndex="2" />
+                        <children>
+                            <Label style="-fx-font-size: 16px; -fx-font-family: 'System';"
+                                   text="Mã phiên:"
+                                   textFill="#94A3B8"
+                                   GridPane.rowIndex="0" />
+                            <Label fx:id="lblAuctionId"
+                                   style="-fx-font-size: 16px; -fx-font-weight: bold; -fx-font-family: 'System';"
+                                   text="..."
+                                   textFill="WHITE"
+                                   GridPane.columnIndex="1"
+                                   GridPane.rowIndex="0" />
 
-                        <Label style="-fx-font-size: 16px; -fx-font-family: 'System';" text="Giá hiện tại:" textFill="#94A3B8" GridPane.rowIndex="3" />
-                        <Label fx:id="lblCurrentPrice" style="-fx-font-size: 16px; -fx-font-weight: bold; -fx-font-family: 'System';" text="..." textFill="WHITE" GridPane.columnIndex="1" GridPane.rowIndex="3" />
+                            <Label style="-fx-font-size: 16px; -fx-font-family: 'System';"
+                                   text="Tên vật phẩm:"
+                                   textFill="#94A3B8"
+                                   GridPane.rowIndex="1" />
+                            <Label fx:id="lblItemName"
+                                   style="-fx-font-size: 16px; -fx-font-weight: bold; -fx-font-family: 'System';"
+                                   text="..."
+                                   textFill="WHITE"
+                                   GridPane.columnIndex="1"
+                                   GridPane.rowIndex="1" />
 
-                        <Label style="-fx-font-size: 16px; -fx-font-family: 'System';" text="Người bán:" textFill="#94A3B8" GridPane.rowIndex="4" />
-                        <Label fx:id="lblSeller" style="-fx-font-size: 16px; -fx-font-weight: bold; -fx-font-family: 'System';" text="..." textFill="WHITE" GridPane.columnIndex="1" GridPane.rowIndex="4" />
+                            <Label style="-fx-font-size: 16px; -fx-font-family: 'System';"
+                                   text="Mã vật phẩm:"
+                                   textFill="#94A3B8"
+                                   GridPane.rowIndex="2" />
+                            <Label fx:id="lblItemId"
+                                   style="-fx-font-size: 16px; -fx-font-weight: bold; -fx-font-family: 'System';"
+                                   text="..."
+                                   textFill="WHITE"
+                                   GridPane.columnIndex="1"
+                                   GridPane.rowIndex="2" />
 
-                        <Label style="-fx-font-size: 16px; -fx-font-family: 'System';" text="Trạng thái:" textFill="#94A3B8" GridPane.rowIndex="5" />
-                        <Label fx:id="lblStatus" style="-fx-font-size: 16px; -fx-font-weight: bold; -fx-font-family: 'System';" text="..." textFill="#e6e6e6" GridPane.columnIndex="1" GridPane.rowIndex="5" />
-                    </children>
-                    <rowConstraints>
-                        <RowConstraints /> <RowConstraints /> <RowConstraints /> <RowConstraints /> <RowConstraints /> <RowConstraints />
-                    </rowConstraints>
-                </GridPane>
+                            <Label style="-fx-font-size: 16px; -fx-font-family: 'System';"
+                                   text="Giá hiện tại:"
+                                   textFill="#94A3B8"
+                                   GridPane.rowIndex="3" />
+                            <Label fx:id="lblCurrentPrice"
+                                   style="-fx-font-size: 16px; -fx-font-weight: bold; -fx-font-family: 'System';"
+                                   text="..."
+                                   textFill="WHITE"
+                                   GridPane.columnIndex="1"
+                                   GridPane.rowIndex="3" />
 
-                <HBox alignment="CENTER_LEFT" minHeight="35.0" prefHeight="35.0" prefWidth="601.0">
+                            <Label style="-fx-font-size: 16px; -fx-font-family: 'System';"
+                                   text="Người bán:"
+                                   textFill="#94A3B8"
+                                   GridPane.rowIndex="4" />
+                            <Label fx:id="lblSeller"
+                                   style="-fx-font-size: 16px; -fx-font-weight: bold; -fx-font-family: 'System';"
+                                   text="..."
+                                   textFill="WHITE"
+                                   GridPane.columnIndex="1"
+                                   GridPane.rowIndex="4" />
+
+                            <Label style="-fx-font-size: 16px; -fx-font-family: 'System';"
+                                   text="Trạng thái:"
+                                   textFill="#94A3B8"
+                                   GridPane.rowIndex="5" />
+                            <Label fx:id="lblStatus"
+                                   style="-fx-font-size: 16px; -fx-font-weight: bold; -fx-font-family: 'System';"
+                                   text="..."
+                                   textFill="#e6e6e6"
+                                   GridPane.columnIndex="1"
+                                   GridPane.rowIndex="5" />
+                        </children>
+
+                        <rowConstraints>
+                            <RowConstraints />
+                            <RowConstraints />
+                            <RowConstraints />
+                            <RowConstraints />
+                            <RowConstraints />
+                            <RowConstraints />
+                        </rowConstraints>
+                    </GridPane>
+
+                    <!-- PHẦN MỚI THÊM -->
+                    <VBox alignment="TOP_CENTER"
+                          spacing="10">
+                        <HBox.margin>
+                            <Insets left="150.0"/>
+                        </HBox.margin>
+
+                        <StackPane prefWidth="280"
+                                   prefHeight="280"
+                                   translateY="-10"
+                                   style="-fx-background-color:#334155;
+                  -fx-background-radius:15;
+                  -fx-border-color:#475569;
+                  -fx-border-radius:15;">
+
+                            <ImageView fx:id="imgItem"
+                                       fitWidth="260"
+                                       fitHeight="260"
+                                       preserveRatio="true" />
+
+                        </StackPane>
+
+                    </VBox>
+
+                </HBox>
+
+                <HBox alignment="CENTER_LEFT"
+                      spacing="40"
+                      minHeight="35.0"
+                      prefHeight="35.0"
+                      prefWidth="601.0">
                     <children>
                         <Label fx:id="lblBidHistoryLink" onMouseClicked="#handleShowBidHistory" style="-fx-text-fill: #38BDF8; -fx-font-style: italic; -fx-underline: true; -fx-cursor: hand; -fx-font-size: 16px; -fx-font-family: 'System'; -fx-min-width: 130px; -fx-max-width: 130px;" text="Lịch sử đấu giá" />
 
                         <Label fx:id="lblPriceChart" onMouseClicked="#handleShowPriceChart" style="-fx-text-fill: #38BDF8; -fx-font-style: italic; -fx-underline: true; -fx-cursor: hand; -fx-font-size: 16px; -fx-font-family: 'System'; -fx-min-width: 110px; -fx-max-width: 110px;" text="Biểu đồ giá">
-                            <HBox.margin>
-                                <Insets left="40.0" />
-                            </HBox.margin>
                         </Label>
                     </children>
                 </HBox>

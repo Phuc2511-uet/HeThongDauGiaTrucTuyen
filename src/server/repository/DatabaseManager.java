@@ -204,8 +204,8 @@ public class DatabaseManager {
      */
     public static List<Item> loadAllItems(Connection conn, List<User> allUsers) {
         List<Item> list = new ArrayList<>();
-        String sql = "SELECT item_id, name, base_price, seller_username FROM items";
-
+        String sql =
+                "SELECT item_id, name, base_price, seller_username, image_base64 FROM items";
         try (Statement stmt = conn.createStatement();
              ResultSet rs = stmt.executeQuery(sql)) {
 
@@ -228,6 +228,14 @@ public class DatabaseManager {
 
                 // Khởi tạo ConcreteItem (lớp cụ thể kế thừa từ lớp trừu tượng Item)
                 Item item = new ConcreteItem(itemId, rs.getString("name"), rs.getDouble("base_price"), validSeller);
+
+                try {
+                    String img = rs.getString("image_base64");
+                    item.setImageBase64(img);
+                } catch (SQLException ignored) {
+                    item.setImageBase64(null);
+                }
+
                 list.add(item);
             }
         } catch (Exception e) {
@@ -288,7 +296,7 @@ public class DatabaseManager {
      * @param item Đối tượng vật phẩm mới cần lưu trữ.
      */
     public static void saveItem(Item item) {
-        String sql = "INSERT INTO items (name, base_price, seller_username) VALUES (?, ?, ?)";
+        String sql = "INSERT INTO items (name, base_price, seller_username, image_base64) VALUES (?, ?, ?, ?)";
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             pstmt.setString(1, item.getName());
@@ -299,6 +307,9 @@ public class DatabaseManager {
             } else {
                 pstmt.setNull(3, Types.VARCHAR);
             }
+
+            pstmt.setString(4, item.getImageBase64());
+
             pstmt.executeUpdate();
 
             // Đồng bộ khóa chính tự động tăng của sản phẩm ngược lại đối tượng RAM

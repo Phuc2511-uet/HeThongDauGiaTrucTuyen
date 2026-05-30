@@ -94,20 +94,28 @@ public class ItemManager implements Serializable {
     }
     public String getItemInfoAsString(int id) {
         Item i = getById(id);
+
         if (i == null) {
             return "ERROR ITEM NOT FOUND";
         }
 
-        // Kiểm tra xem vật phẩm này đã được tạo phiên đấu giá chưa
-        boolean hasAuction = server.repository.AuctionManager.getInstance().getAuctionByItemId(i.getId()) != null;
+        boolean hasAuction =
+                AuctionManager.getInstance()
+                        .getAuctionByItemId(i.getId()) != null;
+
         String auctionStatus = hasAuction ? "YES" : "NO";
 
-        // Gửi thêm trạng thái đấu giá về cho Admin
+        String imageBase64 =
+                i.getImageBase64() == null
+                        ? "NONE"
+                        : i.getImageBase64();
+
         return "ITEM_DETAIL "
                 + i.getId() + " "
                 + i.getName().replace(" ", "_") + " "
                 + i.getPrice() + " "
-                + auctionStatus;
+                + auctionStatus + " "
+                + imageBase64;
     }
     public String getAllItemIdsAsString() {
         StringBuilder sb = new StringBuilder("ITEM_IDS");
@@ -121,7 +129,19 @@ public class ItemManager implements Serializable {
     }
 
 
-    public synchronized Item createItem(String type, String name, double price, Seller seller) {
+    public synchronized Item createItem(String type, String name, double price,String imageBase64, Seller seller) {
+
+        byte[] imageBytes;
+
+        try {
+            imageBytes = java.util.Base64.getDecoder().decode(imageBase64);
+        } catch (Exception e) {
+            throw new IllegalArgumentException("Ảnh_không_hợp_lệ");
+        }
+
+        if (imageBytes.length > 300 * 1024) {
+            throw new IllegalArgumentException("Ảnh_vượt_quá_300KB");
+        }
 
         // ===== VALIDATION =====
         if (type == null || type.trim().isEmpty()) {
@@ -173,6 +193,9 @@ public class ItemManager implements Serializable {
         }
 
         Item item = factory.CreateItem(name.trim(), price, seller);
+
+        item.setImageBase64(imageBase64);
+
         // Đưa xuống DatabaseManager lưu trước để lấy ID thực từ MySQL Auto_Increment
         DatabaseManager.saveItem(item);
 
