@@ -1,4 +1,6 @@
 .idea/
-*.iml
-out/
 target/
+*.iml
+.DS_Store
+Thumbs.db
+*.log
