@@ -690,8 +690,5 @@ class ConcreteItem extends Item {
         return seller;
     }
 
-    @Override
-    public void display() {
-        // Phương thức hiển thị (không cần thiết trong xử lý ngầm nên để trống)
-    }
+
 }

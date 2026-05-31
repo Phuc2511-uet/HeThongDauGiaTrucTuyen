@@ -17,10 +17,7 @@ public class Electronic extends Item {
         this.seller = seller;
     }
 
-    @Override
-    public void display() {
-        System.out.println("[Electronic] " + name + " - Giá: " + price + " - Người bán: " + (seller != null ? seller.getUsername() : "N/A"));
-    }
+
 
     @Override
     public Seller getSeller() {

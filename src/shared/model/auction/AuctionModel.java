@@ -15,7 +15,6 @@ public class AuctionModel {
     public int getId() { return id.get(); }
     public String getStatus() { return status.get(); }
 
-    // Cần các getter trả về Property để TableView tự động cập nhật
-    public SimpleIntegerProperty idProperty() { return id; }
-    public SimpleStringProperty statusProperty() { return status; }
+
+
 }
