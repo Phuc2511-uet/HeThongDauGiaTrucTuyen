@@ -311,9 +311,3 @@ Workflow chính thực hiện:
 
 ---
 
-## 12. Ghi chú khi demo
-
-- Chạy Server trước, sau đó mới chạy Client.
-- Nếu demo nhiều máy, cần đảm bảo các máy đã kết nối cùng mạng nội bộ hoặc Tailscale.
-- Máy chạy Server cần kết nối Internet để truy cập database Aiven.
-- Nếu thay địa chỉ Server trong `MainFx.java`, cần build lại trước khi chạy bằng JAR.
