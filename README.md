@@ -117,55 +117,9 @@ HeThongDauGiaTrucTuyen/
 
 Hệ thống hoạt động theo kiến trúc **Client-Server** với luồng xử lý khép kín (Closed Loop Flow):
 
-```mermaid
-graph TB
-    %% Khai báo màu sắc phong cách tối giản, hiện đại
-    classDef clientStyle fill:#e3f2fd,stroke:#1565c0,stroke-width:2px,color:#0d47a1;
-    classDef serverStyle fill:#fbe9e7,stroke:#d84315,stroke-width:2px,color:#5d4037;
-    classDef dbStyle fill:#efebe9,stroke:#4e342e,stroke-width:2px,color:#3e2723;
-    classDef modelStyle fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px,color:#1b5e20;
-
-    subgraph ClientBox ["Client JavaFX (Phía người dùng)"]
-        ClientUI["Client JavaFX UI<br>• Màn hình (Bidder/Seller/Admin)<br>• Xử lý sự kiện, tương tác nút bấm<br>• Hiển thị biểu đồ & thông báo"]:::clientStyle
-        
-        ClientController["Controller Layer / ClientConnection<br>• FXML + Controller xử lý logic giao diện<br>• ClientSession lưu trạng thái phiên"]:::clientStyle
-    end
-
-    subgraph ServerBox ["Server Application (Phần backend)"]
-        NetworkLayer["Network Layer (Tầng mạng)<br>• ServerSocketRunner<br>• ClientHandler (Đa luồng TCP)<br>• Tiếp nhận kết nối, nhận command, gửi response"]:::serverStyle
-        
-        ServiceCore["Service / Core Layer (Tầng nghiệp vụ)<br>• AccountService, UserService<br>• AuctionService, ItemService"]:::serverStyle
-        
-        RepositoryManager["Repository / Manager Layer (Tầng dữ liệu)<br>• UserManager, ItemManager, AuctionManager<br>• Quản lý RAM cache & danh sách đối tượng"]:::serverStyle
-    end
-
-    subgraph StorageBox ["Tầng Lưu trữ & Dữ liệu"]
-        SharedModel["Shared Model (Model dùng chung)<br>• User, Item, Auction<br>• AutoBid, BidTransaction"]:::modelStyle
-        
-        Database[("Aiven MySQL Database (Cơ sở dữ liệu)<br>• Lưu trữ thông tin tài khoản, vật phẩm<br>• Lưu lịch sử đấu giá, tự động đặt giá")]:::dbStyle
-    end
-
-    %% Luồng liên kết & giao tiếp dữ liệu
-    ClientUI -->|"1. Gọi FXML / Khởi tạo"| ClientController
-    ClientUI -->|"2. Gửi yêu cầu / Command (TCP Socket)"| NetworkLayer
-    
-    NetworkLayer -->|"3. Chuyển xử lý thông điệp"| ServiceCore
-    ServiceCore -->|"4. Gọi các hàm nghiệp vụ"| RepositoryManager
-    
-    RepositoryManager -->|"5. Truy cập model / cache"| SharedModel
-    RepositoryManager -->|"6. Đồng bộ trạng thái (JDBC)"| Database
-    RepositoryManager -->|"7. Trả dữ liệu / domain object"| ServiceCore
-    ServiceCore -->|"8. Trả về kết quả xử lý"| NetworkLayer
-    
-    NetworkLayer -->|"9. Gửi response / Cập nhật realtime (TCP Socket)"| ClientController
-    ClientController -->|"10. Cập nhật UI / trạng thái hiển thị"| ClientUI
-
-    %% Định nghĩa chú thích cho sơ đồ
-    style ClientBox fill:#f0f8ff,stroke:#90caf9,stroke-width:1px,stroke-dasharray: 5 5
-    style ServerBox fill:#fff5e6,stroke:#ffcc80,stroke-width:1px,stroke-dasharray: 5 5
-    style StorageBox fill:#fafafa,stroke:#cccccc,stroke-width:1px,stroke-dasharray: 5 5
-```
-
+<p align="center">
+  <img src="docs/images/So_do_kien_truc.png" width="1000"/>
+</p>
 
 ---
 
