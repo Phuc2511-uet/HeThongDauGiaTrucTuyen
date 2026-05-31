@@ -5,65 +5,190 @@
 <?import javafx.scene.control.ComboBox?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.TextField?>
+<?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.ColumnConstraints?>
 <?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.RowConstraints?>
+<?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
-<VBox spacing="20.0" style="-fx-background-color: transparent;" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="client.controller.CreateItemController">
-    <children>
-        <Button onAction="#backPage" prefHeight="40.0" prefWidth="120.0" style="-fx-background-color: #334155; -fx-text-fill: white; -fx-background-radius: 10; -fx-font-size: 14;" text="⬅ Quay lại" />
+<VBox spacing="20.0"
+      style="-fx-background-color: transparent;"
+      xmlns="http://javafx.com/javafx/25"
+      xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="client.controller.CreateItemController">
 
-        <VBox spacing="20.0" style="-fx-background-color: #1E293B; -fx-background-radius: 20; -fx-padding: 30;">
+    <children>
+
+        <Button onAction="#backPage"
+                prefHeight="40.0"
+                prefWidth="120.0"
+                style="-fx-background-color: #334155; -fx-text-fill: white; -fx-background-radius: 10; -fx-font-size: 14;"
+                text="⬅ Quay lại" />
+
+        <VBox spacing="20.0"
+              style="-fx-background-color: #1E293B; -fx-background-radius: 20; -fx-padding: 30;">
+
             <children>
-                <Label text="Tạo vật phẩm mới" textFill="WHITE">
+
+                <Label text="Tạo vật phẩm mới"
+                       textFill="WHITE">
                     <font>
                         <Font name="System Bold" size="24.0" />
                     </font>
                 </Label>
 
-                <GridPane vgap="20.0">
-                    <columnConstraints>
-                        <ColumnConstraints prefWidth="160.0" />
-                        <ColumnConstraints prefWidth="340.0" />
-                    </columnConstraints>
+                <!-- CHỈ THÊM HBOX -->
+                <HBox spacing="80">
+
                     <children>
-                        <Label text="Tên vật phẩm:" textFill="#94A3B8" GridPane.rowIndex="0">
-                            <font><Font size="16.0" /></font>
-                        </Label>
-                        <TextField fx:id="txtName" promptText="Nhập tên vật phẩm..." style="-fx-background-color: #0F172A; -fx-text-fill: white; -fx-background-radius: 8; -fx-border-color: #334155; -fx-border-radius: 8; -fx-padding: 8;" GridPane.columnIndex="1" GridPane.rowIndex="0">
-                            <font><Font size="14.0" /></font>
-                        </TextField>
 
-                        <Label text="Giá khởi điểm:" textFill="#94A3B8" GridPane.rowIndex="1">
-                            <font><Font size="16.0" /></font>
-                        </Label>
-                        <TextField fx:id="txtPrice" promptText="Nhập giá khởi điểm..." style="-fx-background-color: #0F172A; -fx-text-fill: white; -fx-background-radius: 8; -fx-border-color: #334155; -fx-border-radius: 8; -fx-padding: 8;" GridPane.columnIndex="1" GridPane.rowIndex="1">
-                            <font><Font size="14.0" /></font>
-                        </TextField>
+                        <!-- GRIDPANE GỐC GIỮ NGUYÊN -->
+                        <GridPane vgap="20.0">
 
-                        <Label text="Loại vật phẩm:" textFill="#94A3B8" GridPane.rowIndex="2">
-                            <font><Font size="16.0" /></font>
-                        </Label>
-                        <ComboBox fx:id="cbType" prefWidth="340.0" promptText="Chọn loại vật phẩm..." style="-fx-background-color: #0F172A; -fx-text-fill: white; -fx-background-radius: 8; -fx-border-color: #334155; -fx-border-radius: 8; -fx-padding: 5;" GridPane.columnIndex="1" GridPane.rowIndex="2" />
+                            <columnConstraints>
+                                <ColumnConstraints prefWidth="160.0" />
+                                <ColumnConstraints prefWidth="340.0" />
+                            </columnConstraints>
+
+                            <children>
+
+                                <Label text="Tên vật phẩm:"
+                                       textFill="#94A3B8"
+                                       GridPane.rowIndex="0">
+                                    <font>
+                                        <Font size="16.0" />
+                                    </font>
+                                </Label>
+
+                                <TextField fx:id="txtName"
+                                           promptText="Nhập tên vật phẩm..."
+                                           style="-fx-background-color: #0F172A; -fx-text-fill: white; -fx-background-radius: 8; -fx-border-color: #334155; -fx-border-radius: 8; -fx-padding: 8;"
+                                           GridPane.columnIndex="1"
+                                           GridPane.rowIndex="0">
+                                    <font>
+                                        <Font size="14.0" />
+                                    </font>
+                                </TextField>
+
+                                <Label text="Giá khởi điểm:"
+                                       textFill="#94A3B8"
+                                       GridPane.rowIndex="1">
+                                    <font>
+                                        <Font size="16.0" />
+                                    </font>
+                                </Label>
+
+                                <TextField fx:id="txtPrice"
+                                           promptText="Nhập giá khởi điểm..."
+                                           style="-fx-background-color: #0F172A; -fx-text-fill: white; -fx-background-radius: 8; -fx-border-color: #334155; -fx-border-radius: 8; -fx-padding: 8;"
+                                           GridPane.columnIndex="1"
+                                           GridPane.rowIndex="1">
+                                    <font>
+                                        <Font size="14.0" />
+                                    </font>
+                                </TextField>
+
+                                <Label text="Loại vật phẩm:"
+                                       textFill="#94A3B8"
+                                       GridPane.rowIndex="2">
+                                    <font>
+                                        <Font size="16.0" />
+                                    </font>
+                                </Label>
+
+                                <ComboBox fx:id="cbType"
+                                          prefWidth="340.0"
+                                          promptText="Chọn loại vật phẩm..."
+                                          style="-fx-background-color: #0F172A; -fx-text-fill: white; -fx-background-radius: 8; -fx-border-color: #334155; -fx-border-radius: 8; -fx-padding: 5;"
+                                          GridPane.columnIndex="1"
+                                          GridPane.rowIndex="2" />
+
+                            </children>
+
+                            <rowConstraints>
+                                <RowConstraints />
+                                <RowConstraints />
+                                <RowConstraints />
+                            </rowConstraints>
+
+                        </GridPane>
+
+                        <!-- KHUNG ẢNH -->
+                        <VBox alignment="CENTER"
+                              spacing="10">
+
+                            <children>
+
+                                <StackPane prefWidth="220"
+                                           prefHeight="220"
+                                           minWidth="220"
+                                           minHeight="220"
+                                           maxWidth="220"
+                                           maxHeight="220"
+                                           style="-fx-border-color: #334155;
+                                                  -fx-border-width: 2;
+                                                  -fx-border-radius: 12;
+                                                  -fx-background-radius: 12;">
+
+                                    <children>
+
+                                        <ImageView fx:id="imgPreview"
+                                                   fitWidth="200"
+                                                   fitHeight="200"
+                                                   preserveRatio="true" />
+
+                                        <Button fx:id="btnChooseImage"
+                                                text="+"
+                                                onAction="#chooseImage"
+                                                style="-fx-font-size: 40;
+                                                       -fx-font-weight: bold;
+                                                       -fx-background-color: transparent;
+                                                       -fx-text-fill: white;" />
+
+                                    </children>
+
+                                </StackPane>
+
+                                <Label text="Upload ảnh tối đa 300KB"
+                                       textFill="#94A3B8" />
+
+                            </children>
+
+                        </VBox>
+
                     </children>
-                    <rowConstraints>
-                        <RowConstraints />
-                        <RowConstraints />
-                        <RowConstraints />
-                    </rowConstraints>
-                </GridPane>
 
-                <VBox alignment="CENTER_RIGHT" style="-fx-padding: 10 0 0 0;">
+                </HBox>
+
+                <VBox alignment="CENTER_RIGHT"
+                      style="-fx-padding: 10 0 0 0;">
+
                     <children>
-                        <Button onAction="#createItem" prefHeight="40.0" prefWidth="150.0" style="-fx-background-color: #16A34A; -fx-text-fill: white; -fx-background-radius: 12; -fx-font-weight: bold; -fx-font-size: 15;" text="✔ Tạo Vật Phẩm" />
+
+                        <Button onAction="#createItem"
+                                prefHeight="40.0"
+                                prefWidth="150.0"
+                                style="-fx-background-color: #16A34A; -fx-text-fill: white; -fx-background-radius: 12; -fx-font-weight: bold; -fx-font-size: 15;"
+                                text="✔ Tạo Vật Phẩm" />
+
                     </children>
+
                 </VBox>
+
             </children>
+
         </VBox>
+
     </children>
+
     <padding>
-        <Insets bottom="25.0" left="25.0" right="25.0" top="25.0" />
+        <Insets bottom="25.0"
+                left="25.0"
+                right="25.0"
+                top="25.0" />
     </padding>
+
 </VBox>

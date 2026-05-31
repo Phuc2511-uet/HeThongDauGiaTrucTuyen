@@ -46,11 +46,6 @@ public class ClientHandler implements Runnable {
             while ((message = in.readLine()) != null) {
                 System.out.println("Received: " + message);
 
-                if (message.equals("UPLOAD_IMAGE")) {
-                    handleImageUpload(dis, dos);
-                    continue;
-                }
-
                 String response = handleTextRequest(message, handle, out);
                 if (response != null) {
                     out.println(response);

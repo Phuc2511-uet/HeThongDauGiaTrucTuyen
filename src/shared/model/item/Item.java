@@ -9,6 +9,16 @@ public abstract class Item implements Serializable {
     protected String name;
     protected double price;
 
+    protected String imageBase64;
+
+    public String getImageBase64() {
+        return imageBase64;
+    }
+
+    public void setImageBase64(String imageBase64) {
+        this.imageBase64 = imageBase64;
+    }
+
     // Constructor mới nhận id
     public Item(int id, String name, double price) {
         this.id = id;

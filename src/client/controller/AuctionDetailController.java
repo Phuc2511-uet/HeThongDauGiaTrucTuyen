@@ -2,17 +2,29 @@ package client.controller;
 
 import client.network.ClientConnection;
 import client.state.Observer;
+import javafx.animation.Animation;
+import javafx.animation.KeyFrame;
+import javafx.animation.Timeline;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.stage.Stage;
+import javafx.util.Duration;
+
+import java.io.ByteArrayInputStream;
+import java.util.Base64;
 
 public class AuctionDetailController implements Observer {
     @FXML
     private Label lblAuctionId, lblItemName, lblCurrentPrice, lblSeller, lblStatus, lblTitle, lblItemId;
+
+    @FXML
+    private Label lblCountdown;
 
     @FXML
     private TextField txtBidPrice;
@@ -20,12 +32,18 @@ public class AuctionDetailController implements Observer {
     @FXML
     private Button btnBid;
 
+    @FXML
+    private ImageView imgItem;
+
     //open scene autobid
     @FXML
     private Button btnRegisterAuto;
 
     // Cờ hiệu để biết chính mình vừa bấm nút đặt giá (Bid)
     private boolean isMyOwnBidAction = false;
+
+    private Timeline countdownTimeline;
+    private long remainingSeconds = 0;
 
     @FXML
     public void initialize() {
@@ -63,6 +81,29 @@ public class AuctionDetailController implements Observer {
                     else if (statusStr.equals("3")) statusStr = "PAID";
                     else if (statusStr.equals("4")) statusStr = "CANCELED";
                     lblStatus.setText(statusStr);
+
+                    if (statusStr.equals("RUNNING")) {
+                        if (parts.length > 7) {
+                            try {
+                                long endTimeMillis = Long.parseLong(parts[7]);
+                                long currentTimestamp = System.currentTimeMillis();
+                                long diffMillis = endTimeMillis - currentTimestamp;
+
+                                if (diffMillis > 0) {
+                                    this.remainingSeconds = diffMillis / 1000;
+                                    lblCountdown.setVisible(true);
+                                    startCountdown();
+                                } else {
+                                    stopCountdown();
+                                    lblCountdown.setVisible(false);
+                                }
+                            } catch (Exception ignored) {}
+                        }
+                    } else {
+                        stopCountdown();
+                        lblCountdown.setVisible(false);
+                    }
+
                     boolean canBid = statusStr.equals("OPEN") || statusStr.equals("RUNNING");
                     btnBid.setDisable(!canBid);
                     if (!canBid) {
@@ -74,6 +115,17 @@ public class AuctionDetailController implements Observer {
                     int currentAuctionId = Integer.parseInt(parts[1]);
                     boolean hasAutoBid = ClientConnection.getInstance().isAutoBidActivatedForAuction(currentAuctionId);
                     btnRegisterAuto.setDisable(!canBid || hasAutoBid);
+
+                    if (parts.length > 9) {
+
+                        String imageBase64 = parts[9];
+
+                        if (!imageBase64.equalsIgnoreCase("NONE")
+                                && !imageBase64.equalsIgnoreCase("null")) {
+
+                            showImage(imageBase64);
+                        }
+                    }
 
                     // ===== MÀU STATUS =====
                     if (statusStr.equals("RUNNING") || statusStr.equals("OPEN")) {
@@ -101,27 +153,21 @@ public class AuctionDetailController implements Observer {
                     // 1. Luôn cập nhật lại tiền hiển thị trên UI cho khớp với hệ thống công khai
                     lblCurrentPrice.setText(String.format("%,.0f $", newPrice));
 
-                    // 2. Kiểm tra xem người vừa bấm đặt giá có phải là chính mình không dựa vào Tên hoặc Cờ hiệu
-                    boolean isMe = isMyOwnBidAction;
-                    if (!isMe && ClientConnection.getInstance() != null && ClientConnection.getInstance().getCurrentUsername() != null) {
-                        isMe = ClientConnection.getInstance().getCurrentUsername().equals(bidderName);
-                    }
 
-                    // 3. Nếu là ĐỐI THỦ đặt giá (không phải mình), hiển thị Toast
-                    if (!isMe) {
                         Stage currentStage = (Stage) btnBid.getScene().getWindow();
                         NotificationToast.showSuccess(
                                 currentStage,
                                 "Giá Đấu Mới!",
                                 "Phiên #" + auctionId + " vừa được trả mức giá mới: " + String.format("%,.0f $", newPrice)
                         );
-                    }
+
 
                     // 4. Reset lại cờ hiệu sau khi đã xử lý xong tin nhắn NOTIFY
                     isMyOwnBidAction = false;
                 });
             }
         }
+
 
         // ===== REFRESH GIÁ AUTO BID =====
         else if (cleanMessage.startsWith("AUTO_BID")) {
@@ -183,6 +229,30 @@ public class AuctionDetailController implements Observer {
             if (!lblAuctionId.getText().isEmpty() && auctionId == Integer.parseInt(lblAuctionId.getText())) {
                 Platform.runLater(() -> {
                     lblStatus.setText(status);
+
+                    if ("OPEN".equalsIgnoreCase(status)) {
+                        stopCountdown();
+                        lblCountdown.setVisible(false);
+                    }
+                    else if ("RUNNING".equalsIgnoreCase(status)) {
+                        if (parts.length > 3) {
+                            try {
+                                long endTimeMillis = Long.parseLong(parts[3]);
+                                long currentTimestamp = System.currentTimeMillis();
+                                long diffMillis = endTimeMillis - currentTimestamp;
+
+                                if (diffMillis > 0) {
+                                    this.remainingSeconds = diffMillis / 1000;
+                                    lblCountdown.setVisible(true);
+                                    startCountdown();
+                                }
+                            } catch (Exception ignored) {}
+                        }
+                    }
+                    else {
+                        stopCountdown();
+                        lblCountdown.setVisible(false);
+                    }
 
                     boolean canBid = status.equals("OPEN") || status.equals("RUNNING");
                     btnBid.setDisable(!canBid);
@@ -272,6 +342,9 @@ public class AuctionDetailController implements Observer {
 
     @FXML
     void backToList() {
+        // nếu ko gọi hàm stop thì sẽ làm rò rỉ bộ đếm chạy ngầm vô hạn
+        stopCountdown();
+
         ClientConnection.getInstance().removeObserver(this);
         // Quay lại trang danh sách
         HomeBidderController.setPage("/client/view/resources/fxml/auctionList.fxml");
@@ -373,4 +446,56 @@ public class AuctionDetailController implements Observer {
         }
     }
 
+    private void showImage(String imageBase64) {
+        try {
+            byte[] imageBytes =
+                    Base64.getDecoder().decode(imageBase64);
+
+            Image image =
+                    new Image(new ByteArrayInputStream(imageBytes));
+
+            imgItem.setImage(image);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    // =========  HÀM BỔ TRỢ TIMELINE =========
+    private void startCountdown() {
+        if (countdownTimeline != null) {
+            countdownTimeline.stop();
+        }
+
+        // 1. Tạo một hàm Runnable nội bộ để định dạng và hiển thị thời gian
+        Runnable renderTime = () -> {
+            long hours = remainingSeconds / 3600;
+            long minutes = (remainingSeconds % 3600) / 60;
+            long seconds = remainingSeconds % 60;
+            lblCountdown.setText(String.format("%02d:%02d:%02d", hours, minutes, seconds));
+        };
+
+        // Gán luôn thời gian lên UI(để ko bị khựng)
+        renderTime.run();
+
+        // 2. Thiết lập Timeline chạy lặp lại sau mỗi giây
+        countdownTimeline = new Timeline(new KeyFrame(Duration.seconds(1), event -> {
+            if (remainingSeconds > 0) {
+                remainingSeconds--;
+                renderTime.run(); // Cập nhật lại UI sau khi trừ giây
+            } else {
+                lblCountdown.setText("00:00:00");
+                countdownTimeline.stop();
+                lblCountdown.setVisible(false);
+            }
+        }));
+        countdownTimeline.setCycleCount(Animation.INDEFINITE);
+        countdownTimeline.play();
+    }
+
+    private void stopCountdown() {
+        if (countdownTimeline != null) {
+            countdownTimeline.stop();
+        }
+    }
 }

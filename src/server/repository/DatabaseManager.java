@@ -204,8 +204,8 @@ public class DatabaseManager {
      */
     public static List<Item> loadAllItems(Connection conn, List<User> allUsers) {
         List<Item> list = new ArrayList<>();
-        String sql = "SELECT item_id, name, base_price, seller_username FROM items";
-
+        String sql =
+                "SELECT item_id, name, base_price, seller_username, image_base64 FROM items";
         try (Statement stmt = conn.createStatement();
              ResultSet rs = stmt.executeQuery(sql)) {
 
@@ -228,6 +228,14 @@ public class DatabaseManager {
 
                 // Khởi tạo ConcreteItem (lớp cụ thể kế thừa từ lớp trừu tượng Item)
                 Item item = new ConcreteItem(itemId, rs.getString("name"), rs.getDouble("base_price"), validSeller);
+
+                try {
+                    String img = rs.getString("image_base64");
+                    item.setImageBase64(img);
+                } catch (SQLException ignored) {
+                    item.setImageBase64(null);
+                }
+
                 list.add(item);
             }
         } catch (Exception e) {
@@ -288,7 +296,7 @@ public class DatabaseManager {
      * @param item Đối tượng vật phẩm mới cần lưu trữ.
      */
     public static void saveItem(Item item) {
-        String sql = "INSERT INTO items (name, base_price, seller_username) VALUES (?, ?, ?)";
+        String sql = "INSERT INTO items (name, base_price, seller_username, image_base64) VALUES (?, ?, ?, ?)";
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             pstmt.setString(1, item.getName());
@@ -299,6 +307,9 @@ public class DatabaseManager {
             } else {
                 pstmt.setNull(3, Types.VARCHAR);
             }
+
+            pstmt.setString(4, item.getImageBase64());
+
             pstmt.executeUpdate();
 
             // Đồng bộ khóa chính tự động tăng của sản phẩm ngược lại đối tượng RAM
@@ -389,21 +400,31 @@ public class DatabaseManager {
                 }
 
                 if (item != null) {
-                    // Tạo thực thể Auction hoàn chỉnh
-                    Auction auction = new Auction(auctionId, item, item.getSeller(), item.getPrice(), currentPrice, validBidder, status, startTime, endTime);
+                    // 1. Khởi tạo an toàn qua Constructor 4 tham số (Mặc định ban đầu là OPEN)
+                    Auction auction = new Auction(auctionId, item, item.getSeller(), item.getPrice());
 
-                    // Phục hồi lịch sử đặt giá và các thiết lập AutoBid liên quan
+                    // 2. Gán các thuộc tính động đọc từ DB lên RAM
+                    auction.setCurrentPrice(currentPrice);
+                    auction.setHighestBidder(validBidder);
+                    auction.setStartTime(startTime);
+                    auction.setEndTime(endTime);
+
+                    // 3. ✅ SỬA TẠI ĐÂY: Gán trực tiếp trạng thái từ DB, bỏ qua bộ lọc transitionTo
+                    auction.setStatusLoaded(status);
+
+                    // 4. Phục hồi lịch sử đặt giá và các thiết lập AutoBid liên quan
                     loadBidHistory(conn, auction, allUsers);
                     loadAutoBids(conn, auction, allUsers);
 
-                    // Khôi phục bộ hẹn giờ chạy ngầm cho phiên đấu giá nếu phiên vẫn đang diễn ra (RUNNING)
+                    // 5. Khôi phục bộ hẹn giờ chạy ngầm cho phiên đấu giá nếu phiên vẫn đang diễn ra (RUNNING)
                     if (status == Auction.Status.RUNNING) {
                         auction.resumeAfterRestart();
                         System.out.println(">>> Đã khôi phục bộ đếm ngược chạy ngầm cho phiên ID: " + auctionId);
                     }
 
                     list.add(auction);
-                } else {
+                }
+                else {
                     System.err.println("[CẢNH BÁO] Bỏ qua phiên đấu giá ID: " + auctionId + " do không tìm thấy vật phẩm tương ứng (Item ID: " + itemId + ").");
                 }
             }
