@@ -30,7 +30,7 @@ public class AuctionTest {
         bidder = new Bidder(2, "bidder01", "pass", "Test Bidder", 5_000.0, 500.0);
         secondBidder = new Bidder(3, "bidder02", "pass", "Second Bidder", 7_000.0, 0.0);
 
-        item = new Art(10, "Painting", 1_000.0, seller);
+        item = new Art( "Painting", 1_000.0, seller);
         auction = new Auction(20, item, seller, item.getPrice());
     }
 

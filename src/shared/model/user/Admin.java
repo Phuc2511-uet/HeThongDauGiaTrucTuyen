@@ -29,8 +29,5 @@ public class Admin extends User {
         return true;
     }
 
-    @Override
-    public void displayInfo() {
-        System.out.println("[Admin Account] Admin Name: " + getFullName() + " | Username: " + getUsername());
-    }
+
 }

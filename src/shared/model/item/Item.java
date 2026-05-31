@@ -56,8 +56,7 @@ public abstract class Item implements Serializable {
         this.price = price;
     }
 
-    // ===== ABSTRACT =====
-    public abstract void display();
+
 
     // Thêm phương thức trừu tượng để lấy Seller
     public abstract Seller getSeller();

@@ -82,8 +82,5 @@ public class Bidder extends User implements Observer {
          if (out != null) out.println(message);
      }
 
-    @Override
-    public void displayInfo() {
-        System.out.println("[Bidder] Name: " + getFullName() + " | Balance: " + balance + " | Reserved: " + reservedBalance);
-    }
+
 }

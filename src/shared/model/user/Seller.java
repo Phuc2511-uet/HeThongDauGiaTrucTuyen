@@ -12,10 +12,7 @@ public class Seller extends User {
 
     }
 
-    @Override
-    public void displayInfo() {
-        System.out.println("[Seller Account] Name: " + getFullName() + " | Balance: " + balance + "⭐");
-    }
+
 
     public void setBalance(double balance) {
         this.balance = balance;
