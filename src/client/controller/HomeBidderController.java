@@ -38,13 +38,22 @@ public class HomeBidderController {
         }
     }
 
+    private void checkAndLeave() {
+        if (ClientConnection.selectedAuctionId > 0) {
+            ClientConnection.getInstance().send("LEAVE_AUCTION " + ClientConnection.selectedAuctionId);
+            ClientConnection.selectedAuctionId = 0; // Reset ngay để tránh gửi lặp
+        }
+    }
+
     @FXML
     void showInfo() {
+        checkAndLeave();
         setPage("/client/view/resources/fxml/bidderInfo.fxml");
     }
 
     @FXML
     void showAuctionList() {
+        checkAndLeave();
         // 1. Chuyển trang trước
         setPage("/client/view/resources/fxml/auctionList.fxml");
         // 2. Gửi lệnh lấy dữ liệu (đảm bảo lệnh này khớp với Server)
@@ -54,12 +63,14 @@ public class HomeBidderController {
 
     @FXML
     void showWonAuctions() {
+        checkAndLeave();
         setPage("/client/view/resources/fxml/auctionWon.fxml");
         ClientConnection.getInstance().send("GET_WON_AUCTIONS");
     }
 
     @FXML
     void Logout() {
+        checkAndLeave();
         ClientConnection.getInstance().logOut();
     }
 }

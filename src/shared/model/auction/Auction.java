@@ -1,5 +1,6 @@
 package shared.model.auction;
 
+import server.network.ClientHandler;
 import shared.exception.AuctionClosedException;
 import shared.exception.InvalidBidException;
 import shared.model.item.Item;
@@ -394,7 +395,6 @@ public class Auction {
                 DatabaseManager.saveOrUpdateAuction(this);
 
                 message = "NOTIFY " + id + " " + currentPrice;
-                notifyObservers("AUCTION_DETAIL_SUCCESS " + this.toNetworkString());
 
                 if (!observers.contains(bidder)) {
                     shouldAddObserver = true;
@@ -436,7 +436,6 @@ public class Auction {
 
 
                 message = "NOTIFY " + id + " " + currentPrice;
-                notifyObservers("AUCTION_DETAIL_SUCCESS " + this.toNetworkString());
 
 
 
@@ -662,4 +661,28 @@ public class Auction {
     public long getRemainingTime() {
         return Math.max(0, endTime - System.currentTimeMillis());
     }
+
+    // ===== QUẢN LÝ NGƯỜI XEM PHIÊN =====
+    private final Set<ClientHandler> viewers = ConcurrentHashMap.newKeySet();
+
+    public void addViewer(ClientHandler client) {
+        if (client != null) {
+            viewers.add(client);
+            System.out.println("[Auction " + id + "] Thêm người xem. Tổng số người xem hiện tại: " + viewers.size());
+        }
+    }
+
+    public void removeViewer(ClientHandler client) {
+        if (client != null) {
+            viewers.remove(client);
+            System.out.println("[Auction " + id + "] Xóa người xem. Tổng số người xem hiện tại: " + viewers.size());
+        }
+    }
+
+    public Set<ClientHandler> getViewers() {
+        return viewers;
+    }
+    // =============================================
+
+
 }
