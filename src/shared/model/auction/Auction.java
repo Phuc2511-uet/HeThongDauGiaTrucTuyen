@@ -349,8 +349,6 @@ public class Auction {
             notifyObservers("AUCTION_FINISHED " + id);
         }
     }
-
-
     public void placeBid(double newPrice, Bidder bidder)
             throws AuctionClosedException, InvalidBidException {
 
@@ -395,6 +393,7 @@ public class Auction {
 
                 DatabaseManager.saveOrUpdateAuction(this);
 
+                message = "NOTIFY " + id + " " + currentPrice;
                 notifyObservers("AUCTION_DETAIL_SUCCESS " + this.toNetworkString());
 
                 if (!observers.contains(bidder)) {
@@ -433,10 +432,15 @@ public class Auction {
                 bidHistory.add(new BidTransaction( bidder, newPrice));
 
                 extendAuction();
-                while (processAutoBids());
-                DatabaseManager.saveOrUpdateAuction(this);
+                boolean changed = processAutoBids();
 
+
+                message = "NOTIFY " + id + " " + currentPrice;
                 notifyObservers("AUCTION_DETAIL_SUCCESS " + this.toNetworkString());
+
+
+
+
                 if (!observers.contains(bidder)) {
                     shouldAddObserver = true;
                 }
@@ -454,7 +458,15 @@ public class Auction {
         if (shouldAddObserver) {
             addObserver(bidder);
         }
+
+        if (message != null) {
+            notifyObservers(message);
+        }
     }
+
+
+
+
 
 
 
