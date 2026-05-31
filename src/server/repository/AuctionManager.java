@@ -130,13 +130,26 @@ public class AuctionManager {
             throw new InvalidBidException("Auction_không_tồn_tại");
         }
 
-        // Gọi logic đặt giá bên trong Auction (Tại đây trạng thái sẽ đổi sang RUNNING và sinh ra endTime)
+        // 1. Gọi logic đặt giá bên trong Auction (Trạng thái và giá mới sẽ được cập nhật trên RAM)
         auction.placeBid(price, bidder);
 
-        // Lưu hoặc cập nhật phiên đấu giá mới vào Database MySQL
+        // 2. Lưu hoặc cập nhật phiên đấu giá mới vào Database MySQL công khai
         DatabaseManager.saveOrUpdateAuction(auction);
 
-        return this.getAuctionDetailMessage(auctionId);
+        // 3. ĐỒNG BỘ REAL-TIME: Tạo chuỗi tin nhắn chi tiết mới nhất
+        String detailMessage = "AUCTION_DETAIL_SUCCESS " + auction.toNetworkString();
+
+        // 4. Bốc danh sách viewers đang xem phòng này ra để ép refresh giao diện
+        if (auction.getViewers() != null) {
+            System.out.println("[Broadcast] Phát sóng giá mới phiên #" + auctionId + " tới " + auction.getViewers().size() + " viewers.");
+            for (server.network.ClientHandler viewer : auction.getViewers()) {
+                // Gửi thẳng gói tin cập nhật chi tiết tới từng Client đang xem
+                viewer.sendRawMessage(detailMessage);
+            }
+        }
+
+        // Trả lời kết quả trực tiếp cho người vừa bấm nút (bọc lót an toàn)
+        return detailMessage;
     }
 
     public List<Auction> getAllAuctions() {

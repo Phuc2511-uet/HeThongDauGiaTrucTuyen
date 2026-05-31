@@ -90,6 +90,8 @@ public class InformationHandle {
                     return auctionService.restoreAuction(parts, currentUser);
                 case "GET_BID_HISTORY":
                     return auctionService.getBidHistory(parts);
+                case "LEAVE_AUCTION":
+                    return "LEAVE_AUCTION_SUCCESS";
                 default:
                     return "ERROR Unknown action";
             }

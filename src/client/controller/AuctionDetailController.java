@@ -345,6 +345,11 @@ public class AuctionDetailController implements Observer {
         // nếu ko gọi hàm stop thì sẽ làm rò rỉ bộ đếm chạy ngầm vô hạn
         stopCountdown();
 
+        String auctionIdText = lblAuctionId.getText().trim();
+        if (!auctionIdText.isEmpty()) {
+            ClientConnection.getInstance().send("LEAVE_AUCTION " + auctionIdText);
+        }
+
         ClientConnection.getInstance().removeObserver(this);
         // Quay lại trang danh sách
         HomeBidderController.setPage("/client/view/resources/fxml/auctionList.fxml");
