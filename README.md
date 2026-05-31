@@ -329,7 +329,7 @@ Workflow chính thực hiện:
 
 ## 11. Báo cáo và video demo
 
-- **Báo cáo PDF:** [Cập nhật link báo cáo PDF]
+- **Báo cáo PDF:** Link: https://drive.google.com/file/d/144KFyM2HzHnMhRQVnGLtvfW2vNqZwMoG/view?usp=drive_link
 - **Video demo:** [Cập nhật link video demo]
 
 ---
