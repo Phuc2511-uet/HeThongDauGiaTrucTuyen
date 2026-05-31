@@ -162,7 +162,7 @@ Cách 1: chạy bằng Maven:
 mvn exec:java -Dexec.mainClass="server.MainServer"
 ```
 
-Cách 2: chạy bằng file JAR đã build (Client yêu cầu JavaFX runtime hoặc chạy qua Maven/IDE):
+Cách 2: chạy bằng file JAR đã build:
 
 ```bash
 java -cp target/HeThongDauGia-1.0-SNAPSHOT-jar-with-dependencies.jar server.MainServer
@@ -307,7 +307,7 @@ Workflow chính thực hiện:
 ## 11. Báo cáo và video demo
 
 - **Báo cáo PDF:** Link: https://drive.google.com/file/d/17t-fFiBuf3rAAvi1BiXpld-rNE3GeZn5/view?usp=sharing
-- **Video demo:** [Cập nhật link video demo].
+- **Video demo:** Link: https://drive.google.com/file/d/1NydRQMnGJ2bVtFW1dEHD-Tr7Rax67jP2/view?usp=sharing
 
 ---
 
