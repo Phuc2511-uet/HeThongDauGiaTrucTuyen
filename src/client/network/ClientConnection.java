@@ -407,16 +407,7 @@ public class ClientConnection {
             System.err.println("Error while disconnecting: " + e.getMessage());
         }
     }
-    private void onReceiveAuctionList(List<Integer> list) {
 
-        System.out.println("=== DANH SÁCH AUCTION ===");
-
-        for (int id : list) {
-            System.out.println("Auction ID: " + id);
-        }
-
-        // sau này  thay bằng update GUI
-    }
 
     //ngăn không cho soket tạo mới khi chuyển màn hình
     private static ClientConnection instance;

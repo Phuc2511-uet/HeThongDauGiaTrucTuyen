@@ -153,27 +153,21 @@ public class AuctionDetailController implements Observer {
                     // 1. Luôn cập nhật lại tiền hiển thị trên UI cho khớp với hệ thống công khai
                     lblCurrentPrice.setText(String.format("%,.0f $", newPrice));
 
-                    // 2. Kiểm tra xem người vừa bấm đặt giá có phải là chính mình không dựa vào Tên hoặc Cờ hiệu
-                    boolean isMe = isMyOwnBidAction;
-                    if (!isMe && ClientConnection.getInstance() != null && ClientConnection.getInstance().getCurrentUsername() != null) {
-                        isMe = ClientConnection.getInstance().getCurrentUsername().equals(bidderName);
-                    }
 
-                    // 3. Nếu là ĐỐI THỦ đặt giá (không phải mình), hiển thị Toast
-                    if (!isMe) {
                         Stage currentStage = (Stage) btnBid.getScene().getWindow();
                         NotificationToast.showSuccess(
                                 currentStage,
                                 "Giá Đấu Mới!",
                                 "Phiên #" + auctionId + " vừa được trả mức giá mới: " + String.format("%,.0f $", newPrice)
                         );
-                    }
+
 
                     // 4. Reset lại cờ hiệu sau khi đã xử lý xong tin nhắn NOTIFY
                     isMyOwnBidAction = false;
                 });
             }
         }
+
 
         // ===== REFRESH GIÁ AUTO BID =====
         else if (cleanMessage.startsWith("AUTO_BID")) {
