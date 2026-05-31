@@ -1,48 +1,56 @@
 # Hệ thống Đấu giá Trực tuyến
 
-Hệ thống Đấu giá Trực tuyến là ứng dụng client-server viết bằng Java, hỗ trợ người dùng tạo sản phẩm, mở phiên đấu giá, đặt giá, tự động đấu giá và thanh toán sau khi thắng phiên. Ứng dụng sử dụng JavaFX cho giao diện client, TCP Socket cho giao tiếp mạng và MySQL trên Aiven Cloud để lưu trữ dữ liệu.
+Dự án xây dựng một hệ thống đấu giá trực tuyến theo mô hình **Client-Server** bằng Java. Người dùng có thể đăng nhập theo vai trò **Bidder**, **Seller** hoặc **Admin** để tham gia đặt giá, quản lý sản phẩm, tạo phiên đấu giá, theo dõi cập nhật gần thời gian thực và thanh toán sau khi thắng phiên.
+
+Hệ thống sử dụng **JavaFX** cho giao diện, **TCP Socket** cho giao tiếp giữa Client và Server, **MySQL trên Aiven Cloud** để lưu trữ dữ liệu, và **Maven/GitHub Actions** để build, test và đóng gói project.
+
+---
 
 ## 1. Mô tả bài toán và phạm vi hệ thống
 
-### Bài toán
+### 1.1. Bài toán
 
-Đấu giá trực tuyến cần xử lý đồng thời nhiều người dùng, cập nhật trạng thái phiên đấu giá kịp thời và đảm bảo dữ liệu tài khoản không bị sai lệch khi có nhiều lượt đặt giá. Hệ thống tập trung giải quyết các yêu cầu chính sau:
+Đấu giá trực tuyến là bài toán có trạng thái thay đổi liên tục, nhiều người dùng cùng tương tác và nhiều luồng xử lý có thể xảy ra đồng thời. Hệ thống tập trung giải quyết các yêu cầu chính:
 
-- Cập nhật giá hiện tại, trạng thái phiên và thông báo cho các client đang theo dõi.
-- Xử lý các lượt đặt giá đồng thời ở phía server.
-- Hỗ trợ đấu giá tự động dựa trên bước giá và mức giá tối đa do người dùng thiết lập.
-- Quản lý số dư tài khoản khi đặt giá, bị vượt giá và thanh toán phiên đấu giá.
-- Lưu trữ và khôi phục dữ liệu phiên đấu giá từ cơ sở dữ liệu.
+- Quản lý người dùng theo vai trò: Bidder, Seller và Admin.
+- Cho phép Seller đăng sản phẩm và tạo phiên đấu giá.
+- Cho phép Bidder xem phiên đấu giá, đặt giá trực tiếp và cấu hình tự động đấu giá.
+- Cập nhật trạng thái phiên đấu giá, giá hiện tại và thông báo cho các Client đang theo dõi.
+- Kiểm soát số dư tài khoản khi đặt giá, bị vượt giá và thanh toán.
+- Lưu trữ dữ liệu người dùng, sản phẩm, phiên đấu giá, lịch sử bid và cấu hình auto-bid.
 
-### Phạm vi hệ thống
+### 1.2. Phạm vi hệ thống
 
-Hệ thống được xây dựng theo mô hình client-server:
+Hệ thống gồm ba phần chính:
 
-- **Client:** giao diện JavaFX cho người mua, người bán và quản trị viên.
-- **Server:** xử lý kết nối TCP Socket, nghiệp vụ đấu giá, quản lý người dùng, sản phẩm, phiên đấu giá và đồng bộ dữ liệu với database.
-- **Database:** MySQL trên Aiven Cloud, truy cập thông qua JDBC.
+- **Client JavaFX:** hiển thị giao diện, nhận thao tác người dùng, gửi command tới Server và nhận phản hồi/cập nhật realtime.
+- **Server:** tiếp nhận kết nối TCP Socket, xử lý nghiệp vụ, quản lý trạng thái phiên đấu giá, RAM cache và đồng bộ dữ liệu với database.
+- **Database:** lưu trữ dữ liệu hệ thống trên MySQL Aiven Cloud thông qua JDBC.
 
 Các nhóm người dùng chính:
 
-- **Bidder:** đăng ký, đăng nhập, nạp tiền, xem phiên đấu giá, đặt giá, cấu hình auto-bid, theo dõi lịch sử và thanh toán phiên đã thắng.
-- **Seller:** quản lý sản phẩm, tạo phiên đấu giá, theo dõi phiên do mình tạo và nhận tiền sau khi người thắng thanh toán.
-- **Admin:** quản lý người dùng, sản phẩm và phiên đấu giá trong hệ thống.
+- **Bidder:** đăng ký, đăng nhập, nạp tiền, xem phiên đấu giá, đặt giá, cấu hình auto-bid, xem lịch sử và thanh toán phiên đã thắng.
+- **Seller:** quản lý sản phẩm, tạo phiên đấu giá, theo dõi phiên do mình tạo và nhận tiền khi người thắng thanh toán.
+- **Admin:** quản lý người dùng, sản phẩm và phiên đấu giá.
+
+---
 
 ## 2. Công nghệ sử dụng và yêu cầu cài đặt
 
-### Công nghệ sử dụng
+### 2.1. Công nghệ sử dụng
 
 | Thành phần | Công nghệ |
-| --- | --- |
+|---|---|
 | Ngôn ngữ chính | Java 17 |
 | Giao diện | JavaFX 17.0.2, FXML, CSS |
 | Giao tiếp mạng | TCP Socket |
 | Cơ sở dữ liệu | MySQL trên Aiven Cloud |
 | Truy cập database | JDBC, mysql-connector-j 8.3.0 |
-| Kiểm thử | JUnit 5 / JUnit Jupiter 5.10.2 |
+| Kiểm thử | JUnit Jupiter |
 | Quản lý project | Apache Maven |
+| CI/CD | GitHub Actions |
 
-### Yêu cầu cài đặt
+### 2.2. Yêu cầu cài đặt
 
 Trước khi chạy chương trình, cần cài đặt:
 
@@ -67,53 +75,95 @@ Trước khi chạy chương trình, cần cài đặt:
 
    Server cần kết nối Internet để truy cập MySQL trên Aiven Cloud.
 
+---
+
 ## 3. Cấu trúc thư mục
 
 Dự án được tổ chức theo các module chính sau:
 
 ```text
 HeThongDauGiaTrucTuyen/
-├── .github/                   # Cấu hình GitHub Actions / Workflows
+├── .github/
+│   └── workflows/              # GitHub Actions CI/CD
 ├── src/
-│   ├── client/                # Module client JavaFX
-│   │   ├── MainFx.java        # Entry point của ứng dụng client
-│   │   ├── controller/        # Controller xử lý sự kiện giao diện
-│   │   ├── network/           # Kết nối TCP Socket tới server
-│   │   ├── state/             # Quản lý trạng thái và cập nhật realtime ở client
-│   │   └── view/resources/    # FXML, CSS và tài nguyên giao diện
+│   ├── client/                 # Module Client JavaFX
+│   │   ├── MainFx.java         # Entry point của ứng dụng Client
+│   │   ├── controller/         # Controller xử lý sự kiện giao diện
+│   │   ├── network/            # Kết nối TCP Socket tới Server
+│   │   ├── state/              # Trạng thái Client và cập nhật realtime
+│   │   └── view/resources/     # FXML, CSS, hình ảnh và tài nguyên giao diện
 │   │
-│   ├── server/                # Module server
-│   │   ├── MainServer.java    # Entry point của server
-│   │   ├── network/           # Server socket và xử lý kết nối client
-│   │   ├── repository/        # Kết nối database và quản lý cache
-│   │   └── service/           # Xử lý nghiệp vụ hệ thống
+│   ├── server/                 # Module Server
+│   │   ├── MainServer.java     # Entry point của Server
+│   │   ├── network/            # ServerSocketRunner, ClientHandler, protocol xử lý kết nối
+│   │   ├── repository/         # DBConnection, DatabaseManager, User/Item/AuctionManager
+│   │   └── service/            # AccountService, AuctionService, ItemService, UserService
 │   │
-│   ├── shared/                # Các lớp dùng chung giữa client và server
-│   │   ├── exception/         # Exception tự định nghĩa
-│   │   └── model/             # User, Item, Auction, AutoBid, BidTransaction...
-│   │       └── item/factory/  # Factory khởi tạo các loại sản phẩm
+│   ├── shared/                 # Thành phần dùng chung
+│   │   ├── exception/          # Exception nghiệp vụ tự định nghĩa
+│   │   └── model/              # User, Item, Auction, AutoBid, BidTransaction...
+│   │       └── item/factory/   # Factory khởi tạo các loại sản phẩm
 │   │
-│   └── test/                  # Unit test
+│   └── test/                   # Unit test
 │       └── AuctionTest.java
 │
-├── pom.xml                    # Cấu hình Maven
-└── README.md
+├── pom.xml                     # Cấu hình Maven
+└── README.md                   # Tài liệu hướng dẫn project
 ```
 
-## 4. Một số design pattern đã áp dụng
+---
 
-- **Factory Method:** dùng trong `ItemFactory` để khởi tạo các loại sản phẩm như `Art`, `Electronic`, `Vehicle`.
+## 4. Kiến trúc tổng thể
+
+Hệ thống hoạt động theo kiến trúc Client-Server:
+
+```text
+Client JavaFX
+    |
+    | TCP Socket command / response
+    v
+Network layer trên Server
+    |
+    v
+Service / Core
+    |
+    v
+Repository / Manager + RAM cache
+    |
+    | JDBC sync
+    v
+MySQL Aiven Cloud
+```
+
+Luồng xử lý chính:
+
+1. Client gửi command qua TCP Socket.
+2. `ClientHandler` tiếp nhận request và kiểm tra trạng thái đăng nhập.
+3. Service tương ứng xử lý nghiệp vụ: tài khoản, đấu giá, sản phẩm hoặc người dùng.
+4. Repository/Manager cập nhật dữ liệu trên RAM cache và đồng bộ với MySQL khi cần.
+5. Server trả response về Client.
+6. Khi phiên đấu giá thay đổi, Server gửi notification/realtime update tới các Client đang theo dõi phiên.
+
+---
+
+## 5. Design pattern và OOP đã áp dụng
+
+- **Encapsulation:** đóng gói dữ liệu trong model/service, thao tác thông qua method.
+- **Inheritance & Polymorphism:** `User` được mở rộng thành `Bidder`, `Seller`, `Admin`; `Item` có các loại sản phẩm cụ thể như tranh ảnh, điện tử, xe cộ.
+- **Factory Method:** dùng `ItemFactory` để khởi tạo sản phẩm theo loại.
 - **State Machine:** quản lý vòng đời phiên đấu giá qua các trạng thái như `OPEN`, `RUNNING`, `FINISH`, `PAID`, `CANCELED`.
-- **Observer:** hỗ trợ cập nhật thông tin phiên đấu giá từ server tới các client đang theo dõi.
-- **Singleton:** dùng cho một số lớp quản lý kết nối và trạng thái dùng chung, ví dụ `ClientConnection`, `InformationHandle`, `UserManager`.
+- **Observer / Realtime update:** Server lưu danh sách Client đang theo dõi phiên và gửi cập nhật khi giá/trạng thái thay đổi.
+- **Singleton:** dùng cho một số lớp quản lý kết nối, trạng thái và dữ liệu dùng chung.
 
-## 5. Hướng dẫn chạy chương trình
+---
+
+## 6. Hướng dẫn chạy chương trình
 
 Các lệnh dưới đây có thể chạy trên Windows, Linux và macOS nếu đã cài JDK và Maven.
 
-### 5.1. Biên dịch và đóng gói
+### 6.1. Biên dịch và đóng gói
 
-Tại thư mục gốc của dự án, chạy:
+Tại thư mục gốc của project, chạy:
 
 ```bash
 mvn clean package
@@ -125,11 +175,9 @@ Sau khi build thành công, file JAR được tạo tại:
 target/HeThongDauGia-1.0-SNAPSHOT-jar-with-dependencies.jar
 ```
 
-## 6. Thứ tự chạy Server và Client
+### 6.2. Chạy Server
 
-Cần khởi động **Server trước**, sau đó mới mở **Client**.
-
-### Bước 1: Chạy Server
+Cần chạy Server trước Client.
 
 Cách 1: chạy bằng Maven:
 
@@ -143,11 +191,11 @@ Cách 2: chạy bằng file JAR đã build:
 java -cp target/HeThongDauGia-1.0-SNAPSHOT-jar-with-dependencies.jar server.MainServer
 ```
 
-Khi server khởi động thành công, console sẽ hiển thị thông tin nạp dữ liệu người dùng, sản phẩm và phiên đấu giá từ database.
+Khi Server khởi động thành công, console sẽ hiển thị thông tin nạp dữ liệu người dùng, sản phẩm và phiên đấu giá từ database.
 
-### Bước 2: Chạy Client
+### 6.3. Chạy Client
 
-Mở một terminal khác, sau đó chạy một trong các lệnh sau.
+Mở một terminal khác, sau đó chạy Client.
 
 Cách 1: chạy bằng Maven:
 
@@ -161,82 +209,134 @@ Cách 2: chạy bằng file JAR:
 java -cp target/HeThongDauGia-1.0-SNAPSHOT-jar-with-dependencies.jar client.MainFx
 ```
 
-> Nếu file JAR được cấu hình main class cho client trong `pom.xml`, có thể chạy bằng lệnh:
->
-> ```bash
-> java -jar target/HeThongDauGia-1.0-SNAPSHOT-jar-with-dependencies.jar
-> ```
+Nếu file JAR đang cấu hình `Main-Class` là `client.MainFx`, có thể chạy bằng:
 
-### Chạy bằng IntelliJ IDEA
+```bash
+java -jar target/HeThongDauGia-1.0-SNAPSHOT-jar-with-dependencies.jar
+```
+
+> Lưu ý: với một số môi trường chưa có JavaFX runtime phù hợp, nên chạy bằng Maven hoặc IntelliJ IDEA để Maven tự quản lý dependencies.
+
+---
+
+## 7. Chạy bằng IntelliJ IDEA
 
 1. Mở project bằng IntelliJ IDEA.
 2. Chờ Maven tải toàn bộ dependencies.
-3. Chạy `server.MainServer`.
-4. Sau khi server khởi động thành công, chạy `client.MainFx`.
-5. Nếu chạy nhiều máy, chỉnh địa chỉ kết nối trong `MainFx.java` thành IP của máy chạy Server hoặc IP Tailscale tương ứng.
+3. Chạy `server.MainServer` trước.
+4. Sau khi Server khởi động thành công, chạy `client.MainFx`.
+5. Nếu chạy nhiều máy, chỉnh địa chỉ kết nối trong `src/client/MainFx.java` thành IP của máy chạy Server hoặc IP Tailscale tương ứng.
 
-## 7. Cấu hình kết nối Client-Server
+---
 
-Trong file `src/client/MainFx.java`, chỉnh địa chỉ kết nối:
+## 8. Cấu hình kết nối Client-Server
 
-```java
-ClientConnection.getInstance().connect("HOST", 3636);
-```
-
-Nếu chạy server và client trên cùng một máy:
+Trong `src/client/MainFx.java`, Client kết nối tới Server qua lệnh:
 
 ```java
 ClientConnection.getInstance().connect("localhost", 3636);
 ```
 
-Sau khi thay đổi cấu hình, build lại project:
+Nếu chạy Server và Client trên cùng một máy, giữ nguyên:
+
+```java
+ClientConnection.getInstance().connect("localhost", 3636);
+```
+
+Nếu chạy nhiều máy qua Tailscale hoặc mạng nội bộ, thay `localhost` bằng địa chỉ IP của máy chạy Server:
+
+```java
+ClientConnection.getInstance().connect("<IP_may_chay_server>", 3636);
+```
+
+Ví dụ:
+
+```java
+ClientConnection.getInstance().connect("100.x.x.x", 3636);
+```
+
+Sau khi thay đổi địa chỉ kết nối, build lại project:
 
 ```bash
 mvn clean package
 ```
 
-## 8. Chức năng đã hoàn thành
+---
 
-### 8.1. Lõi hệ thống
+## 9. Chức năng đã hoàn thành
 
-- [x] Giao tiếp client-server bằng TCP Socket.
-- [x] Xử lý nhiều kết nối client ở phía server.
-- [x] Gửi và lưu ảnh sản phẩm thông qua giao thức `UPLOAD_IMAGE`.
-- [x] Đồng bộ dữ liệu giữa bộ nhớ server và MySQL Cloud Database.
-- [x] Khôi phục dữ liệu phiên đấu giá khi server khởi động lại.
-- [x] Unit test cho một số lớp model và luồng xử lý chính.
+### 9.1. Lõi hệ thống
 
-### 8.2. Bidder
+- Giao tiếp Client-Server bằng TCP Socket.
+- Xử lý nhiều kết nối Client ở phía Server bằng `ClientHandler`/thread.
+- Quản lý RAM cache cho user, item và auction.
+- Đồng bộ dữ liệu với MySQL Aiven Cloud thông qua JDBC.
+- Theo dõi Client đang xem phiên đấu giá để gửi realtime update.
+- Khôi phục dữ liệu từ database khi Server khởi động.
+- Unit test cho một số luồng nghiệp vụ chính.
+- CI/CD bằng GitHub Actions để build/package và tạo release artifact.
 
-- [x] Đăng ký và đăng nhập tài khoản.
-- [x] Nạp tiền vào ví cá nhân.
-- [x] Xem danh sách các phiên đấu giá đang mở hoặc đang chạy.
-- [x] Xem chi tiết phiên đấu giá.
-- [x] Đặt giá trực tiếp theo bước giá hợp lệ.
-- [x] Cấu hình auto-bid với mức giá tối đa.
-- [x] Xem biểu đồ biến động giá của phiên đấu giá.
-- [x] Nhận thông báo khi có thay đổi liên quan đến phiên đấu giá.
-- [x] Xem các phiên đã thắng và thanh toán bằng số dư tài khoản.
+### 9.2. Bidder
 
-### 8.3. Seller
+- Đăng ký và đăng nhập tài khoản.
+- Nạp tiền vào ví cá nhân.
+- Xem danh sách phiên đấu giá đang mở/đang chạy.
+- Xem chi tiết phiên đấu giá.
+- Đặt giá trực tiếp theo bước giá hợp lệ.
+- Cấu hình auto-bid với mức giá tối đa.
+- Nhận thông báo realtime khi có thay đổi liên quan đến phiên đấu giá.
+- Xem lịch sử/diễn biến giá.
+- Xem các phiên đã thắng và thanh toán bằng số dư tài khoản.
 
-- [x] Thêm sản phẩm mới.
-- [x] Chọn danh mục sản phẩm: tranh ảnh, điện tử, xe cộ.
-- [x] Cập nhật hoặc xóa sản phẩm chưa đưa vào đấu giá.
-- [x] Tạo phiên đấu giá cho sản phẩm hợp lệ.
-- [x] Xem danh sách và trạng thái các phiên đấu giá do mình tạo.
-- [x] Nhận tiền sau khi người thắng thanh toán phiên đấu giá.
+### 9.3. Seller
 
-### 8.4. Admin
+- Thêm sản phẩm mới.
+- Chọn danh mục sản phẩm: tranh ảnh, điện tử, xe cộ.
+- Cập nhật hoặc xóa sản phẩm chưa đưa vào đấu giá.
+- Tạo phiên đấu giá cho sản phẩm hợp lệ.
+- Xem danh sách và trạng thái các phiên đấu giá do mình tạo.
+- Nhận tiền sau khi người thắng thanh toán phiên đấu giá.
 
-- [x] Đăng nhập bằng tài khoản quản trị viên.
-- [x] Xem và xóa tài khoản người dùng.
-- [x] Xem và xóa sản phẩm.
-- [x] Tạo tài khoản mới từ giao diện Admin.
-- [x] Hủy phiên đấu giá đang chạy khi cần.
-- [x] Khôi phục phiên đấu giá đã hủy về trạng thái chờ đấu giá và đặt lại thời gian.
+### 9.4. Admin
 
-## 9. Báo cáo và video demo
+- Đăng nhập bằng tài khoản quản trị viên.
+- Xem và xóa tài khoản người dùng.
+- Xem và xóa sản phẩm.
+- Tạo tài khoản mới từ giao diện Admin.
+- Hủy phiên đấu giá khi cần.
+- Khôi phục phiên đấu giá đã hủy về trạng thái chờ đấu giá và đặt lại thời gian.
 
-- **Báo cáo PDF:** Cập nhật sau.
-- **Video demo:** Cập nhật sau.
+### 9.5. Chức năng tùy chọn
+
+- Auto-bidding.
+- Anti-sniping.
+- Bid history visualization.
+
+---
+
+## 10. CI/CD
+
+Project sử dụng GitHub Actions để tự động build và đóng gói khi có cập nhật trên nhánh cấu hình trong workflow.
+
+Workflow chính thực hiện:
+
+1. Checkout source code.
+2. Cài đặt Java 17.
+3. Chạy Maven package.
+4. Tạo GitHub Release và upload file `*-with-dependencies.jar`.
+
+---
+
+## 11. Báo cáo và video demo
+
+- **Báo cáo PDF:** [Cập nhật link báo cáo PDF]
+- **Video demo:** [Cập nhật link video demo]
+
+---
+
+## 12. Ghi chú khi demo
+
+- Chạy Server trước, sau đó mới chạy Client.
+- Nếu demo nhiều máy, cần đảm bảo các máy đã kết nối cùng mạng nội bộ hoặc Tailscale.
+- Máy chạy Server cần kết nối Internet để truy cập database Aiven.
+- Nếu thay địa chỉ Server trong `MainFx.java`, cần build lại trước khi chạy bằng JAR.
