@@ -40,6 +40,9 @@ public class ClientHandler implements Runnable {
                 DataInputStream dis = new DataInputStream(is);
                 DataOutputStream dos = new DataOutputStream(os)
         ) {
+            // Khởi tạo thuộc tính PrintWriter toàn cục cho luồng này
+            this.out = new PrintWriter(os, true);
+
             InformationHandle handle = InformationHandle.getInstance();
             String message;
 
@@ -48,13 +51,71 @@ public class ClientHandler implements Runnable {
 
                 String response = handleTextRequest(message, handle, out);
                 if (response != null) {
+                    // ===== 3. KÍCH HOẠT THEO DÕI VÀO/RA PHÒNG TẠI ĐÂY =====
+                    handleRoomViewerTracker(message, response);
                     out.println(response);
                 }
             }
         } catch (IOException e) {
             System.out.println("ClientConnection disconnected: " + socket);
         } finally {
+            // ===== 4. DỌN DẸP AN TOÀN KHI MẤT KẾT NỐI ĐỘT NGỘT =====
+            cleanUpLeftRoom();
+
             clearBidderConnection();
+        }
+    }
+
+    // ===== 5. HÀM TỰ ĐỘNG ĐIỀU PHỐI DANH SÁCH VIEWERS THEO SỰ KIỆN MẠNG =====
+    private void handleRoomViewerTracker(String request, String response) {
+        if (request == null || response == null) return;
+
+        String[] parts = request.trim().split("\\s+");
+        if (parts.length == 0) return;
+
+        String action = parts[0];
+
+        // Trường hợp A: Vào phòng thành công (Dựa trên phản hồi từ Service)
+        if (response.startsWith("AUCTION_DETAIL_SUCCESS")) {
+            try {
+                String[] resParts = response.split("\\s+");
+                int auctionId = Integer.parseInt(resParts[1]);
+
+                // Nếu đang xem dở một phòng khác mà nhảy thẳng sang phòng này, xóa khỏi phòng cũ trước
+                if (this.currentViewingAuctionId != -1 && this.currentViewingAuctionId != auctionId) {
+                    cleanUpLeftRoom();
+                }
+
+                this.currentViewingAuctionId = auctionId;
+                shared.model.auction.Auction currentAuction = server.repository.AuctionManager.getInstance().getAuctionById(auctionId);
+                if (currentAuction != null) {
+                    currentAuction.addViewer(this); // Thêm luồng này vào danh sách người xem phòng
+                }
+            } catch (Exception e) {
+                System.err.println("Lỗi addViewer: " + e.getMessage());
+            }
+        }
+        // Trường hợp B: Chủ động thoát phòng (Bấm Back từ Client)
+        else if (action.equals("LEAVE_AUCTION")) {
+            cleanUpLeftRoom();
+        }
+        // Trường hợp C: Bấm Menu chuyển tab hoặc Logout ngoài sảnh khi đang treo trong phòng
+        else if (action.equals("GET_AUCTIONS") ||
+                action.equals("GET_WON_AUCTIONS") ||
+                action.equals("GET_SELLER_AUCTIONS") ||
+                action.equals("LOGOUT")) {
+            cleanUpLeftRoom();
+        }
+    }
+
+    // Hàm phụ trợ bốc Client ra khỏi Set của phòng đấu giá
+    private void cleanUpLeftRoom() {
+        if (this.currentViewingAuctionId != -1) {
+            shared.model.auction.Auction oldAuction = server.repository.AuctionManager.getInstance().getAuctionById(this.currentViewingAuctionId);
+            if (oldAuction != null) {
+                oldAuction.removeViewer(this); // Xóa khỏi Set viewers
+            }
+            this.currentViewingAuctionId = -1; // Trả về trạng thái sảnh chờ
         }
     }
 
@@ -153,6 +214,19 @@ public class ClientHandler implements Runnable {
             dos.flush();
         } catch (Exception e) {
             e.printStackTrace();
+        }
+    }
+
+
+    // ===== xử lí danh sách viewer =====
+    private PrintWriter out;
+    private int currentViewingAuctionId = -1;
+    // Lưu ID phòng đang xem (-1 là đang ở ngoài sảnh)
+
+    // ===== ĐẨY DATA REAL-TIME XUỐNG CLIENT =====
+    public void sendRawMessage(String message) {
+        if (out != null) {
+            out.println(message);
         }
     }
 }
