@@ -166,18 +166,6 @@ graph TB
     style StorageBox fill:#fafafa,stroke:#cccccc,stroke-width:1px,stroke-dasharray: 5 5
 ```
 
-Luồng xử lý chính (10 bước khép kín):
-
-1. **Client UI:** Người dùng tương tác (nhấn nút đặt giá, nạp tiền...) trên các màn hình giao diện.
-2. **Controller Layer:** Khởi tạo FXML và Controller ở `Controller Layer / ClientConnection` để hiển thị, đồng thời gửi yêu cầu (Command) TCP qua `ClientConnection` tới Server.
-3. **Network Layer:** Tiếp nhận gói tin socket từ Client, giải mã Command và chuyển giao cho Service tương ứng xử lý.
-4. **Service / Core:** Tiếp nhận yêu cầu nghiệp vụ và gọi các phương thức tương ứng tại tầng Repository/Manager.
-5. **Repository / Manager:** Truy cập RAM cache (`Shared Model` cache) để kiểm tra/xử lý dữ liệu.
-6. **Database Sync:** Đồng bộ hóa dữ liệu đã thay đổi xuống Database (Aiven MySQL) thông qua JDBC.
-7. **Trả dữ liệu:** Repository trả dữ liệu / domain object về cho Service.
-8. **Trả kết quả:** Service hoàn thành nghiệp vụ logic và gửi kết quả xử lý về Network Layer.
-9. **Gửi response:** Network Layer gửi gói tin phản hồi hoặc các bản tin cập nhật realtime qua TCP Socket về phía Client.
-10. **Cập nhật UI:** `Controller Layer` nhận response, cập nhật thông tin phiên đấu giá trong `ClientSession` và tiến hành cập nhật lại giao diện trên các màn hình hiển thị cho người dùng.
 
 ---
 
