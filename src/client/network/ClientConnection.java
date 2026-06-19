@@ -275,7 +275,11 @@ public class ClientConnection {
                 break;
             case "BID_HISTORY":
                 notifyObservers(message);
-                break;                       //BID_HISTORY 15 1710000000000,500 1710000100000,700 1710000200000,900
+                break;
+                //BID_HISTORY 15 1710000000000,500 1710000100000,700 1710000200000,900
+            case "LEAVE_AUCTION_SUCCESS":
+                System.out.println("[Client] Đã rời phòng đấu giá trên hệ thống Server an toàn.");
+                break;
             default:
                 System.out.println("Unknown: " + message);
         }
